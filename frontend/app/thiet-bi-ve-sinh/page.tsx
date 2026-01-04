@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { CommitmentSection } from "@/components/CommitmentSection";
-import { CategorySection } from "@/components/CategorySection";
+import CategorySection from "@/components/CategorySection";
 import { Star, ChevronDown, ChevronUp } from "lucide-react";
 
 interface Product {

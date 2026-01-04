@@ -1,8 +1,8 @@
 import { API_URL } from '@/config';
 import { BannerCarousel } from "@/components/BannerCarousel";
 import { CommitmentSection } from "@/components/CommitmentSection";
-import { CategorySection } from "@/components/CategorySection";
-import { TrendingSection } from "@/components/TrendingSection";
+import CategorySection from "@/components/CategorySection";
+import TrendingSection from "@/components/TrendingSection";
 import { ShowroomBanner } from "@/components/ShowroomBanner";
 import { ProductListClient } from "@/components/ProductListClient";
 import { Header } from "@/components/Header";
