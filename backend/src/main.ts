@@ -8,7 +8,9 @@ import * as fs from 'fs';
 async function bootstrap() {
     console.log('--- BOOTSTRAP STARTING ---');
     try {
-        const app = await NestFactory.create<NestExpressApplication>(AppModule);
+        const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+            logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+        });
 
         // Log every request
         app.use((req, res, next) => {
