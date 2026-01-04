@@ -18,12 +18,12 @@ async function bootstrap() {
             next();
         });
 
-        // Configure CORS - allow all origins for now
-        app.enableCors({
-            origin: true,
-            methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-            credentials: true,
-        });
+        // Log all network interfaces to debug connectivity
+        const networkInterfaces = require('os').networkInterfaces();
+        console.log('[BOOTSTRAP] Network Interfaces:', JSON.stringify(networkInterfaces, null, 2));
+
+        // Configure CORS - default permissive
+        app.enableCors();
 
         // Ensure uploads folder exists
         const uploadPath = join(__dirname, '..', 'uploads');
@@ -40,17 +40,17 @@ async function bootstrap() {
         // Railway injects PORT environment variable
         const port = process.env.PORT || 3000;
         console.log(`[BOOTSTRAP] Railway PORT env: ${process.env.PORT}`);
-        console.log(`[BOOTSTRAP] Listening on port ${port} (default host)`);
+        console.log(`[BOOTSTRAP] Binding to 0.0.0.0:${port}`);
 
         // Manual Health Check Route (Bypassing Controllers)
         const server = app.getHttpAdapter().getInstance();
         server.get('/', (req, res) => {
             console.log('[REQUEST] GET / (Health Check)');
-            res.send('Server is Up!');
+            res.send('Server is Up! (0.0.0.0 Binding)');
         });
 
-        await app.listen(port, () => {
-            console.log(`Server successfully started on port ${port}`);
+        await app.listen(port, '0.0.0.0', () => {
+            console.log(`Server successfully started on 0.0.0.0:${port}`);
         });
 
         // Heartbeat to check if event loop is blocked or process dies
