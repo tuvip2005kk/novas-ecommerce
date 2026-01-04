@@ -37,8 +37,10 @@ async function bootstrap() {
             prefix: '/uploads/',
         });
 
-        const port = process.env.PORT || 3005;
-        console.log(`Attempting to listen on port ${port}...`);
+        // Railway injects PORT environment variable
+        const port = process.env.PORT || 3000;
+        console.log(`[BOOTSTRAP] Railway PORT env: ${process.env.PORT}`);
+        console.log(`[BOOTSTRAP] Listening on 0.0.0.0:${port}`);
 
         await app.listen(port, '0.0.0.0', () => {
             console.log(`Server successfully started and running on http://0.0.0.0:${port}`);
