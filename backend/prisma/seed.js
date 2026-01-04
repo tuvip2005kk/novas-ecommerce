@@ -3,44 +3,81 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('Start seeding ...');
+    console.log('=== START SEEDING ===');
 
-    // Categories
-    const sanitary = await prisma.category.upsert({
-        where: { slug: 'thiet-bi-ve-sinh' },
+    // Categories (matching local MySQL data)
+    console.log('Creating categories...');
+
+    await prisma.category.upsert({
+        where: { slug: 'bon-cau' },
         update: {},
         create: {
-            name: 'Thiết Bị Vệ Sinh',
-            slug: 'thiet-bi-ve-sinh',
-            image: '/uploads/categories/sanitary.jpg',
-            description: 'Các sản phẩm thiết bị vệ sinh cao cấp',
+            name: 'Bồn Cầu',
+            slug: 'bon-cau',
+            image: '/images/categories/bon-cau.jpg',
+            description: 'Bộ sưu tập bồn cầu thông minh',
         },
     });
 
-    const tiles = await prisma.category.upsert({
-        where: { slug: 'gach-op-lat' },
+    await prisma.category.upsert({
+        where: { slug: 'phu-kien' },
         update: {},
         create: {
-            name: 'Gạch Ốp Lát',
-            slug: 'gach-op-lat',
-            image: '/uploads/categories/tiles.jpg',
-            description: 'Gạch ốp lát sang trọng',
+            name: 'Phụ Kiện',
+            slug: 'phu-kien',
+            image: '/images/categories/phu-kien.jpg',
+            description: 'Phụ kiện phòng tắm: kệ, móc, giá đỡ',
         },
     });
 
-    // Products
+    await prisma.category.upsert({
+        where: { slug: 'lavabo' },
+        update: {},
+        create: {
+            name: 'Lavabo',
+            slug: 'lavabo',
+            image: '/images/categories/lavabo.jpg',
+            description: 'Chậu rửa mặt lavabo, vòi lavabo',
+        },
+    });
+
+    await prisma.category.upsert({
+        where: { slug: 'voi-sen' },
+        update: {},
+        create: {
+            name: 'Vòi Sen',
+            slug: 'voi-sen',
+            image: '/images/categories/voi-sen.jpg',
+            description: 'Sen cây, sen tắm, vòi sen các loại',
+        },
+    });
+
+    await prisma.category.upsert({
+        where: { slug: 'bon-tam' },
+        update: {},
+        create: {
+            name: 'Bồn Tắm',
+            slug: 'bon-tam',
+            image: '/images/categories/bon-tam.jpg',
+            description: 'Bồn tắm massage, bồn tắm đứng',
+        },
+    });
+
+    // Products (sample products for testing payment)
+    console.log('Creating products...');
+
     await prisma.product.upsert({
         where: { slug: 'bon-cau-thong-minh-enic-v8' },
         update: {},
         create: {
             name: 'Bồn Cầu Thông Minh Enic V8',
             slug: 'bon-cau-thong-minh-enic-v8',
-            description: 'Bồn cầu thông minh với nhiều tính năng hiện đại.',
+            description: 'Bồn cầu thông minh với nhiều tính năng hiện đại: tự động xả, sưởi ấm, vệ sinh tự động.',
             price: 15000000,
-            image: '/uploads/products/bon-cau-v8.jpg',
-            images: JSON.stringify(['/uploads/products/bon-cau-v8.jpg']),
+            image: '/images/products/bon-cau-v8.jpg',
+            images: ['/images/products/bon-cau-v8.jpg', '/images/products/bon-cau-v8-2.jpg'],
             stock: 50,
-            subcategoryId: null, // Basic seed w/o subcategories for now
+            subcategoryId: null,
         },
     });
 
@@ -50,21 +87,36 @@ async function main() {
         create: {
             name: 'Lavabo Đặt Bàn SL01',
             slug: 'lavabo-dat-ban-sl01',
-            description: 'Lavabo thiết kế sang trọng, men sứ cao cấp.',
+            description: 'Lavabo thiết kế sang trọng, men sứ cao cấp, phù hợp mọi không gian.',
             price: 2500000,
-            image: '/uploads/products/lavabo-sl01.jpg',
-            images: JSON.stringify(['/uploads/products/lavabo-sl01.jpg']),
+            image: '/images/products/lavabo-sl01.jpg',
+            images: ['/images/products/lavabo-sl01.jpg'],
             stock: 100,
             subcategoryId: null,
         },
     });
 
-    console.log('Seeding finished.');
+    await prisma.product.upsert({
+        where: { slug: 'voi-sen-tam-inox-304' },
+        update: {},
+        create: {
+            name: 'Vòi Sen Tắm Inox 304',
+            slug: 'voi-sen-tam-inox-304',
+            description: 'Vòi sen inox 304 cao cấp, chống gỉ sét, bền bỉ theo thời gian.',
+            price: 1200000,
+            image: '/images/products/voi-sen-inox.jpg',
+            images: ['/images/products/voi-sen-inox.jpg'],
+            stock: 200,
+            subcategoryId: null,
+        },
+    });
+
+    console.log('=== SEEDING FINISHED ===');
 }
 
 main()
     .catch((e) => {
-        console.error(e);
+        console.error('=== SEEDING ERROR ===', e);
         process.exit(1);
     })
     .finally(async () => {
