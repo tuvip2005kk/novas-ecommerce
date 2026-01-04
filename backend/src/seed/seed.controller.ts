@@ -1,17 +1,17 @@
 import { Controller, Get } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { PrismaService } from '../prisma.service';
 
 @Controller('seed')
 export class SeedController {
+    constructor(private readonly prisma: PrismaService) { }
+
     @Get()
     async seedData() {
         try {
             console.log('Start manual seeding ...');
 
             // Categories
-            await prisma.category.upsert({
+            await this.prisma.category.upsert({
                 where: { slug: 'thiet-bi-ve-sinh' },
                 update: {},
                 create: {
@@ -22,7 +22,7 @@ export class SeedController {
                 },
             });
 
-            await prisma.category.upsert({
+            await this.prisma.category.upsert({
                 where: { slug: 'gach-op-lat' },
                 update: {},
                 create: {
@@ -34,7 +34,7 @@ export class SeedController {
             });
 
             // Products
-            await prisma.product.upsert({
+            await this.prisma.product.upsert({
                 where: { slug: 'bon-cau-thong-minh-enic-v8' },
                 update: {},
                 create: {
@@ -49,7 +49,7 @@ export class SeedController {
                 },
             });
 
-            await prisma.product.upsert({
+            await this.prisma.product.upsert({
                 where: { slug: 'lavabo-dat-ban-sl01' },
                 update: {},
                 create: {
