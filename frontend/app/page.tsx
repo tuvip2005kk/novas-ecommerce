@@ -8,6 +8,9 @@ import { ProductListClient } from "@/components/ProductListClient";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 
+// Force dynamic rendering (skip build-time SSR)
+export const dynamic = 'force-dynamic';
+
 async function getProducts() {
     try {
         const res = await fetch(`${API_URL}/api/products`, { cache: 'no-store' });
