@@ -6,7 +6,6 @@
     "private": true,
     "license": "UNLICENSED",
     "scripts": {
-        "prebuild": "rimraf dist",
         "build": "npx prisma generate && nest build",
         "format": "prettier --write \"src/**/*.ts\"",
         "start": "nest start",
