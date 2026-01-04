@@ -2,15 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { SePayWebhookDto } from './dto/sepay-webhook.dto';
 
-// SePay Configuration - CẬP NHẬT THÔNG TIN CỦA BẠN
+// SePay Configuration - HARDCODED để tránh lỗi Railway build
 const SEPAY_CONFIG = {
-    // Lấy từ my.sepay.vn → Tích hợp → API Key
-    API_KEY: process.env.SEPAY_API_KEY || 'YOUR_SEPAY_API_KEY',
-
     // Thông tin tài khoản ngân hàng đã liên kết SePay
-    BANK_CODE: process.env.SEPAY_BANK_CODE || 'TPB', // TPBank
-    ACCOUNT_NUMBER: process.env.SEPAY_ACCOUNT_NUMBER || '10000606788', // Số TK TPBank
-    ACCOUNT_NAME: process.env.SEPAY_ACCOUNT_NAME || 'VUONG XUAN TU', // Tên chủ TK (viết hoa)
+    BANK_CODE: 'TPB', // TPBank
+    ACCOUNT_NUMBER: '10000606788', // Số TK TPBank
+    ACCOUNT_NAME: 'VUONG XUAN TU', // Tên chủ TK (viết hoa)
 
     // Prefix nội dung chuyển khoản
     CONTENT_PREFIX: 'DH',
