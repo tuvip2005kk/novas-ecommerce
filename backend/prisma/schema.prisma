@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String
+  name      String?
+  role      String     @default("USER")
+  orders    Order[]
+  likes     Like[]
+  reviews   Review[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String
+  slug          String        @unique
+  image         String?
+  description   String?       @db.Text
+  subcategories Subcategory[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Subcategory {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  image       String?
+  category    Category  @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id            Int          @id @default(autoincrement())
+  name          String
+  description   String       @db.Text
+  price         Float
+  image         String
+  images        Json?        @default("[]")
+  slug          String       @unique
+  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  subcategoryId Int?
+  stock         Int          @default(100)
+  soldCount     Int          @default(0)
+  specs         Json?        @default("{}")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  orderItems    OrderItem[]
+  likes         Like[]
+  reviews       Review[]
+}
+
+model Order {
+  id              Int      @id @default(autoincrement())
+  total           Float
+  status          String   @default("PENDING")
+  paymentContent  String?  @unique
+  customerName    String?
+  customerPhone   String?
+  customerAddress String?
+  note            String?  @db.Text
+  saleCode        String?
+  discount        Float    @default(0)
+  user            User?    @relation(fields: [userId], references: [id])
+  userId          Int?
+  items           OrderItem[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  quantity  Int
+  price     Float
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   Int
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String?  @db.Text
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
+}
+
+model Sale {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  discount    Float
+  type        String    @default("PERCENT")
+  minOrder    Float     @default(0)
+  maxDiscount Float?
+  usageLimit  Int       @default(100)
+  usedCount   Int       @default(0)
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Banner {
+  id          Int      @id @default(autoincrement())
+  image       String
+  title       String
+  description String?
+  link        String?
+  cta         String?
+  pageType    String   @default("homepage") // homepage, category
+  categorySlug String?  // for category banners
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Showroom {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String   @db.Text
+  mapUrl    String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
