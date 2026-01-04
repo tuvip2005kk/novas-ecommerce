@@ -1,9 +1,12 @@
+console.log('--- SYSTEM STARTING: READING IMPORTS ---');
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 
 import * as fs from 'fs';
+
+console.log('--- SYSTEM LOADING: IMPORTS COMPLETE ---');
 
 async function bootstrap() {
     console.log('--- BOOTSTRAP STARTING ---');
