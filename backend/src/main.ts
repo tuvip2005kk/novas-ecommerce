@@ -12,8 +12,9 @@ async function bootstrap() {
         prefix: '/uploads/',
     });
 
-    await app.listen(3005, '0.0.0.0', () => {
-        console.log('Server running on http://0.0.0.0:3005');
+    const port = process.env.PORT || 3005; // Port config
+    await app.listen(port, '0.0.0.0', () => {
+        console.log(`Server running on http://0.0.0.0:${port}`);
     });
 }
 bootstrap();
