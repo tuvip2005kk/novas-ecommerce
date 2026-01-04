@@ -10,6 +10,12 @@ async function bootstrap() {
     try {
         const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+        // Log every request
+        app.use((req, res, next) => {
+            console.log(`[REQUEST] ${req.method} ${req.url}`);
+            next();
+        });
+
         // Configure CORS - allow all origins for now
         app.enableCors({
             origin: true,
@@ -30,8 +36,10 @@ async function bootstrap() {
         });
 
         const port = process.env.PORT || 3005;
+        console.log(`Attempting to listen on port ${port}...`);
+
         await app.listen(port, '0.0.0.0', () => {
-            console.log(`Server running on http://0.0.0.0:${port}`);
+            console.log(`Server successfully started and running on http://0.0.0.0:${port}`);
         });
     } catch (error) {
         console.error('Fatal error during bootstrap:', error);
