@@ -40,10 +40,17 @@ async function bootstrap() {
         // Railway injects PORT environment variable
         const port = process.env.PORT || 3000;
         console.log(`[BOOTSTRAP] Railway PORT env: ${process.env.PORT}`);
-        console.log(`[BOOTSTRAP] Listening on 0.0.0.0:${port}`);
+        console.log(`[BOOTSTRAP] Listening on port ${port} (default host)`);
 
-        await app.listen(port, '0.0.0.0', () => {
-            console.log(`Server successfully started and running on http://0.0.0.0:${port}`);
+        // Manual Health Check Route (Bypassing Controllers)
+        const server = app.getHttpAdapter().getInstance();
+        server.get('/', (req, res) => {
+            console.log('[REQUEST] GET / (Health Check)');
+            res.send('Server is Up!');
+        });
+
+        await app.listen(port, () => {
+            console.log(`Server successfully started on port ${port}`);
         });
 
         // Heartbeat to check if event loop is blocked or process dies
