@@ -43,17 +43,28 @@ async function bootstrap() {
         // Railway injects PORT environment variable
         const port = process.env.PORT || 3000;
         console.log(`[BOOTSTRAP] Railway PORT env: ${process.env.PORT}`);
-        console.log(`[BOOTSTRAP] Binding to 0.0.0.0:${port}`);
+        console.log(`[BOOTSTRAP] Binding to :: (IPv6 + IPv4) on port ${port}`);
 
         // Manual Health Check Route (Bypassing Controllers)
         const server = app.getHttpAdapter().getInstance();
         server.get('/', (req, res) => {
-            console.log('[REQUEST] GET / (Health Check)');
-            res.send('Server is Up! (0.0.0.0 Binding)');
+            console.log('[REQUEST] GET / (Health Check) - REMOTE IP:', req.ip);
+            res.send('Server is Up! (Dual Stack Binding)');
         });
 
-        await app.listen(port, '0.0.0.0', () => {
-            console.log(`Server successfully started on 0.0.0.0:${port}`);
+        // Listen on IPv6 (::) which usually covers IPv4 too in Node.js
+        await app.listen(port, '::', () => {
+            console.log(`Server successfully started on [::]:${port}`);
+
+            // SELF-DIAGNOSTIC PING
+            const http = require('http');
+            console.log(`[DIAGNOSTIC] Pinging http://127.0.0.1:${port}/ ...`);
+            http.get(`http://127.0.0.1:${port}/`, (res) => {
+                console.log(`[DIAGNOSTIC] Self-Ping Response: ${res.statusCode}`);
+                res.on('data', (d) => process.stdout.write(`[DIAGNOSTIC] Body: ${d.toString()}\n`));
+            }).on('error', (e) => {
+                console.error(`[DIAGNOSTIC] Self-Ping FAILED:`, e);
+            });
         });
 
         // Heartbeat to check if event loop is blocked or process dies
