@@ -6,12 +6,12 @@
     "private": true,
     "license": "UNLICENSED",
     "scripts": {
-        "build": "npx rimraf dist && npx prisma generate && nest build",
+        "build": "rm -rf dist && npx prisma generate && nest build",
         "format": "prettier --write \"src/**/*.ts\"",
         "start": "nest start",
         "start:dev": "nest start --watch",
         "start:debug": "nest start --debug --watch",
-        "start:prod": "node dist/main",
+        "start:prod": "ls -R dist && node dist/main",
         "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
     },
     "dependencies": {
