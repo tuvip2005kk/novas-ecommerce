@@ -9,7 +9,17 @@ async function bootstrap() {
     console.log('--- BOOTSTRAP STARTING ---');
     try {
         const app = await NestFactory.create<NestExpressApplication>(AppModule);
-        app.enableCors();
+
+        // Configure CORS for production and development
+        app.enableCors({
+            origin: [
+                'https://novas-ecommerce.vercel.app',
+                'http://localhost:3000',
+                'http://localhost:3001',
+            ],
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+            credentials: true,
+        });
 
         // Ensure uploads folder exists
         const uploadPath = join(__dirname, '..', 'uploads');
