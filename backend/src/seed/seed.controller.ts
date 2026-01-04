@@ -7,10 +7,10 @@ export class SeedController {
 
     @Get()
     async seedData() {
+        console.log('--- SEEDING REQUEST RECEIVED ---'); // 1. Log entry immediately
         try {
-            console.log('Start manual seeding ...');
-
             // Categories
+            console.log('Seeding Categories...');
             await this.prisma.category.upsert({
                 where: { slug: 'thiet-bi-ve-sinh' },
                 update: {},
@@ -34,6 +34,7 @@ export class SeedController {
             });
 
             // Products
+            console.log('Seeding Products...');
             await this.prisma.product.upsert({
                 where: { slug: 'bon-cau-thong-minh-enic-v8' },
                 update: {},
@@ -43,7 +44,7 @@ export class SeedController {
                     description: 'Bồn cầu thông minh với nhiều tính năng hiện đại.',
                     price: 15000000,
                     image: '/uploads/products/bon-cau-v8.jpg',
-                    images: JSON.stringify(['/uploads/products/bon-cau-v8.jpg']),
+                    images: ['/uploads/products/bon-cau-v8.jpg'], // Fix: Pass array directly, not string
                     stock: 50,
                     subcategoryId: null,
                 },
@@ -58,16 +59,22 @@ export class SeedController {
                     description: 'Lavabo thiết kế sang trọng, men sứ cao cấp.',
                     price: 2500000,
                     image: '/uploads/products/lavabo-sl01.jpg',
-                    images: JSON.stringify(['/uploads/products/lavabo-sl01.jpg']),
+                    images: ['/uploads/products/lavabo-sl01.jpg'], // Fix: Pass array directly
                     stock: 100,
                     subcategoryId: null,
                 },
             });
 
+            console.log('--- SEEDING FINISHED ---');
             return { message: 'Seeding finished successfully!' };
         } catch (error) {
-            console.error(error);
-            return { message: 'Seeding failed', error: error.message };
+            console.error('--- SEEDING ERROR ---', error);
+            // Return error as JSON so we see it in browser 
+            return {
+                message: 'Seeding failed',
+                errorName: error.name,
+                errorMessage: error.message
+            };
         }
     }
 }
