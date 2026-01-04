@@ -10,13 +10,9 @@ async function bootstrap() {
     try {
         const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-        // Configure CORS for production and development
+        // Configure CORS - allow all origins for now
         app.enableCors({
-            origin: [
-                'https://novas-ecommerce.vercel.app',
-                'http://localhost:3000',
-                'http://localhost:3001',
-            ],
+            origin: true,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
             credentials: true,
         });
