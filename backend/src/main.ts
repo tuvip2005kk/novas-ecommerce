@@ -43,18 +43,18 @@ async function bootstrap() {
         // Railway injects PORT environment variable
         const port = process.env.PORT || 3000;
         console.log(`[BOOTSTRAP] Railway PORT env: ${process.env.PORT}`);
-        console.log(`[BOOTSTRAP] Binding to :: (IPv6 + IPv4) on port ${port}`);
+        console.log(`[BOOTSTRAP] Binding to 0.0.0.0 (IPv4) on port ${port}`);
 
         // Manual Health Check Route (Bypassing Controllers)
         const server = app.getHttpAdapter().getInstance();
         server.get('/', (req, res) => {
-            console.log('[REQUEST] GET / (Health Check) - REMOTE IP:', req.ip);
-            res.send('Server is Up! (Dual Stack Binding)');
+            console.log(`[REQUEST] GET / (Health Check) - REMOTE IP: ${req.ip}`);
+            res.send('Server is Up! (IPv4 Binding)');
         });
 
-        // Listen on IPv6 (::) which usually covers IPv4 too in Node.js
-        await app.listen(port, '::', () => {
-            console.log(`Server successfully started on [::]:${port}`);
+        // Listen on 0.0.0.0 specifically
+        await app.listen(port, '0.0.0.0', () => {
+            console.log(`Server successfully started on 0.0.0.0:${port}`);
 
             // SELF-DIAGNOSTIC PING
             const http = require('http');
