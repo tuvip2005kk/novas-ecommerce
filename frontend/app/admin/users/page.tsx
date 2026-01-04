@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,7 +44,7 @@ export default function AdminUsers() {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch("http://localhost:3005/users/all", {
+            const res = await fetch(`${API_URL}/users/all`, {
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
             const data = await res.json();
@@ -54,7 +55,7 @@ export default function AdminUsers() {
     };
 
     const fetchUserDetail = async (id: number) => {
-        const res = await fetch(`http://localhost:3005/users/${id}`, {
+        const res = await fetch(`${API_URL}/users/${id}`, {
             headers: { Authorization: `Bearer ${getToken()}` }
         });
         return res.json();
@@ -90,13 +91,13 @@ export default function AdminUsers() {
         setSaving(true);
         try {
             if (showModal === "create") {
-                await fetch("http://localhost:3005/users", {
+                await fetch("${API_URL}/users", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
                     body: JSON.stringify(formData)
                 });
             } else if (showModal === "edit" && selectedUser) {
-                await fetch(`http://localhost:3005/users/${selectedUser.id}`, {
+                await fetch(`${API_URL}/users/${selectedUser.id}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
                     body: JSON.stringify({ email: formData.email, name: formData.name, role: formData.role })
@@ -113,7 +114,7 @@ export default function AdminUsers() {
         if (!selectedUser) return;
         setSaving(true);
         try {
-            await fetch(`http://localhost:3005/users/${selectedUser.id}`, {
+            await fetch(`${API_URL}/users/${selectedUser.id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
@@ -128,7 +129,7 @@ export default function AdminUsers() {
         if (!selectedUser || !newPassword) return;
         setSaving(true);
         try {
-            await fetch(`http://localhost:3005/users/${selectedUser.id}/password`, {
+            await fetch(`${API_URL}/users/${selectedUser.id}/password`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
                 body: JSON.stringify({ password: newPassword })

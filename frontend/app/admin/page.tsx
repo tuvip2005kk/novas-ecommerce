@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,9 +34,9 @@ export default function AdminDashboard() {
         setLoading(true);
         try {
             const [productsRes, ordersRes, usersRes] = await Promise.all([
-                fetch('http://localhost:3005/api/products'),
-                fetch('http://localhost:3005/orders/all'),
-                fetch('http://localhost:3005/users/all')
+                fetch(`${API_URL}/api/products`),
+                fetch(`${API_URL}/orders/all`),
+                fetch(`${API_URL}/users/all`)
             ]);
 
             const products = await productsRes.json();

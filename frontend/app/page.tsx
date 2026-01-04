@@ -1,3 +1,4 @@
+import { API_URL } from '@/config';
 import { BannerCarousel } from "@/components/BannerCarousel";
 import { CommitmentSection } from "@/components/CommitmentSection";
 import { CategorySection } from "@/components/CategorySection";
@@ -9,7 +10,7 @@ import Footer from "@/components/Footer";
 
 async function getProducts() {
     try {
-        const res = await fetch('http://localhost:3005/api/products', { cache: 'no-store' });
+        const res = await fetch(`${API_URL}/api/products`, { cache: 'no-store' });
         if (!res.ok) return [];
         return res.json();
     } catch (error) {

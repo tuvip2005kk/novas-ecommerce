@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,14 +40,14 @@ export default function AdminOrders() {
     useEffect(() => { fetchOrders(); }, []);
 
     const fetchOrders = async () => {
-        const res = await fetch('http://localhost:3005/orders/all');
+        const res = await fetch(`${API_URL}/orders/all`);
         const data = await res.json();
         setOrders(Array.isArray(data) ? data : []);
         setLoading(false);
     };
 
     const updateStatus = async (id: number, status: string) => {
-        await fetch(`http://localhost:3005/orders/${id}/status`, {
+        await fetch(`${API_URL}/orders/${id}/status`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status })

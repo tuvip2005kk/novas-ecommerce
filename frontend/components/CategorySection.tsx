@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -10,14 +11,14 @@ interface Category {
     image: string;
 }
 
-export function CategorySection({ hideTitle = false }: { hideTitle?: boolean }) {
+export default function CategorySection({ hideTitle = false }: { hideTitle?: boolean }) {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const res = await fetch('http://localhost:3005/api/categories');
+                const res = await fetch(`${API_URL}/api/categories`);
                 const data = await res.json();
                 setCategories(data);
             } catch (error) {

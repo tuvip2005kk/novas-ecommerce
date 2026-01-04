@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,7 @@ export default function OrderDetailPage() {
     const fetchOrder = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:3005/orders/${params.id}`, {
+            const res = await fetch(`${API_URL}/orders/${params.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {

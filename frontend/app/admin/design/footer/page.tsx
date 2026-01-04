@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Edit, X, MapPin, Save, Phone, Loader2 } from "lucide-react";
@@ -40,8 +41,8 @@ export default function AdminFooter() {
         setLoading(true);
         try {
             const [showroomsRes, settingsRes] = await Promise.all([
-                fetch('http://localhost:3005/api/showrooms/all'),
-                fetch('http://localhost:3005/api/settings'),
+                fetch(`${API_URL}/api/showrooms/all`),
+                fetch(`${API_URL}/api/settings`),
             ]);
             const showroomsData = await showroomsRes.json();
             const settingsData = await settingsRes.json();
@@ -80,13 +81,13 @@ export default function AdminFooter() {
         setSaving(true);
         try {
             if (editingShowroom) {
-                await fetch(`http://localhost:3005/api/showrooms/${editingShowroom.id}`, {
+                await fetch(`${API_URL}/api/showrooms/${editingShowroom.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData),
                 });
             } else {
-                await fetch('http://localhost:3005/api/showrooms', {
+                await fetch(`${API_URL}/api/showrooms`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...formData, sortOrder: showrooms.length, isActive: true }),
@@ -103,14 +104,14 @@ export default function AdminFooter() {
 
     const deleteShowroom = async (id: number) => {
         if (!confirm('Xóa showroom này?')) return;
-        await fetch(`http://localhost:3005/api/showrooms/${id}`, { method: 'DELETE' });
+        await fetch(`${API_URL}/api/showrooms/${id}`, { method: 'DELETE' });
         fetchData();
     };
 
     const handleSave = async () => {
         setSaving(true);
         try {
-            await fetch('http://localhost:3005/api/settings/bulk', {
+            await fetch(`${API_URL}/api/settings/bulk`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(contact),

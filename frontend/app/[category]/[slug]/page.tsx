@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -79,7 +80,7 @@ export default function SlugPage() {
             setPageType('loading');
             try {
                 // First, try to find subcategory by slug
-                const subRes = await fetch(`http://localhost:3005/api/subcategories/slug/${slug}`);
+                const subRes = await fetch(`${API_URL}/api/subcategories/slug/${slug}`);
                 let subData = null;
                 try {
                     if (subRes.ok) {
@@ -92,7 +93,7 @@ export default function SlugPage() {
 
                 if (subData && subData.id) {
                     setSubcategory(subData);
-                    const catRes = await fetch(`http://localhost:3005/api/categories/slug/${categorySlug}`);
+                    const catRes = await fetch(`${API_URL}/api/categories/slug/${categorySlug}`);
                     if (catRes.ok) {
                         const catData = await catRes.json();
                         setCategory(catData);
@@ -105,7 +106,7 @@ export default function SlugPage() {
                 }
 
                 // If not subcategory, try to find product
-                const prodRes = await fetch(`http://localhost:3005/api/products/slug/${slug}`);
+                const prodRes = await fetch(`${API_URL}/api/products/slug/${slug}`);
                 let prodData = null;
                 try {
                     if (prodRes.ok) {

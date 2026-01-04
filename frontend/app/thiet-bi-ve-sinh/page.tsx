@@ -1,4 +1,5 @@
 ﻿"use client";
+import { API_URL } from '@/config';
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -45,15 +46,15 @@ export default function ThietBiVeSinhPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const catRes = await fetch('http://localhost:3005/api/categories');
+                const catRes = await fetch(`${API_URL}/api/categories`);
                 const categoriesData: Category[] = await catRes.json();
 
-                const subRes = await fetch('http://localhost:3005/api/subcategories');
+                const subRes = await fetch(`${API_URL}/api/subcategories`);
                 const subcategoriesData: Subcategory[] = await subRes.json();
 
                 const subcatsWithProducts = await Promise.all(
                     subcategoriesData.map(async (sub: Subcategory) => {
-                        const prodRes = await fetch(`http://localhost:3005/api/products?subcategoryId=${sub.id}`);
+                        const prodRes = await fetch(`${API_URL}/api/products?subcategoryId=${sub.id}`);
                         const products = await prodRes.json();
                         return { ...sub, products };
                     })

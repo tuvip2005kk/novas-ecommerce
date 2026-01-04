@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -48,7 +49,7 @@ export function BannerCarousel() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://localhost:3005/api/banners?pageType=homepage')
+        fetch(`${API_URL}/api/banners?pageType=homepage`)
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data) && data.length > 0) {
@@ -78,7 +79,7 @@ export function BannerCarousel() {
     // Helper to get correct image URL
     const getImageUrl = (image: string) => {
         if (image.startsWith('/uploads')) {
-            return `http://localhost:3005${image}`;
+            return `${API_URL}${image}`;
         }
         return image;
     };

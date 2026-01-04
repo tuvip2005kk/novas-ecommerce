@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,7 +46,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (token) {
-            fetch('http://localhost:3005/auth/profile', {
+            fetch(`${API_URL}/auth/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
                 .then(res => res.json())

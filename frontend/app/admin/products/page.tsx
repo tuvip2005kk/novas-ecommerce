@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,7 +100,7 @@ export default function AdminProducts() {
     }, []);
 
     const fetchProducts = async () => {
-        const res = await fetch('http://localhost:3005/api/products');
+        const res = await fetch(`${API_URL}/api/products`);
         const data = await res.json();
         setProducts(data);
         setLoading(false);
@@ -107,7 +108,7 @@ export default function AdminProducts() {
 
     const fetchCategories = async () => {
         try {
-            const res = await fetch('http://localhost:3005/api/categories');
+            const res = await fetch(`${API_URL}/api/categories`);
             if (res.ok) {
                 const data = await res.json();
                 setCategories(data);
@@ -169,7 +170,7 @@ export default function AdminProducts() {
 
     const deleteProduct = async (id: number) => {
         if (!confirm('Xác nhận xóa sản phẩm này?')) return;
-        await fetch(`http://localhost:3005/api/products/${id}`, {
+        await fetch(`${API_URL}/api/products/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -181,8 +182,8 @@ export default function AdminProducts() {
         setSaving(true);
         try {
             const url = editingProduct
-                ? `http://localhost:3005/api/products/${editingProduct.id}`
-                : 'http://localhost:3005/api/products';
+                ? `${API_URL}/api/products/${editingProduct.id}`
+                : `${API_URL}/api/products`;
 
             const slug = form.slug || generateSlug(form.name);
 
@@ -377,7 +378,7 @@ export default function AdminProducts() {
                                             if (!file) return;
                                             const formData = new FormData();
                                             formData.append('file', file);
-                                            const res = await fetch('http://localhost:3005/upload', { method: 'POST', body: formData });
+                                            const res = await fetch('${API_URL}/upload', { method: 'POST', body: formData });
                                             const data = await res.json();
                                             setForm({ ...form, image: `http://localhost:3005${data.url}` });
                                         }}
@@ -400,7 +401,7 @@ export default function AdminProducts() {
                                             for (let i = 0; i < files.length; i++) {
                                                 formData.append('files', files[i]);
                                             }
-                                            const res = await fetch('http://localhost:3005/upload/multiple', { method: 'POST', body: formData });
+                                            const res = await fetch('${API_URL}/upload/multiple', { method: 'POST', body: formData });
                                             const data = await res.json();
                                             const newUrls = data.map((d: any) => `http://localhost:3005${d.url}`);
                                             setForm({ ...form, images: [...form.images.filter(i => i), ...newUrls] });

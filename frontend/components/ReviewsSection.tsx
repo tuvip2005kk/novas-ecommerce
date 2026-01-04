@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -46,8 +47,8 @@ export function ReviewsSection({ productId, productName }: { productId: number; 
     const fetchReviews = async () => {
         try {
             const [reviewsRes, statsRes] = await Promise.all([
-                fetch(`http://localhost:3005/reviews/product/${productId}`),
-                fetch(`http://localhost:3005/reviews/product/${productId}/stats`)
+                fetch(`${API_URL}/reviews/product/${productId}`),
+                fetch(`${API_URL}/reviews/product/${productId}/stats`)
             ]);
             setReviews(await reviewsRes.json());
             setStats(await statsRes.json());
@@ -61,7 +62,7 @@ export function ReviewsSection({ productId, productName }: { productId: number; 
     const checkCanReview = async () => {
         setCheckingPermission(true);
         try {
-            const res = await fetch(`http://localhost:3005/reviews/product/${productId}/can-review`, {
+            const res = await fetch(`${API_URL}/reviews/product/${productId}/can-review`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const result = await res.json();
@@ -80,7 +81,7 @@ export function ReviewsSection({ productId, productName }: { productId: number; 
         setSubmitting(true);
         setSubmitError('');
         try {
-            const res = await fetch(`http://localhost:3005/reviews/product/${productId}`, {
+            const res = await fetch(`${API_URL}/reviews/product/${productId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

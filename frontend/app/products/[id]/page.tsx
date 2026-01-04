@@ -1,3 +1,4 @@
+import { API_URL } from '@/config';
 import { ArrowLeft, CheckCircle2, ShieldCheck, Truck } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,7 +10,7 @@ import Footer from "@/components/Footer";
 // Fetch data from Backend
 async function getProduct(id: string) {
     try {
-        const res = await fetch(`http://localhost:3005/api/products/${id}`, { cache: "no-store" });
+        const res = await fetch(`${API_URL}/api/products/${id}`, { cache: "no-store" });
         if (!res.ok) return null;
         return res.json();
     } catch (error) {

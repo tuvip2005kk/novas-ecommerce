@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Edit, X, ArrowUp, ArrowDown, Eye, Loader2, Upload } from "lucide-react";
@@ -38,7 +39,7 @@ export default function AdminBanners() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        fetch('http://localhost:3005/api/categories')
+        fetch(`${API_URL}/api/categories`)
             .then(res => res.json())
             .then(data => {
                 setCategories(data);
@@ -53,7 +54,7 @@ export default function AdminBanners() {
     const fetchBanners = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3005/api/banners/all');
+            const res = await fetch(`${API_URL}/api/banners/all`);
             const data = await res.json();
             let filtered = data.filter((b: Banner) => b.pageType === pageType);
             if (pageType === 'category' && selectedCategory) {
@@ -76,7 +77,7 @@ export default function AdminBanners() {
             const formDataUpload = new FormData();
             formDataUpload.append('file', file);
 
-            const res = await fetch('http://localhost:3005/upload', {
+            const res = await fetch(`${API_URL}/upload`, {
                 method: 'POST',
                 body: formDataUpload,
             });
@@ -117,13 +118,13 @@ export default function AdminBanners() {
             };
 
             if (editingBanner) {
-                await fetch(`http://localhost:3005/api/banners/${editingBanner.id}`, {
+                await fetch(`${API_URL}/api/banners/${editingBanner.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                 });
             } else {
-                await fetch('http://localhost:3005/api/banners', {
+                await fetch(`${API_URL}/api/banners`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
@@ -140,12 +141,12 @@ export default function AdminBanners() {
 
     const deleteBanner = async (id: number) => {
         if (!confirm('Xóa banner này?')) return;
-        await fetch(`http://localhost:3005/api/banners/${id}`, { method: 'DELETE' });
+        await fetch(`${API_URL}/api/banners/${id}`, { method: 'DELETE' });
         fetchBanners();
     };
 
     const toggleActive = async (banner: Banner) => {
-        await fetch(`http://localhost:3005/api/banners/${banner.id}`, {
+        await fetch(`${API_URL}/api/banners/${banner.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ isActive: !banner.isActive }),
@@ -154,7 +155,7 @@ export default function AdminBanners() {
     };
 
     const updateOrder = async (bannerId: number, newOrder: number) => {
-        await fetch(`http://localhost:3005/api/banners/${bannerId}`, {
+        await fetch(`${API_URL}/api/banners/${bannerId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sortOrder: newOrder }),
@@ -223,7 +224,7 @@ export default function AdminBanners() {
                     ) : (
                         banners.map((banner, index) => (
                             <div key={banner.id} className={`p-3 flex gap-3 ${!banner.isActive ? 'opacity-50' : ''}`}>
-                                <div className="w-32 h-20 bg-slate-100 bg-cover bg-center flex-shrink-0" style={{ backgroundImage: `url(${banner.image.startsWith('/uploads') ? 'http://localhost:3005' + banner.image : banner.image})` }} />
+                                <div className="w-32 h-20 bg-slate-100 bg-cover bg-center flex-shrink-0" style={{ backgroundImage: `url(${banner.image.startsWith('/uploads') ? '${API_URL}' + banner.image : banner.image})` }} />
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-medium text-sm">{banner.title}</h3>
                                     <p className="text-xs text-slate-500 truncate">{banner.description}</p>
@@ -270,7 +271,7 @@ export default function AdminBanners() {
                                         {uploading ? 'Đang tải...' : 'Chọn ảnh'}
                                     </button>
                                     {formData.image && (
-                                        <div className="w-16 h-10 bg-slate-100 bg-cover bg-center" style={{ backgroundImage: `url(${formData.image.startsWith('/uploads') ? 'http://localhost:3005' + formData.image : formData.image})` }} />
+                                        <div className="w-16 h-10 bg-slate-100 bg-cover bg-center" style={{ backgroundImage: `url(${formData.image.startsWith('/uploads') ? '${API_URL}' + formData.image : formData.image})` }} />
                                     )}
                                 </div>
                             </div>

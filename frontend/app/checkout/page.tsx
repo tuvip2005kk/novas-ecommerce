@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +30,7 @@ export default function CheckoutPage() {
 
     useEffect(() => {
         if (productId && !isCartMode) {
-            fetch(`http://localhost:3005/api/products/${productId}`)
+            fetch(`${API_URL}/api/products/${productId}`)
                 .then(res => res.json())
                 .then(data => setProduct(data));
         }
@@ -61,7 +62,7 @@ export default function CheckoutPage() {
                 ? cartItems.map(item => ({ productId: item.id, quantity: item.quantity }))
                 : [{ productId: parseInt(productId as string), quantity }];
 
-            const res = await fetch('http://localhost:3005/api/orders', {
+            const res = await fetch(`${API_URL}/api/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -1,4 +1,5 @@
 'use client';
+import { API_URL } from '@/config';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -35,7 +36,7 @@ export default function ReviewsPage() {
 
     const fetchReviews = async () => {
         try {
-            const res = await fetch('http://localhost:3005/reviews', {
+            const res = await fetch(`${API_URL}/reviews`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -49,7 +50,7 @@ export default function ReviewsPage() {
 
     const deleteReview = async (id: number) => {
         if (!confirm('Xác nhận xóa đánh giá này?')) return;
-        await fetch(`http://localhost:3005/reviews/admin/${id}`, {
+        await fetch(`${API_URL}/reviews/admin/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });

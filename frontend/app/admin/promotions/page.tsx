@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ export default function AdminSales() {
     const fetchSales = async () => {
         if (!token) return;
         try {
-            const res = await fetch('http://localhost:3005/sales', {
+            const res = await fetch(`${API_URL}/sales`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -56,7 +57,7 @@ export default function AdminSales() {
         e.preventDefault();
         setSaving(true);
         try {
-            await fetch('http://localhost:3005/sales', {
+            await fetch('${API_URL}/sales', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -82,7 +83,7 @@ export default function AdminSales() {
 
     const deleteSale = async (id: number) => {
         if (!confirm('Xác nhận xóa mã giảm giá này?')) return;
-        await fetch(`http://localhost:3005/sales/${id}`, {
+        await fetch(`${API_URL}/sales/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -90,7 +91,7 @@ export default function AdminSales() {
     };
 
     const toggleActive = async (id: number, isActive: boolean) => {
-        await fetch(`http://localhost:3005/sales/${id}`, {
+        await fetch(`${API_URL}/sales/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',

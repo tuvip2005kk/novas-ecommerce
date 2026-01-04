@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { useEffect, useState } from "react";
 import { CheckCircle2, Copy, Loader2, RefreshCw } from "lucide-react";
@@ -38,7 +39,7 @@ export function PaymentQR({ orderId, onPaymentSuccess }: PaymentQRProps) {
         const interval = setInterval(async () => {
             setChecking(true);
             try {
-                const res = await fetch(`http://localhost:3005/sepay/status/${orderId}`);
+                const res = await fetch(`${API_URL}/sepay/status/${orderId}`);
                 const data = await res.json();
                 if (data.paid) {
                     setPaid(true);
@@ -68,7 +69,7 @@ export function PaymentQR({ orderId, onPaymentSuccess }: PaymentQRProps) {
     const createQRPayment = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3005/sepay/create-qr', {
+            const res = await fetch(`${API_URL}/sepay/create-qr`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ orderId })

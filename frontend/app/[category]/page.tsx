@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -66,14 +67,14 @@ export default function CategoryPage() {
             setLoading(true);
             try {
                 // Fetch category
-                const res = await fetch(`http://localhost:3005/api/categories/slug/${categorySlug}`);
+                const res = await fetch(`${API_URL}/api/categories/slug/${categorySlug}`);
                 if (res.ok) {
                     const data = await res.json();
                     setCategory(data);
                 }
 
                 // Fetch banner for this category
-                const bannerRes = await fetch(`http://localhost:3005/api/banners?pageType=category&categorySlug=${categorySlug}`);
+                const bannerRes = await fetch(`${API_URL}/api/banners?pageType=category&categorySlug=${categorySlug}`);
                 if (bannerRes.ok) {
                     const banners = await bannerRes.json();
                     if (Array.isArray(banners) && banners.length > 0) {
@@ -133,7 +134,7 @@ export default function CategoryPage() {
                 <div className="max-w-[1200px] mx-auto px-4 md:px-6">
                     <img
                         src={banner?.image?.startsWith('/uploads')
-                            ? `http://localhost:3005${banner.image}`
+                            ? `${API_URL}${banner.image}`
                             : (banner?.image || FALLBACK_BANNERS[categorySlug || ''] || '/images/banners/bon-cau-banner.png')}
                         alt={banner?.title || category?.name || 'Banner'}
                         className="w-full rounded-lg"

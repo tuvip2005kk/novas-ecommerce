@@ -14,13 +14,16 @@ interface Product {
     slug?: string;
 }
 
-export function TrendingSection() {
+import { API_URL } from '../config';
+
+export default function TrendingSection() {
     const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchTrending = async () => {
             try {
-                const res = await fetch("http://localhost:3005/api/products?sort=sold");
+                const res = await fetch(`${API_URL}/api/products?sort=sold`);
                 if (res.ok) {
                     const data = await res.json();
                     setProducts(data.slice(0, 5));

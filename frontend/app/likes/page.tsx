@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,7 @@ export default function LikesPage() {
 
     const fetchLikes = async () => {
         try {
-            const res = await fetch('http://localhost:3005/likes', {
+            const res = await fetch(`${API_URL}/likes`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -57,7 +58,7 @@ export default function LikesPage() {
     };
 
     const removeLike = async (productId: number) => {
-        await fetch(`http://localhost:3005/likes/${productId}`, {
+        await fetch(`${API_URL}/likes/${productId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });

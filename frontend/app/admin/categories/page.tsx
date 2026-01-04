@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from '@/config';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,7 +44,7 @@ export default function AdminCategories() {
 
     const fetchCategories = async () => {
         try {
-            const res = await fetch('http://localhost:3005/api/categories');
+            const res = await fetch(`${API_URL}/api/categories`);
             if (res.ok) {
                 const data = await res.json();
                 setCategories(data);
@@ -116,8 +117,8 @@ export default function AdminCategories() {
 
             if (modalType === 'category') {
                 const url = editingItem
-                    ? `http://localhost:3005/api/categories/${editingItem.id}`
-                    : 'http://localhost:3005/api/categories';
+                    ? `${API_URL}/api/categories/${editingItem.id}`
+                    : `${API_URL}/api/categories`;
 
                 await fetch(url, {
                     method: editingItem ? 'PATCH' : 'POST',
@@ -134,8 +135,8 @@ export default function AdminCategories() {
                 });
             } else {
                 const url = editingItem
-                    ? `http://localhost:3005/api/subcategories/${editingItem.id}`
-                    : 'http://localhost:3005/api/subcategories';
+                    ? `${API_URL}/api/subcategories/${editingItem.id}`
+                    : `${API_URL}/api/subcategories`;
 
                 await fetch(url, {
                     method: editingItem ? 'PATCH' : 'POST',
@@ -163,7 +164,7 @@ export default function AdminCategories() {
 
     const deleteCategory = async (id: number) => {
         if (!confirm('Xóa danh mục này sẽ xóa tất cả danh mục con. Tiếp tục?')) return;
-        await fetch(`http://localhost:3005/api/categories/${id}`, {
+        await fetch(`${API_URL}/api/categories/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -172,7 +173,7 @@ export default function AdminCategories() {
 
     const deleteSubcategory = async (id: number) => {
         if (!confirm('Xóa danh mục con này?')) return;
-        await fetch(`http://localhost:3005/api/subcategories/${id}`, {
+        await fetch(`${API_URL}/api/subcategories/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -285,7 +286,7 @@ export default function AdminCategories() {
                                             if (!file) return;
                                             const formData = new FormData();
                                             formData.append('file', file);
-                                            const res = await fetch('http://localhost:3005/upload', { method: 'POST', body: formData });
+                                            const res = await fetch('${API_URL}/upload', { method: 'POST', body: formData });
                                             const data = await res.json();
                                             setForm({ ...form, image: data.url });
                                         }}
