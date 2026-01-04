@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class CategoriesService {
+    constructor(private readonly prisma: PrismaService) { }
+
     async findAll() {
-        return prisma.category.findMany({
+        return this.prisma.category.findMany({
             include: {
                 subcategories: {
                     include: {
@@ -21,7 +21,7 @@ export class CategoriesService {
     }
 
     async findOne(id: number) {
-        return prisma.category.findUnique({
+        return this.prisma.category.findUnique({
             where: { id },
             include: {
                 subcategories: {
@@ -34,7 +34,7 @@ export class CategoriesService {
     }
 
     async findBySlug(slug: string) {
-        return prisma.category.findUnique({
+        return this.prisma.category.findUnique({
             where: { slug },
             include: {
                 subcategories: {
@@ -47,15 +47,15 @@ export class CategoriesService {
     }
 
     async create(data: { name: string; slug: string; image?: string; description?: string }) {
-        return prisma.category.create({ data });
+        return this.prisma.category.create({ data });
     }
 
     async update(id: number, data: { name?: string; slug?: string; image?: string; description?: string }) {
-        return prisma.category.update({ where: { id }, data });
+        return this.prisma.category.update({ where: { id }, data });
     }
 
     async delete(id: number) {
-        await prisma.subcategory.deleteMany({ where: { categoryId: id } });
-        return prisma.category.delete({ where: { id } });
+        await this.prisma.subcategory.deleteMany({ where: { categoryId: id } });
+        return this.prisma.category.delete({ where: { id } });
     }
 }
