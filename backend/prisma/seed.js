@@ -68,12 +68,12 @@ async function main() {
 
     await prisma.product.upsert({
         where: { slug: 'bon-cau-thong-minh-enic-v8' },
-        update: {},
+        update: { price: 2000 },
         create: {
             name: 'Bồn Cầu Thông Minh Enic V8',
             slug: 'bon-cau-thong-minh-enic-v8',
             description: 'Bồn cầu thông minh với nhiều tính năng hiện đại: tự động xả, sưởi ấm, vệ sinh tự động.',
-            price: 15000000,
+            price: 2000,
             image: '/images/products/bon-cau-v8.jpg',
             images: ['/images/products/bon-cau-v8.jpg', '/images/products/bon-cau-v8-2.jpg'],
             stock: 50,
