@@ -28,6 +28,11 @@ async function bootstrap() {
         // Configure CORS - default permissive
         app.enableCors();
 
+        // Set global API prefix for all controllers
+        app.setGlobalPrefix('api', {
+            exclude: ['/', 'sepay/webhook'] // Exclude root health check and sepay webhook
+        });
+
         // Ensure uploads folder exists
         const uploadPath = join(__dirname, '..', 'uploads');
         if (!fs.existsSync(uploadPath)) {
