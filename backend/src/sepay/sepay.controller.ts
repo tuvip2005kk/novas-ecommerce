@@ -7,7 +7,16 @@ export class SePayController {
     constructor(private readonly sepayService: SePayService) { }
 
     /**
-     * Tạo mã QR thanh toán cho đơn hàng
+     * Tạo checkout data để redirect đến SePay
+     * POST /sepay/checkout
+     */
+    @Post('checkout')
+    async createCheckout(@Body('orderId') orderId: number) {
+        return this.sepayService.createCheckout(orderId);
+    }
+
+    /**
+     * Tạo mã QR thanh toán cho đơn hàng (VietQR fallback)
      * POST /sepay/create-qr
      */
     @Post('create-qr')

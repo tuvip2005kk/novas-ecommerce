@@ -33,6 +33,7 @@
         "passport-local": "^1.0.0",
         "reflect-metadata": "^0.2.0",
         "rxjs": "^7.8.1",
+        "sepay-pg-node": "^1.0.0",
         "socket.io": "^4.7.5",
         "uuid": "^13.0.0"
     },
