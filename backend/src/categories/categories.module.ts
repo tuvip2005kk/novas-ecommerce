@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { CategoriesController } from './categories.controller';
 import { CategoriesService } from './categories.service';
@@ -14,4 +14,8 @@ import { CategoriesService } from './categories.service';
     providers: [CategoriesService],
     exports: [CategoriesService]
 })
-export class CategoriesModule { }
+export class CategoriesModule implements OnModuleInit {
+    onModuleInit() {
+        console.log('CategoriesModule Initialized');
+    }
+}

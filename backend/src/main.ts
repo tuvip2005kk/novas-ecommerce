@@ -43,6 +43,12 @@ async function bootstrap() {
         await app.listen(port, '0.0.0.0', () => {
             console.log(`Server successfully started and running on http://0.0.0.0:${port}`);
         });
+
+        // Heartbeat to check if event loop is blocked or process dies
+        setInterval(() => {
+            const memory = process.memoryUsage();
+            console.log(`[HEARTBEAT] Alive. RAM: ${Math.round(memory.rss / 1024 / 1024)}MB`);
+        }, 5000);
     } catch (error) {
         console.error('Fatal error during bootstrap:', error);
         process.exit(1);
