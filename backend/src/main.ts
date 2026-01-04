@@ -6,6 +6,7 @@ import { join } from 'path';
 import * as fs from 'fs';
 
 async function bootstrap() {
+    console.log('--- BOOTSTRAP STARTING ---');
     try {
         const app = await NestFactory.create<NestExpressApplication>(AppModule);
         app.enableCors();
