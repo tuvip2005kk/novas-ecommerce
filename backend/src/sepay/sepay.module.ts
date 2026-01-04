@@ -5,6 +5,6 @@ import { PrismaService } from '../prisma.service';
 
 @Module({
     controllers: [SePayController],
-    providers: [SePayService, PrismaService],
+    providers: [SePayService],
 })
 export class SePayModule { }

@@ -4,6 +4,6 @@ import { PrismaService } from '../prisma.service';
 
 @Module({
     controllers: [BannersController],
-    providers: [PrismaService],
+    providers: [],
 })
 export class BannersModule { }

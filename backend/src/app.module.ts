@@ -18,8 +18,11 @@ import { SettingsModule } from './settings/settings.module';
 
 import { SeedModule } from './seed/seed.module';
 
+import { PrismaModule } from './prisma.module';
+
 @Module({
     imports: [
+        PrismaModule,
         SePayModule,
         ProductsModule,
         OrdersModule,

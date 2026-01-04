@@ -6,6 +6,6 @@ import { JwtService } from '@nestjs/jwt';
 
 @Module({
     controllers: [LikesController],
-    providers: [LikesService, PrismaService, JwtService],
+    providers: [LikesService, JwtService],
 })
 export class LikesModule { }
