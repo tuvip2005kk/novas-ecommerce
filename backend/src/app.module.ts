@@ -16,6 +16,8 @@ import { BannersModule } from './banners/banners.module';
 import { ShowroomsModule } from './showrooms/showrooms.module';
 import { SettingsModule } from './settings/settings.module';
 
+import { SeedModule } from './seed/seed.module';
+
 @Module({
     imports: [
         SePayModule,
@@ -32,6 +34,7 @@ import { SettingsModule } from './settings/settings.module';
         BannersModule,
         ShowroomsModule,
         SettingsModule,
+        SeedModule,
     ],
     controllers: [AppController],
     providers: [AppService],
