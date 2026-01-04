@@ -47,7 +47,7 @@ export function PaymentQR({ orderId, onPaymentSuccess }: PaymentQRProps) {
         const interval = setInterval(async () => {
             setChecking(true);
             try {
-                const res = await fetch(`${API_URL}/sepay/status/${orderId}`);
+                const res = await fetch(`${API_URL}/api/sepay/status/${orderId}`);
                 const data = await res.json();
                 if (data.paid) {
                     setPaid(true);
@@ -78,7 +78,7 @@ export function PaymentQR({ orderId, onPaymentSuccess }: PaymentQRProps) {
         setLoading(true);
         try {
             // Try SePay checkout first
-            const checkoutRes = await fetch(`${API_URL}/sepay/checkout`, {
+            const checkoutRes = await fetch(`${API_URL}/api/sepay/checkout`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ orderId })
@@ -90,7 +90,7 @@ export function PaymentQR({ orderId, onPaymentSuccess }: PaymentQRProps) {
             }
 
             // Also get QR data as fallback
-            const qrRes = await fetch(`${API_URL}/sepay/create-qr`, {
+            const qrRes = await fetch(`${API_URL}/api/sepay/create-qr`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ orderId })
