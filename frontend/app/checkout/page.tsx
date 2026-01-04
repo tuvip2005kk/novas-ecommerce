@@ -9,11 +9,11 @@ import { PaymentQR } from "@/components/PaymentQR";
 import { ArrowLeft, CheckCircle2, CreditCard, Loader2, Smartphone, Tag } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 
-export default function CheckoutPage() {
+function CheckoutContent() {
     const searchParams = useSearchParams();
     const productId = searchParams.get("productId");
     const quantityParam = searchParams.get("quantity");
@@ -214,3 +214,10 @@ export default function CheckoutPage() {
     );
 }
 
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+            <CheckoutContent />
+        </Suspense>
+    );
+}
