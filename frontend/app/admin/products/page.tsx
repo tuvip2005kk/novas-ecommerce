@@ -179,6 +179,13 @@ export default function AdminProducts() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate image
+        if (!form.image) {
+            alert("Vui lòng chọn ảnh chính cho sản phẩm!");
+            return;
+        }
+
         setSaving(true);
         try {
             const url = editingProduct
@@ -198,7 +205,7 @@ export default function AdminProducts() {
                     slug: slug,
                     description: form.description,
                     price: parseFloat(form.price),
-                    image: form.image || 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500',
+                    image: form.image, // Use the uploaded image URL directly
                     images: form.images.filter(img => img.trim() !== ''),
                     subcategoryId: form.subcategoryId ? parseInt(form.subcategoryId) : null,
                     stock: parseInt(form.stock),
@@ -208,6 +215,9 @@ export default function AdminProducts() {
             setShowModal(false);
             setEditingProduct(null);
             fetchProducts();
+        } catch (error) {
+            console.error("Error saving product:", error);
+            alert("Có lỗi xảy ra khi lưu sản phẩm");
         } finally {
             setSaving(false);
         }
@@ -378,9 +388,16 @@ export default function AdminProducts() {
                                             if (!file) return;
                                             const formData = new FormData();
                                             formData.append('file', file);
-                                            const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: formData });
-                                            const data = await res.json();
-                                            setForm({ ...form, image: `${API_URL}${data.url}` });
+                                            try {
+                                                const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: formData });
+                                                if (res.ok) {
+                                                    const data = await res.json();
+                                                    const imageUrl = `${API_URL}${data.url}`;
+                                                    setForm(prev => ({ ...prev, image: imageUrl }));
+                                                }
+                                            } catch (error) {
+                                                console.error("Upload failed", error);
+                                            }
                                         }}
                                         className="w-full mt-1 px-4 py-2 border rounded-lg"
                                     />
@@ -401,10 +418,16 @@ export default function AdminProducts() {
                                             for (let i = 0; i < files.length; i++) {
                                                 formData.append('files', files[i]);
                                             }
-                                            const res = await fetch(`${API_URL}/api/upload/multiple`, { method: 'POST', body: formData });
-                                            const data = await res.json();
-                                            const newUrls = data.map((d: any) => `${API_URL}${d.url}`);
-                                            setForm({ ...form, images: [...form.images.filter(i => i), ...newUrls] });
+                                            try {
+                                                const res = await fetch(`${API_URL}/api/upload/multiple`, { method: 'POST', body: formData });
+                                                if (res.ok) {
+                                                    const data = await res.json();
+                                                    const newUrls = data.map((d: any) => `${API_URL}${d.url}`);
+                                                    setForm(prev => ({ ...prev, images: [...prev.images.filter(i => i), ...newUrls] }));
+                                                }
+                                            } catch (error) {
+                                                console.error("Upload multiple failed", error);
+                                            }
                                         }}
                                         className="w-full mt-1 px-4 py-2 border rounded-lg"
                                     />
@@ -637,9 +660,9 @@ export default function AdminProducts() {
                                 <tr key={p.id} className="border-b hover:bg-slate-50">
                                     <td className="py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 bg-slate-100 bg-cover bg-center" style={{ backgroundImage: `url(${p.image})` }} />
+                                            <div className="w-12 h-12 bg-slate-100 bg-cover bg-center rounded border" style={{ backgroundImage: `url(${p.image})` }} />
                                             <div>
-                                                <span className="font-medium">{p.name}</span>
+                                                <span className="font-medium hover:text-[#21246b] cursor-pointer" onClick={() => openEditModal(p)}>{p.name}</span>
                                                 <p className="text-xs text-slate-500">{p.subcategory?.name}</p>
                                             </div>
                                         </div>
@@ -656,10 +679,10 @@ export default function AdminProducts() {
                                     <td className="py-4 text-sm">{p.soldCount || 0}</td>
                                     <td className="py-4">
                                         <div className="flex gap-2">
-                                            <button onClick={() => openEditModal(p)} className="p-2 hover:bg-slate-100">
+                                            <button onClick={() => openEditModal(p)} className="p-2 hover:bg-slate-100 rounded">
                                                 <Edit className="h-4 w-4 text-slate-600" />
                                             </button>
-                                            <button onClick={() => deleteProduct(p.id)} className="p-2 hover:bg-red-50">
+                                            <button onClick={() => deleteProduct(p.id)} className="p-2 hover:bg-red-50 rounded">
                                                 <Trash2 className="h-4 w-4 text-red-600" />
                                             </button>
                                         </div>
