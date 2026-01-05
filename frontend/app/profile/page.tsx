@@ -130,7 +130,7 @@ export default function ProfilePage() {
                     {/* Hồ sơ */}
                     <div className="border p-6 rounded mb-6">
                         <div className="flex justify-between mb-4">
-                            <h2 className="text-lg">Hồ sơ cá nhân</h2>
+                            <h2 className="text-lg font-bold">Hồ sơ cá nhân</h2>
                             {!isEditing ? (
                                 <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
                                     <Edit2 className="h-4 w-4 mr-1" /> Chỉnh sửa
@@ -195,7 +195,7 @@ export default function ProfilePage() {
 
                     {/* Lịch sử đơn hàng */}
                     <div className="border p-6 rounded">
-                        <h2 className="text-lg mb-4 flex items-center gap-2">
+                        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                             <Package className="h-5 w-5" /> Lịch sử đơn hàng ({orders.length})
                         </h2>
 
@@ -219,8 +219,8 @@ export default function ProfilePage() {
                                         <div className="text-right">
                                             <p>{formatPrice(order.total)}</p>
                                             <span className={`text-xs px-2 py-1 rounded ${order.status === 'Đã thanh toán' ? 'bg-green-100 text-green-700' :
-                                                    order.status === 'Đã hủy' ? 'bg-red-100 text-red-700' :
-                                                        'bg-yellow-100 text-yellow-700'
+                                                order.status === 'Đã hủy' ? 'bg-red-100 text-red-700' :
+                                                    'bg-yellow-100 text-yellow-700'
                                                 }`}>
                                                 {order.status}
                                             </span>
