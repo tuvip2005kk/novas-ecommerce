@@ -115,11 +115,11 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         <div className="border p-4 rounded">
                             <p className="text-gray-500 text-sm">Tổng tiền đã chi</p>
-                            <p className="text-lg">{formatPrice(totalSpent)}</p>
+                            <p className="text-lg font-normal">{formatPrice(totalSpent)}</p>
                         </div>
                         <div className="border p-4 rounded">
                             <p className="text-gray-500 text-sm">Số đơn hàng</p>
-                            <p className="text-lg">{orders.length} đơn</p>
+                            <p className="text-lg font-normal">{orders.length} đơn</p>
                         </div>
                     </div>
 
@@ -146,7 +146,7 @@ export default function ProfilePage() {
                         <div className="space-y-3">
                             <div>
                                 <p className="text-gray-500 text-sm">Email</p>
-                                <p>{user.email}</p>
+                                <p className="font-normal">{user.email}</p>
                             </div>
                             <div>
                                 <p className="text-gray-500 text-sm">Họ và tên</p>
@@ -159,12 +159,12 @@ export default function ProfilePage() {
                                         placeholder="Nhập họ tên"
                                     />
                                 ) : (
-                                    <p>{profile?.name || 'Chưa cập nhật'}</p>
+                                    <p className="font-normal">{profile?.name || 'Chưa cập nhật'}</p>
                                 )}
                             </div>
                             <div>
                                 <p className="text-gray-500 text-sm">Ngày đăng ký</p>
-                                <p>{profile?.createdAt ? formatDate(profile.createdAt) : 'N/A'}</p>
+                                <p className="font-normal">{profile?.createdAt ? formatDate(profile.createdAt) : 'N/A'}</p>
                             </div>
                         </div>
 
@@ -201,9 +201,9 @@ export default function ProfilePage() {
                                         <div className="text-right">
                                             <p>{formatPrice(order.total)}</p>
                                             <span className={`text-xs px-2 py-1 rounded ${order.status === 'Đã thanh toán' || order.status === 'Đã giao' ? 'bg-green-100 text-green-700' :
-                                                    order.status === 'Đã hủy' || order.status === 'Hoàn hàng' ? 'bg-red-100 text-red-700' :
-                                                        order.status === 'Đang giao' ? 'bg-blue-100 text-blue-700' :
-                                                            'bg-yellow-100 text-yellow-700'
+                                                order.status === 'Đã hủy' || order.status === 'Hoàn hàng' ? 'bg-red-100 text-red-700' :
+                                                    order.status === 'Đang giao' ? 'bg-blue-100 text-blue-700' :
+                                                        'bg-yellow-100 text-yellow-700'
                                                 }`}>
                                                 {order.status}
                                             </span>
