@@ -44,7 +44,7 @@ export default function AdminUsers() {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch(`${API_URL}/users/all`, {
+            const res = await fetch(`${API_URL}/api/users/all`, {
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
             const data = await res.json();
@@ -55,7 +55,7 @@ export default function AdminUsers() {
     };
 
     const fetchUserDetail = async (id: number) => {
-        const res = await fetch(`${API_URL}/users/${id}`, {
+        const res = await fetch(`${API_URL}/api/users/${id}`, {
             headers: { Authorization: `Bearer ${getToken()}` }
         });
         return res.json();
@@ -91,13 +91,13 @@ export default function AdminUsers() {
         setSaving(true);
         try {
             if (showModal === "create") {
-                await fetch("${API_URL}/users", {
+                await fetch(`${API_URL}/api/users`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
                     body: JSON.stringify(formData)
                 });
             } else if (showModal === "edit" && selectedUser) {
-                await fetch(`${API_URL}/users/${selectedUser.id}`, {
+                await fetch(`${API_URL}/api/users/${selectedUser.id}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
                     body: JSON.stringify({ email: formData.email, name: formData.name, role: formData.role })
@@ -114,7 +114,7 @@ export default function AdminUsers() {
         if (!selectedUser) return;
         setSaving(true);
         try {
-            await fetch(`${API_URL}/users/${selectedUser.id}`, {
+            await fetch(`${API_URL}/api/users/${selectedUser.id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
@@ -129,7 +129,7 @@ export default function AdminUsers() {
         if (!selectedUser || !newPassword) return;
         setSaving(true);
         try {
-            await fetch(`${API_URL}/users/${selectedUser.id}/password`, {
+            await fetch(`${API_URL}/api/users/${selectedUser.id}/password`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
                 body: JSON.stringify({ password: newPassword })

@@ -40,14 +40,14 @@ export default function AdminOrders() {
     useEffect(() => { fetchOrders(); }, []);
 
     const fetchOrders = async () => {
-        const res = await fetch(`${API_URL}/orders/all`);
+        const res = await fetch(`${API_URL}/api/orders/all`);
         const data = await res.json();
         setOrders(Array.isArray(data) ? data : []);
         setLoading(false);
     };
 
     const updateStatus = async (id: number, status: string) => {
-        await fetch(`${API_URL}/orders/${id}/status`, {
+        await fetch(`${API_URL}/api/orders/${id}/status`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status })
