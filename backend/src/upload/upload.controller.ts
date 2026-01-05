@@ -6,7 +6,7 @@ import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
 
 const storage = diskStorage({
-    destination: join(__dirname, '..', '..', 'uploads'),
+    destination: join(process.cwd(), 'uploads'),
     filename: (req, file, cb) => {
         const uniqueName = `${randomUUID()}${extname(file.originalname)}`;
         cb(null, uniqueName);
