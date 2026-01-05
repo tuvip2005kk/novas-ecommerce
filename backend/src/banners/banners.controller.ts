@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
-@Controller('api/banners')
+@Controller('banners')
 export class BannersController {
     constructor(private prisma: PrismaService) { }
 

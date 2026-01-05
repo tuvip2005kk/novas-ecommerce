@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } f
 import { ProductsService } from './products.service';
 import { AdminGuard } from '../auth/guards/admin.guard';
 
-@Controller('api/products')
+@Controller('products')
 export class ProductsController {
     constructor(private readonly productsService: ProductsService) {
         console.log('ProductsController initialized');

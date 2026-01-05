@@ -2,7 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@n
 import { SubcategoriesService } from './subcategories.service';
 import { AdminGuard } from '../auth/guards/admin.guard';
 
-@Controller('api/subcategories')
+@Controller('subcategories')
 export class SubcategoriesController {
     constructor(private readonly subcategoriesService: SubcategoriesService) { }
 
