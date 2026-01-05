@@ -34,7 +34,7 @@ export default function OrderDetailPage() {
     const fetchOrder = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`${API_URL}/orders/${params.id}`, {
+            const res = await fetch(`${API_URL}/api/orders/${params.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {
