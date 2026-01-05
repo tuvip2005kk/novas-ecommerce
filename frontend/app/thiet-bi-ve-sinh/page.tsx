@@ -166,7 +166,7 @@ export default function ThietBiVeSinhPage() {
                                                     onClick={() => toggleExpand(category.id)}
                                                     className="inline-flex items-center gap-2 px-5 py-2 border-2 border-[#21246b] text-[#21246b] text-sm font-bold rounded-lg hover:bg-[#21246b] hover:text-white transition-colors"
                                                 >
-                                                    Xem thĂªm sáº£n pháº©m
+                                                    Xem thêm sản phẩm
                                                     <ChevronDown className="w-4 h-4" />
                                                 </button>
                                             </div>
@@ -200,7 +200,7 @@ export default function ThietBiVeSinhPage() {
                                                 onClick={() => toggleExpand(category.id)}
                                                 className="inline-flex items-center gap-2 px-5 py-2 border-2 border-[#21246b] text-[#21246b] text-sm font-bold rounded-lg hover:bg-[#21246b] hover:text-white transition-colors"
                                             >
-                                                Thu gá»n
+                                                Thu gọn
                                                 <ChevronUp className="w-4 h-4" />
                                             </button>
                                         </div>
@@ -280,4 +280,3 @@ function ProductCard({ product, categorySlug }: { product: Product; categorySlug
         </Link>
     );
 }
-
