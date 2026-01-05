@@ -1,156 +1,82 @@
-# CODE CHO FE1 - COMPONENTS & ADMIN & CONFIG
+# FE1 - COMPONENTS (Thời gian: 1.5 tháng)
 
-## Danh sách files:
-
-### Config (copy vào `frontend/`)
-- `tailwind.config.ts`
-- `postcss.config.js`
-- `tsconfig.json`
-- `components.json`
-
-### UI Components (copy vào `frontend/components/ui/`)
-- `ui/button.tsx`
-- `ui/card.tsx`
-- `ui/input.tsx`
-- (tất cả files trong folder ui/)
-
-### Components (copy vào `frontend/components/`)
-- `Header.tsx`
-- `Hero.tsx`
-- `AdminSidebar.tsx`
-- `LikeButton.tsx`
-- `CartIcon.tsx`
-- `ReviewsSection.tsx`
-- `ReviewsWrapper.tsx`
-- `SearchBar.tsx`
-- `UserMenu.tsx`
-- `ProductButtons.tsx`
-- `HeaderWrapper.tsx`
-
-### Admin pages (copy vào `frontend/app/admin/`)
-- Tất cả trong folder `admin/`
+## 📊 TỔNG QUAN
+- **Vai trò**: Phát triển Components UI
+- **Thư mục làm việc**: `frontend/components/`
+- **Tổng files**: 20 files
+- **Tổng commits**: 10 commits
 
 ---
 
-## HƯỚNG DẪN TỪNG BƯỚC:
+## 📅 LỊCH COMMIT CHI TIẾT
 
-### 🔹 Bước 1: Clone repo
-```bash
-git clone https://github.com/tuvip2005kk/do-an-webtbvs.git
-cd do-an-webtbvs
-```
+### TUẦN 1 (6/1 - 12/1)
+| Ngày | Files | Copy vào | Commit Message |
+|------|-------|----------|----------------|
+| **8/1** | `tailwind.config.ts`, `postcss.config.js`, `tsconfig.json`, `components.json` | `frontend/` | "feat: Setup project config" |
+| **11/1** | folder `ui/` | `frontend/components/` | "feat: Add UI base components" |
 
-### 🔹 Bước 2: Cài đặt
-```bash
-cd frontend
-npm install
-```
+### TUẦN 2 (13/1 - 19/1)
+| Ngày | Files | Copy vào | Commit Message |
+|------|-------|----------|----------------|
+| **15/1** | `Header.tsx`, `HeaderWrapper.tsx`, `SearchBar.tsx` | `frontend/components/` | "feat: Add Header components" |
+| **18/1** | `Hero.tsx`, `UserMenu.tsx` | `frontend/components/` | "feat: Add Hero and UserMenu" |
 
-### 🔹 Bước 3: Commit Config (Tuần 1)
-```bash
-git checkout -b feature/setup-config
-```
-**Copy các file sau vào `frontend/`:**
-- `tailwind.config.ts`
-- `postcss.config.js`
-- `tsconfig.json`
-- `components.json`
+### TUẦN 3 (20/1 - 26/1)
+| Ngày | Files | Copy vào | Commit Message |
+|------|-------|----------|----------------|
+| **22/1** | `CartIcon.tsx`, `LikeButton.tsx`, `ProductButtons.tsx` | `frontend/components/` | "feat: Add Cart and Like buttons" |
+| **25/1** | `ProductList.tsx`, `ProductListClient.tsx` | `frontend/components/` | "feat: Add ProductList components" |
 
-```bash
-git add .
-git commit -m "feat: Setup Tailwind and TypeScript config"
-git push origin feature/setup-config
-```
-→ Tạo Pull Request trên GitHub
+### TUẦN 4 (27/1 - 2/2)
+| Ngày | Files | Copy vào | Commit Message |
+|------|-------|----------|----------------|
+| **29/1** | `BannerCarousel.tsx`, `CategorySection.tsx` | `frontend/components/` | "feat: Add Banner and Category" |
+| **1/2** | `TrendingSection.tsx`, `CommitmentSection.tsx` | `frontend/components/` | "feat: Add Trending and Commitment" |
+
+### TUẦN 5 (3/2 - 9/2)
+| Ngày | Files | Copy vào | Commit Message |
+|------|-------|----------|----------------|
+| **5/2** | `Footer.tsx`, `ShowroomBanner.tsx` | `frontend/components/` | "feat: Add Footer and Showroom" |
+| **8/2** | `PaymentQR.tsx`, `ReviewsSection.tsx`, `ReviewsWrapper.tsx` | `frontend/components/` | "feat: Add Payment and Reviews" |
+
+### TUẦN 6 (10/2 - 16/2)
+| Ngày | Files | Copy vào | Commit Message |
+|------|-------|----------|----------------|
+| **12/2** | `AdminSidebar.tsx` | `frontend/components/` | "feat: Add AdminSidebar component" |
 
 ---
 
-### 🔹 Bước 4: Commit UI Components (Tuần 2)
-```bash
-git checkout main && git pull
-git checkout -b feature/ui-components
-```
-**Copy folder `ui/` vào `frontend/components/`**
+## 📋 HƯỚNG DẪN COMMIT
 
+### Bước 1: Clone starter-project về máy (lần đầu)
 ```bash
-git add .
-git commit -m "feat: Add shadcn UI components"
-git push origin feature/ui-components
+git clone https://github.com/[username]/starter-project.git
+cd starter-project
+```
+
+### Bước 2: Pull code mới nhất (mỗi lần làm)
+```bash
+git pull origin main
+```
+
+### Bước 3: Copy files vào đúng thư mục
+```bash
+# Ví dụ ngày 8/1 - copy config files vào frontend/
+copy "tailwind.config.ts" "frontend/"
+copy "postcss.config.js" "frontend/"
+```
+
+### Bước 4: Add, commit và push
+```bash
+git add -A
+git commit -m "feat: Setup project config"
+git push origin main
 ```
 
 ---
 
-### 🔹 Bước 5: Commit Header & Hero (Tuần 3)
-```bash
-git checkout main && git pull
-git checkout -b feature/header-hero
-```
-**Copy vào `frontend/components/`:**
-- `Header.tsx`
-- `HeaderWrapper.tsx`
-- `Hero.tsx`
-- `UserMenu.tsx`
-- `SearchBar.tsx`
-
-```bash
-git add .
-git commit -m "feat: Add Header, Hero, and navigation components"
-git push origin feature/header-hero
-```
-
----
-
-### 🔹 Bước 6: Commit Cart & Like (Tuần 4)
-```bash
-git checkout main && git pull
-git checkout -b feature/cart-like-components
-```
-**Copy vào `frontend/components/`:**
-- `CartIcon.tsx`
-- `LikeButton.tsx`
-- `ProductButtons.tsx`
-
-```bash
-git add .
-git commit -m "feat: Add CartIcon, LikeButton, ProductButtons"
-git push origin feature/cart-like-components
-```
-
----
-
-### 🔹 Bước 7: Commit Admin (Tuần 5)
-```bash
-git checkout main && git pull
-git checkout -b feature/admin-dashboard
-```
-**Copy folder `admin/` vào `frontend/app/`**
-**Copy vào `frontend/components/`:**
-- `AdminSidebar.tsx`
-
-```bash
-git add .
-git commit -m "feat: Build admin dashboard with sidebar"
-git push origin feature/admin-dashboard
-```
-
----
-
-### 🔹 Bước 8: Commit Reviews (Tuần 6)
-```bash
-git checkout main && git pull
-git checkout -b feature/reviews
-```
-**Copy vào `frontend/components/`:**
-- `ReviewsSection.tsx`
-- `ReviewsWrapper.tsx`
-
-```bash
-git add .
-git commit -m "feat: Add product reviews feature"
-git push origin feature/reviews
-```
-
----
-
-## ✅ SAU KHI HOÀN THÀNH:
-Bạn sẽ có **8 commits** trong lịch sử Git!
+## ⚠️ LƯU Ý
+- Commit đúng ngày theo lịch
+- Luôn `git pull` trước khi làm
+- Đợi 2-3 phút sau push để xem trên Vercel

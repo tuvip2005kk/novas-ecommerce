@@ -95,6 +95,14 @@ export class AuthService {
         };
     }
 
+    async updateProfile(userId: number, data: { name?: string; phone?: string }) {
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: { name: data.name, phone: data.phone },
+            select: { id: true, email: true, name: true, phone: true }
+        });
+    }
+
     private generateToken(userId: number, email: string, role: string): string {
         return this.jwtService.sign({ sub: userId, email, role });
     }

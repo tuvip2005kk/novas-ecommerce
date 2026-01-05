@@ -1,137 +1,82 @@
-# CODE CHO FE2 - PAGES & CONTEXT
+# FE2 - PAGES & CONTEXT (Thời gian: 1.5 tháng)
 
-## Danh sách files:
-
-### Context (copy vào `frontend/context/`)
-- `AuthContext.tsx`
-- `CartContext.tsx`
-
-### Components (copy vào `frontend/components/`)
-- `ProductList.tsx`
-- `ProductListClient.tsx`
-
-### App files (copy vào `frontend/app/`)
-- `page.tsx` (trang chủ)
-- `layout.tsx`
-- `globals.css`
-
-### Pages (copy vào `frontend/app/`)
-- `login/` (folder)
-- `register/` (folder)
-- `cart/` (folder)
-- `checkout/` (folder)
-- `products/` (folder)
-- `likes/` (folder)
+## 📊 TỔNG QUAN
+- **Vai trò**: Phát triển Pages và Context
+- **Thư mục làm việc**: `frontend/app/`, `frontend/context/`
+- **Tổng folders**: 12 folders + 3 files
+- **Tổng commits**: 10 commits
 
 ---
 
-## HƯỚNG DẪN TỪNG BƯỚC:
+## 📅 LỊCH COMMIT CHI TIẾT
 
-### 🔹 Bước 1: Clone repo
-```bash
-git clone https://github.com/tuvip2005kk/do-an-webtbvs.git
-cd do-an-webtbvs
-```
+### TUẦN 1 (6/1 - 12/1)
+| Ngày | Files/Folders | Copy vào | Commit Message |
+|------|---------------|----------|----------------|
+| **8/1** | `layout.tsx`, `globals.css`, `page.tsx` | `frontend/app/` | "feat: Setup layout and styles" |
+| **11/1** | folder `context/` | `frontend/` | "feat: Add Auth and Cart context" |
 
-### 🔹 Bước 2: Cài đặt
-```bash
-cd frontend
-npm install
-```
+### TUẦN 2 (13/1 - 19/1)
+| Ngày | Files/Folders | Copy vào | Commit Message |
+|------|---------------|----------|----------------|
+| **15/1** | folder `login/` | `frontend/app/` | "feat: Add login page" |
+| **18/1** | folder `register/` | `frontend/app/` | "feat: Add register page" |
 
-### 🔹 Bước 3: Commit Layout & Styles (Tuần 1)
-```bash
-git checkout -b feature/layout-styles
-```
-**Copy vào `frontend/app/`:**
-- `layout.tsx`
-- `globals.css`
+### TUẦN 3 (20/1 - 26/1)
+| Ngày | Files/Folders | Copy vào | Commit Message |
+|------|---------------|----------|----------------|
+| **22/1** | folder `products/` | `frontend/app/` | "feat: Add products page" |
+| **25/1** | folder `cart/` | `frontend/app/` | "feat: Add cart page" |
 
-```bash
-git add .
-git commit -m "feat: Setup layout and global styles"
-git push origin feature/layout-styles
-```
-→ Tạo Pull Request trên GitHub
+### TUẦN 4 (27/1 - 2/2)
+| Ngày | Files/Folders | Copy vào | Commit Message |
+|------|---------------|----------|----------------|
+| **29/1** | folder `checkout/` | `frontend/app/` | "feat: Add checkout page" |
+| **1/2** | folder `likes/` | `frontend/app/` | "feat: Add favorites page" |
 
----
+### TUẦN 5 (3/2 - 9/2)
+| Ngày | Files/Folders | Copy vào | Commit Message |
+|------|---------------|----------|----------------|
+| **5/2** | folder `[category]/` | `frontend/app/` | "feat: Add category pages" |
+| **8/2** | folder `profile/`, folder `order/` | `frontend/app/` | "feat: Add profile and order pages" |
 
-### 🔹 Bước 4: Commit Auth Context & Pages (Tuần 2)
-```bash
-git checkout main && git pull
-git checkout -b feature/auth-pages
-```
-**Tạo folder `frontend/context/` và copy:**
-- `AuthContext.tsx`
-- `CartContext.tsx`
-
-**Copy vào `frontend/app/`:**
-- folder `login/`
-- folder `register/`
-
-```bash
-git add .
-git commit -m "feat: Add authentication context and login/register pages"
-git push origin feature/auth-pages
-```
+### TUẦN 6 (10/2 - 16/2)
+| Ngày | Files/Folders | Copy vào | Commit Message |
+|------|---------------|----------|----------------|
+| **12/2** | folder `thiet-bi-ve-sinh/` | `frontend/app/` | "feat: Add static category page" |
+| **15/2** | folder `admin/` | `frontend/app/` | "feat: Add admin dashboard" |
 
 ---
 
-### 🔹 Bước 5: Commit ProductList (Tuần 3)
+## 📋 HƯỚNG DẪN COMMIT
+
+### Bước 1: Clone starter-project về máy (lần đầu)
 ```bash
-git checkout main && git pull
-git checkout -b feature/product-list
+git clone https://github.com/[username]/starter-project.git
+cd starter-project
 ```
-**Copy vào `frontend/components/`:**
-- `ProductList.tsx`
-- `ProductListClient.tsx`
 
-**Copy vào `frontend/app/`:**
-- folder `products/`
-
-**Copy vào `frontend/app/`:**
-- `page.tsx` (trang chủ - sử dụng ProductList)
-
+### Bước 2: Pull code mới nhất (mỗi lần làm)
 ```bash
-git add .
-git commit -m "feat: Add product listing and detail pages"
-git push origin feature/product-list
+git pull origin main
+```
+
+### Bước 3: Copy folder vào đúng thư mục
+```bash
+# Ví dụ ngày 15/1 - copy folder login vào frontend/app/
+xcopy "login" "frontend/app/login/" /E /I /Y
+```
+
+### Bước 4: Add, commit và push
+```bash
+git add -A
+git commit -m "feat: Add login page"
+git push origin main
 ```
 
 ---
 
-### 🔹 Bước 6: Commit Cart & Checkout (Tuần 4)
-```bash
-git checkout main && git pull
-git checkout -b feature/cart-checkout
-```
-**Copy vào `frontend/app/`:**
-- folder `cart/`
-- folder `checkout/`
-
-```bash
-git add .
-git commit -m "feat: Add shopping cart and checkout pages"
-git push origin feature/cart-checkout
-```
-
----
-
-### 🔹 Bước 7: Commit Likes (Tuần 6)
-```bash
-git checkout main && git pull
-git checkout -b feature/likes-page
-```
-**Copy vào `frontend/app/`:**
-- folder `likes/`
-
-```bash
-git add .
-git commit -m "feat: Add favorites/likes page"
-git push origin feature/likes-page
-```
-
----
-
-## ✅ SAU KHI HOÀN THÀNH:
-Bạn sẽ có **5 commits** trong lịch sử Git!
+## ⚠️ LƯU Ý
+- Commit đúng ngày theo lịch
+- Luôn `git pull` trước khi làm
+- Đợi 2-3 phút sau push để xem trên Vercel
