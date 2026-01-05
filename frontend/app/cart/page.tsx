@@ -1,6 +1,8 @@
 "use client";
 
+
 import { useCart } from "@/context/CartContext";
+import { API_URL } from '@/config';
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Minus, Plus, ShoppingCart, Trash2, ArrowLeft, Tag } from "lucide-react";
@@ -69,7 +71,11 @@ export default function CartPage() {
                                     {/* Product */}
                                     <div className="col-span-5 flex items-center gap-3">
                                         <div className="w-16 h-16 bg-slate-100 flex-shrink-0">
-                                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                            <img
+                                                src={item.image?.startsWith('http') ? item.image : `${API_URL}${item.image}`}
+                                                alt={item.name}
+                                                className="w-full h-full object-cover"
+                                            />
                                         </div>
                                         <span className="text-sm font-medium text-slate-800">{item.name}</span>
                                     </div>

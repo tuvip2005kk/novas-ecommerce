@@ -117,7 +117,7 @@ export default function LikesPage() {
                                     <Link href={`/products/${item.product.id}`}>
                                         <div
                                             className="h-48 bg-slate-100 bg-cover bg-center group-hover:scale-105 transition-transform"
-                                            style={{ backgroundImage: `url(${item.product.image})` }}
+                                            style={{ backgroundImage: `url(${item.product.image?.startsWith('http') ? item.product.image : `${API_URL}${item.product.image}`})` }}
                                         />
                                     </Link>
                                     <CardContent className="p-4">

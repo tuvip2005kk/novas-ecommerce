@@ -132,7 +132,7 @@ export default function AdminOrders() {
                                         <div key={item.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
                                             <div
                                                 className="w-16 h-16 bg-slate-200 rounded-lg bg-cover bg-center flex-shrink-0"
-                                                style={{ backgroundImage: `url(${item.product?.image})` }}
+                                                style={{ backgroundImage: `url(${item.product?.image?.startsWith('http') ? item.product.image : `${API_URL}${item.product?.image}`})` }}
                                             />
                                             <div className="flex-1">
                                                 <p className="font-medium">{item.product?.name || 'Sản phẩm không xác định'}</p>
