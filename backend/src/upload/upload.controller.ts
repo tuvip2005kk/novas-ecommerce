@@ -8,7 +8,10 @@ import { randomUUID } from 'crypto';
 const storage = diskStorage({
     destination: join(process.cwd(), 'uploads'),
     filename: (req, file, cb) => {
-        const uniqueName = `${randomUUID()}${extname(file.originalname)}`;
+        // Keep original name but add timestamp to prevent duplicates
+        // Clean filename to remove special characters that might break URLs
+        const cleanName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const uniqueName = `${Date.now()}-${cleanName}`;
         cb(null, uniqueName);
     },
 });

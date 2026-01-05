@@ -34,16 +34,14 @@ async function bootstrap() {
         });
 
         // Ensure uploads folder exists
-        const uploadPath = join(__dirname, '..', 'uploads');
+        // Ensure uploads folder exists
+        const uploadPath = join(process.cwd(), 'uploads');
         if (!fs.existsSync(uploadPath)) {
             console.log('Uploads folder not found, creating...', uploadPath);
             fs.mkdirSync(uploadPath, { recursive: true });
         }
 
-        // Serve uploaded files statically
-        app.useStaticAssets(uploadPath, {
-            prefix: '/uploads/',
-        });
+        // Static assets are handled by ServeStaticModule in AppModule
 
         // Railway injects PORT environment variable
         const port = process.env.PORT || 3000;
