@@ -200,7 +200,7 @@ export default function ProfilePage() {
                                         </div>
                                         <div className="text-right">
                                             <p className="font-normal">{formatPrice(order.total)}</p>
-                                            <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#21246b', color: 'white' }}>
+                                            <span className="text-xs">
                                                 {order.status}
                                             </span>
                                         </div>

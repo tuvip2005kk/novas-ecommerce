@@ -113,12 +113,16 @@ function OrderContent({ orderId }: { orderId: string }) {
                             const isPast = currentStatusIndex >= index;
                             return (
                                 <div key={status.key} className="flex flex-col items-center">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isActive ? 'bg-blue-600 text-white' :
-                                        isPast ? 'bg-green-500 text-white' : 'bg-gray-200'
-                                        }`}>
+                                    <div
+                                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                                        style={{
+                                            backgroundColor: isActive || isPast ? '#21246b' : '#e5e7eb',
+                                            color: isActive || isPast ? 'white' : '#6b7280'
+                                        }}
+                                    >
                                         <Icon className="h-5 w-5" />
                                     </div>
-                                    <p className={`text-xs mt-2 text-center ${isActive ? 'text-blue-600' : ''}`}>
+                                    <p className="text-xs mt-2 text-center" style={{ color: isActive ? '#21246b' : undefined }}>
                                         {status.label}
                                     </p>
                                 </div>
