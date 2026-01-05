@@ -20,7 +20,7 @@ function OrderContent({ orderId }: { orderId: string }) {
             // If payment success, update order status FIRST
             if (paymentStatus === "success") {
                 await fetch(`${API_URL}/api/orders/${orderId}/status`, {
-                    method: "PUT",
+                    method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ status: "Đã thanh toán" })
                 });
