@@ -84,7 +84,7 @@ export default function TrendingSection() {
                                 {/* Image */}
                                 <div className="aspect-square relative overflow-hidden bg-white">
                                     <img
-                                        src={product.image}
+                                        src={product.image.startsWith('http') ? product.image : `${API_URL}${product.image}`}
                                         alt={product.name}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />

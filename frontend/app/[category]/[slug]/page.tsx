@@ -207,7 +207,7 @@ export default function SlugPage() {
                                                     </span>
                                                 </div>
                                                 <img
-                                                    src={sub.image || '/images/placeholder.png'}
+                                                    src={sub.image ? (sub.image.startsWith('http') ? sub.image : `${API_URL}${sub.image}`) : '/images/placeholder.png'}
                                                     alt={sub.name}
                                                     className="w-full h-full object-cover"
                                                     loading="lazy"
@@ -264,7 +264,9 @@ export default function SlugPage() {
 
         // Use real images from database, fallback to main image if empty
         const extraImages = Array.isArray(product.images) ? product.images : [];
-        const productImages = [product.image, ...extraImages].filter(Boolean);
+        const productImages = [product.image, ...extraImages]
+            .filter(Boolean)
+            .map(img => img.startsWith('http') ? img : `${API_URL}${img}`);
 
         const productSpecs = (product as any).specs || {};
 
@@ -558,7 +560,7 @@ function ProductCard({ product, categorySlug }: { product: Product; categorySlug
                     </div>
                 </div>
                 <img
-                    src={product.image}
+                    src={product.image?.startsWith('http') ? product.image : `${API_URL}${product.image}`}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />

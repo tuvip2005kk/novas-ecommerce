@@ -133,9 +133,9 @@ export default function CategoryPage() {
             <section className="pt-16">
                 <div className="max-w-[1200px] mx-auto px-4 md:px-6">
                     <img
-                        src={banner?.image?.startsWith('/uploads')
-                            ? `${API_URL}${banner.image}`
-                            : (banner?.image || FALLBACK_BANNERS[categorySlug || ''] || '/images/banners/bon-cau-banner.png')}
+                        src={banner?.image?.startsWith('http')
+                            ? banner.image
+                            : (banner?.image ? `${API_URL}${banner.image}` : (FALLBACK_BANNERS[categorySlug || ''] || '/images/banners/bon-cau-banner.png'))}
                         alt={banner?.title || category?.name || 'Banner'}
                         className="w-full rounded-lg"
                     />
@@ -173,7 +173,7 @@ export default function CategoryPage() {
                                                 </span>
                                             </div>
                                             <img
-                                                src={sub.image || sub.products[0]?.image || '/images/placeholder.png'}
+                                                src={sub.image ? (sub.image.startsWith('http') ? sub.image : `${API_URL}${sub.image}`) : (sub.products[0]?.image ? (sub.products[0].image.startsWith('http') ? sub.products[0].image : `${API_URL}${sub.products[0].image}`) : '/images/placeholder.png')}
                                                 alt={sub.name}
                                                 className="w-full h-full object-cover"
                                                 loading="lazy"
@@ -296,7 +296,7 @@ function ProductCard({ product, categorySlug }: { product: Product; categorySlug
                     </div>
                 </div>
                 <img
-                    src={product.image}
+                    src={product.image?.startsWith('http') ? product.image : `${API_URL}${product.image}`}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
