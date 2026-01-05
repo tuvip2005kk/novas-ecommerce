@@ -45,7 +45,7 @@ export default function LikesPage() {
 
     const fetchLikes = async () => {
         try {
-            const res = await fetch(`${API_URL}/likes`, {
+            const res = await fetch(`${API_URL}/api/likes`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -58,7 +58,7 @@ export default function LikesPage() {
     };
 
     const removeLike = async (productId: number) => {
-        await fetch(`${API_URL}/likes/${productId}`, {
+        await fetch(`${API_URL}/api/likes/${productId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });

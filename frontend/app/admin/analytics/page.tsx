@@ -34,7 +34,7 @@ export default function AdminAnalytics() {
     const fetchAnalytics = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/orders/all`);
+            const res = await fetch(`${API_URL}/api/orders/all`);
             const orders: Order[] = await res.json();
             const ordersArray = Array.isArray(orders) ? orders : [];
 

@@ -41,7 +41,7 @@ export default function AdminSales() {
     const fetchSales = async () => {
         if (!token) return;
         try {
-            const res = await fetch(`${API_URL}/sales`, {
+            const res = await fetch(`${API_URL}/api/sales`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -57,7 +57,7 @@ export default function AdminSales() {
         e.preventDefault();
         setSaving(true);
         try {
-            await fetch('${API_URL}/sales', {
+            await fetch(`${API_URL}/api/sales`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export default function AdminSales() {
 
     const deleteSale = async (id: number) => {
         if (!confirm('Xác nhận xóa mã giảm giá này?')) return;
-        await fetch(`${API_URL}/sales/${id}`, {
+        await fetch(`${API_URL}/api/sales/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -91,7 +91,7 @@ export default function AdminSales() {
     };
 
     const toggleActive = async (id: number, isActive: boolean) => {
-        await fetch(`${API_URL}/sales/${id}`, {
+        await fetch(`${API_URL}/api/sales/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',

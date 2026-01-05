@@ -36,7 +36,7 @@ export default function ReviewsPage() {
 
     const fetchReviews = async () => {
         try {
-            const res = await fetch(`${API_URL}/reviews`, {
+            const res = await fetch(`${API_URL}/api/reviews`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -50,7 +50,7 @@ export default function ReviewsPage() {
 
     const deleteReview = async (id: number) => {
         if (!confirm('Xác nhận xóa đánh giá này?')) return;
-        await fetch(`${API_URL}/reviews/admin/${id}`, {
+        await fetch(`${API_URL}/api/reviews/admin/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });

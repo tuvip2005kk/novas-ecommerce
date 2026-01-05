@@ -286,14 +286,14 @@ export default function AdminCategories() {
                                             if (!file) return;
                                             const formData = new FormData();
                                             formData.append('file', file);
-                                            const res = await fetch('${API_URL}/upload', { method: 'POST', body: formData });
+                                            const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: formData });
                                             const data = await res.json();
                                             setForm({ ...form, image: data.url });
                                         }}
                                         className="w-full mt-1 px-4 py-2 border rounded-lg font-normal"
                                     />
                                     {form.image && (
-                                        <img src={`http://localhost:3005${form.image}`} alt="Preview" className="mt-2 h-16 w-16 object-cover rounded" />
+                                        <img src={`${API_URL}${form.image}`} alt="Preview" className="mt-2 h-16 w-16 object-cover rounded" />
                                     )}
                                 </div>
                                 <Button type="submit" className="w-full bg-[#21246b] hover:bg-[#1a1d55]" disabled={saving}>

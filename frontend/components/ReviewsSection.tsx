@@ -47,8 +47,8 @@ export function ReviewsSection({ productId, productName }: { productId: number; 
     const fetchReviews = async () => {
         try {
             const [reviewsRes, statsRes] = await Promise.all([
-                fetch(`${API_URL}/reviews/product/${productId}`),
-                fetch(`${API_URL}/reviews/product/${productId}/stats`)
+                fetch(`${API_URL}/api/reviews/product/${productId}`),
+                fetch(`${API_URL}/api/reviews/product/${productId}/stats`)
             ]);
             setReviews(await reviewsRes.json());
             setStats(await statsRes.json());
@@ -62,7 +62,7 @@ export function ReviewsSection({ productId, productName }: { productId: number; 
     const checkCanReview = async () => {
         setCheckingPermission(true);
         try {
-            const res = await fetch(`${API_URL}/reviews/product/${productId}/can-review`, {
+            const res = await fetch(`${API_URL}/api/reviews/product/${productId}/can-review`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const result = await res.json();
@@ -81,7 +81,7 @@ export function ReviewsSection({ productId, productName }: { productId: number; 
         setSubmitting(true);
         setSubmitError('');
         try {
-            const res = await fetch(`${API_URL}/reviews/product/${productId}`, {
+            const res = await fetch(`${API_URL}/api/reviews/product/${productId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -207,8 +207,8 @@ export function ReviewsSection({ productId, productName }: { productId: number; 
                                             onMouseEnter={() => setHoverRating(star)}
                                             onMouseLeave={() => setHoverRating(0)}
                                             className={`px-3 py-2 border transition-colors ${star <= (hoverRating || rating)
-                                                    ? 'bg-yellow-500 text-white border-yellow-500'
-                                                    : 'bg-white border-slate-300 hover:border-yellow-500'
+                                                ? 'bg-yellow-500 text-white border-yellow-500'
+                                                : 'bg-white border-slate-300 hover:border-yellow-500'
                                                 }`}
                                         >
                                             {ratingLabels[star - 1]}

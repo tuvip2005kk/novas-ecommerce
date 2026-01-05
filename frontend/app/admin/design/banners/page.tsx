@@ -77,7 +77,7 @@ export default function AdminBanners() {
             const formDataUpload = new FormData();
             formDataUpload.append('file', file);
 
-            const res = await fetch(`${API_URL}/upload`, {
+            const res = await fetch(`${API_URL}/api/upload`, {
                 method: 'POST',
                 body: formDataUpload,
             });

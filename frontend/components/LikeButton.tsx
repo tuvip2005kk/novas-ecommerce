@@ -25,7 +25,7 @@ export function LikeButton({ productId, className = "" }: LikeButtonProps) {
 
     const checkLikeStatus = async () => {
         try {
-            const res = await fetch(`${API_URL}/likes/check/${productId}`, {
+            const res = await fetch(`${API_URL}/api/likes/check/${productId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -53,10 +53,10 @@ export function LikeButton({ productId, className = "" }: LikeButtonProps) {
         }
 
         setLoading(true);
-        console.log('Sending request to:', `${API_URL}/likes/${productId}`);
+        console.log('Sending request to:', `${API_URL}/api/likes/${productId}`);
         try {
             if (isLiked) {
-                const res = await fetch(`${API_URL}/likes/${productId}`, {
+                const res = await fetch(`${API_URL}/api/likes/${productId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -66,7 +66,7 @@ export function LikeButton({ productId, className = "" }: LikeButtonProps) {
                     console.error('Delete failed:', await res.text());
                 }
             } else {
-                const res = await fetch(`${API_URL}/likes/${productId}`, {
+                const res = await fetch(`${API_URL}/api/likes/${productId}`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
