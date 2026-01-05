@@ -46,7 +46,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (token) {
-            fetch(`${API_URL}/auth/profile`, {
+            fetch(`${API_URL}/api/auth/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
                 .then(res => res.json())
