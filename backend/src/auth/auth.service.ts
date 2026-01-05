@@ -95,11 +95,11 @@ export class AuthService {
         };
     }
 
-    async updateProfile(userId: number, data: { name?: string; phone?: string }) {
+    async updateProfile(userId: number, data: { name?: string }) {
         return this.prisma.user.update({
             where: { id: userId },
-            data: { name: data.name, phone: data.phone },
-            select: { id: true, email: true, name: true, phone: true }
+            data: { name: data.name },
+            select: { id: true, email: true, name: true }
         });
     }
 
