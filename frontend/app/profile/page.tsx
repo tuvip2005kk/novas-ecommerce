@@ -58,10 +58,13 @@ export default function ProfilePage() {
             })
                 .then(res => res.json())
                 .then(data => {
+                    console.log('Profile data:', data); // Debug
                     setProfile(data);
                     setEditName(data.name || '');
                     setEditPhone(data.phone || '');
-                    if (data.orders) setOrders(data.orders);
+                    if (data.orders && Array.isArray(data.orders)) {
+                        setOrders(data.orders);
+                    }
                 })
                 .catch(console.error)
                 .finally(() => setLoadingProfile(false));
@@ -101,6 +104,11 @@ export default function ProfilePage() {
     const formatPrice = (price: number) => new Intl.NumberFormat('vi-VN').format(price) + 'đ';
     const formatDate = (date: string) => new Date(date).toLocaleDateString('vi-VN');
 
+    // Tính toán thống kê
+    const paidOrders = orders.filter(o => o.status === 'Đã thanh toán');
+    const totalSpent = paidOrders.reduce((sum, o) => sum + o.total, 0);
+    const totalOrders = orders.length;
+
     return (
         <>
             <Header />
@@ -109,6 +117,18 @@ export default function ProfilePage() {
                     <Link href="/" className="inline-flex items-center text-gray-500 hover:text-gray-700 mb-6">
                         <ArrowLeft className="mr-2 h-4 w-4" /> Về trang chủ
                     </Link>
+
+                    {/* Thống kê */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="bg-white border rounded-lg p-4">
+                            <p className="text-sm text-gray-500">Tổng tiền đã chi</p>
+                            <p className="text-xl font-bold text-blue-600">{formatPrice(totalSpent)}</p>
+                        </div>
+                        <div className="bg-white border rounded-lg p-4">
+                            <p className="text-sm text-gray-500">Số đơn hàng</p>
+                            <p className="text-xl font-bold">{totalOrders} đơn</p>
+                        </div>
+                    </div>
 
                     {/* Hồ sơ cá nhân */}
                     <div className="bg-white border rounded-lg p-6 mb-6">
