@@ -190,7 +190,7 @@ export default function ProfilePage() {
                                         <div>
                                             <Link
                                                 href={`/order/${order.id}`}
-                                                className="text-blue-600 hover:underline"
+                                                className="hover:underline"
                                             >
                                                 #{order.paymentContent}
                                             </Link>
@@ -199,12 +199,8 @@ export default function ProfilePage() {
                                             </p>
                                         </div>
                                         <div className="text-right">
-                                            <p>{formatPrice(order.total)}</p>
-                                            <span className={`text-xs px-2 py-1 rounded ${order.status === 'Đã thanh toán' || order.status === 'Đã giao' ? 'bg-green-100 text-green-700' :
-                                                order.status === 'Đã hủy' || order.status === 'Hoàn hàng' ? 'bg-red-100 text-red-700' :
-                                                    order.status === 'Đang giao' ? 'bg-blue-100 text-blue-700' :
-                                                        'bg-yellow-100 text-yellow-700'
-                                                }`}>
+                                            <p className="font-normal">{formatPrice(order.total)}</p>
+                                            <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#21246b', color: 'white' }}>
                                                 {order.status}
                                             </span>
                                         </div>

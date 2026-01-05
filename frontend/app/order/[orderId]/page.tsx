@@ -114,7 +114,7 @@ function OrderContent({ orderId }: { orderId: string }) {
                             return (
                                 <div key={status.key} className="flex flex-col items-center">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isActive ? 'bg-blue-600 text-white' :
-                                            isPast ? 'bg-green-500 text-white' : 'bg-gray-200'
+                                        isPast ? 'bg-green-500 text-white' : 'bg-gray-200'
                                         }`}>
                                         <Icon className="h-5 w-5" />
                                     </div>
@@ -138,20 +138,20 @@ function OrderContent({ orderId }: { orderId: string }) {
                     <div className="space-y-3">
                         <div>
                             <p className="text-gray-500 text-sm">Họ tên</p>
-                            <p>{order.customerName || 'Không có'}</p>
+                            <p className="font-normal">{order.customerName || 'Không có'}</p>
                         </div>
                         <div>
                             <p className="text-gray-500 text-sm">Số điện thoại</p>
-                            <p>{order.customerPhone || 'Không có'}</p>
+                            <p className="font-normal">{order.customerPhone || 'Không có'}</p>
                         </div>
                         <div>
                             <p className="text-gray-500 text-sm">Địa chỉ</p>
-                            <p>{order.customerAddress || 'Không có'}</p>
+                            <p className="font-normal">{order.customerAddress || 'Không có'}</p>
                         </div>
                         {order.note && (
                             <div>
                                 <p className="text-gray-500 text-sm">Ghi chú</p>
-                                <p>{order.note}</p>
+                                <p className="font-normal">{order.note}</p>
                             </div>
                         )}
                     </div>
@@ -164,10 +164,10 @@ function OrderContent({ orderId }: { orderId: string }) {
                         {order.items.map(item => (
                             <div key={item.id} className="py-3 flex justify-between">
                                 <div>
-                                    <p>{item.product.name}</p>
+                                    <p className="font-normal">{item.product.name}</p>
                                     <p className="text-gray-500 text-sm">Số lượng: {item.quantity}</p>
                                 </div>
-                                <p>{formatPrice(item.product.price * item.quantity)}</p>
+                                <p className="font-normal">{formatPrice(item.product.price * item.quantity)}</p>
                             </div>
                         ))}
                     </div>
@@ -183,12 +183,12 @@ function OrderContent({ orderId }: { orderId: string }) {
                         {order.discount > 0 && (
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">Giảm giá</span>
-                                <span className="text-green-600">-{formatPrice(order.discount)}</span>
+                                <span className="font-normal">-{formatPrice(order.discount)}</span>
                             </div>
                         )}
                         <div className="flex justify-between pt-2 border-t">
                             <span className="font-bold">Tổng cộng</span>
-                            <span className="font-bold text-lg">{formatPrice(order.total)}</span>
+                            <span className="font-normal text-lg">{formatPrice(order.total)}</span>
                         </div>
                     </div>
                 </div>
