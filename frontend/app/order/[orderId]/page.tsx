@@ -16,23 +16,29 @@ function OrderContent({ orderId }: { orderId: string }) {
     const [order, setOrder] = useState<any>(null);
 
     useEffect(() => {
-        // Fetch order details
-        fetch(`${API_URL}/api/orders/${orderId}`)
-            .then(res => res.json())
-            .then(data => {
-                setOrder(data);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));
+        const loadOrder = async () => {
+            // If payment success, update order status FIRST
+            if (paymentStatus === "success") {
+                await fetch(`${API_URL}/api/orders/${orderId}/status`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: "Đã thanh toán" })
+                });
+            }
 
-        // If payment success, update order status
-        if (paymentStatus === "success") {
-            fetch(`${API_URL}/api/orders/${orderId}/status`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "Đã thanh toán" })
-            });
-        }
+            // THEN fetch order details
+            try {
+                const res = await fetch(`${API_URL}/api/orders/${orderId}`);
+                const data = await res.json();
+                setOrder(data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadOrder();
     }, [orderId, paymentStatus]);
 
     if (loading) {

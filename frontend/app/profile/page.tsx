@@ -72,20 +72,16 @@ export default function ProfilePage() {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'PAID': return 'bg-green-100 text-green-800';
-            case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-            case 'CANCELLED': return 'bg-red-100 text-red-800';
+            case 'Đã thanh toán': return 'bg-green-100 text-green-800';
+            case 'Chờ thanh toán': return 'bg-yellow-100 text-yellow-800';
+            case 'Đã hủy': return 'bg-red-100 text-red-800';
             default: return 'bg-slate-100 text-slate-800';
         }
     };
 
     const getStatusText = (status: string) => {
-        switch (status) {
-            case 'PAID': return 'Đã thanh toán';
-            case 'PENDING': return 'Chờ thanh toán';
-            case 'CANCELLED': return 'Đã hủy';
-            default: return status;
-        }
+        // Status is already in Vietnamese from DB
+        return status || 'Không xác định';
     };
 
     return (
@@ -173,7 +169,7 @@ export default function ProfilePage() {
                                                     {order.items.map(item => (
                                                         <div key={item.id} className="flex items-center gap-3 text-sm">
                                                             <div className="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden flex-shrink-0">
-                                                                <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${item.product.image})` }} />
+                                                                <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${item.product.image?.startsWith('http') ? item.product.image : `${API_URL}${item.product.image?.startsWith('/') ? '' : '/'}${item.product.image}`})` }} />
                                                             </div>
                                                             <span className="flex-1 truncate">{item.product.name}</span>
                                                             <span className="text-slate-500">x{item.quantity}</span>
