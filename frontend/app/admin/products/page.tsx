@@ -378,9 +378,9 @@ export default function AdminProducts() {
                                             if (!file) return;
                                             const formData = new FormData();
                                             formData.append('file', file);
-                                            const res = await fetch('${API_URL}/upload', { method: 'POST', body: formData });
+                                            const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: formData });
                                             const data = await res.json();
-                                            setForm({ ...form, image: `http://localhost:3005${data.url}` });
+                                            setForm({ ...form, image: `${API_URL}${data.url}` });
                                         }}
                                         className="w-full mt-1 px-4 py-2 border rounded-lg"
                                     />
@@ -401,9 +401,9 @@ export default function AdminProducts() {
                                             for (let i = 0; i < files.length; i++) {
                                                 formData.append('files', files[i]);
                                             }
-                                            const res = await fetch('${API_URL}/upload/multiple', { method: 'POST', body: formData });
+                                            const res = await fetch(`${API_URL}/api/upload/multiple`, { method: 'POST', body: formData });
                                             const data = await res.json();
-                                            const newUrls = data.map((d: any) => `http://localhost:3005${d.url}`);
+                                            const newUrls = data.map((d: any) => `${API_URL}${d.url}`);
                                             setForm({ ...form, images: [...form.images.filter(i => i), ...newUrls] });
                                         }}
                                         className="w-full mt-1 px-4 py-2 border rounded-lg"
