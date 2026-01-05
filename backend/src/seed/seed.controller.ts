@@ -86,12 +86,12 @@ export class SeedController {
         try {
             const admin = await this.prisma.user.upsert({
                 where: { email: 'admin@novas.vn' },
-                update: { role: 'admin', password: hashedPassword },
+                update: { role: 'ADMIN', password: hashedPassword },
                 create: {
                     email: 'admin@novas.vn',
                     password: hashedPassword,
                     name: 'Admin',
-                    role: 'admin',
+                    role: 'ADMIN',
                 },
             });
             return { message: 'Admin created!', email: 'admin@novas.vn', password: 'admin123' };
