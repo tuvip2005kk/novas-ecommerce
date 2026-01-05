@@ -392,8 +392,8 @@ export default function AdminProducts() {
                                                 const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: formData });
                                                 if (res.ok) {
                                                     const data = await res.json();
-                                                    const imageUrl = `${API_URL}${data.url}`;
-                                                    setForm(prev => ({ ...prev, image: imageUrl }));
+                                                    // Save relative path to DB: /uploads/filename.jpg
+                                                    setForm(prev => ({ ...prev, image: data.url }));
                                                 }
                                             } catch (error) {
                                                 console.error("Upload failed", error);
@@ -402,7 +402,11 @@ export default function AdminProducts() {
                                         className="w-full mt-1 px-4 py-2 border rounded-lg"
                                     />
                                     {form.image && (
-                                        <img src={form.image} alt="Preview" className="mt-2 h-20 w-20 object-cover rounded" />
+                                        <img
+                                            src={form.image.startsWith('http') ? form.image : `${API_URL}${form.image}`}
+                                            alt="Preview"
+                                            className="mt-2 h-20 w-20 object-cover rounded"
+                                        />
                                     )}
                                 </div>
                                 <div>
@@ -422,7 +426,8 @@ export default function AdminProducts() {
                                                 const res = await fetch(`${API_URL}/api/upload/multiple`, { method: 'POST', body: formData });
                                                 if (res.ok) {
                                                     const data = await res.json();
-                                                    const newUrls = data.map((d: any) => `${API_URL}${d.url}`);
+                                                    // Save relative paths
+                                                    const newUrls = data.map((d: any) => d.url);
                                                     setForm(prev => ({ ...prev, images: [...prev.images.filter(i => i), ...newUrls] }));
                                                 }
                                             } catch (error) {
@@ -434,7 +439,11 @@ export default function AdminProducts() {
                                     <div className="flex gap-2 mt-2 flex-wrap">
                                         {form.images.filter(i => i).map((img, idx) => (
                                             <div key={idx} className="relative">
-                                                <img src={img} alt={`Preview ${idx}`} className="h-16 w-16 object-cover rounded border" />
+                                                <img
+                                                    src={img.startsWith('http') ? img : `${API_URL}${img}`}
+                                                    alt={`Preview ${idx}`}
+                                                    className="h-16 w-16 object-cover rounded border"
+                                                />
                                                 <button
                                                     type="button"
                                                     onClick={() => setForm({ ...form, images: form.images.filter((_, i) => i !== idx) })}
@@ -660,7 +669,7 @@ export default function AdminProducts() {
                                 <tr key={p.id} className="border-b hover:bg-slate-50">
                                     <td className="py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 bg-slate-100 bg-cover bg-center rounded border" style={{ backgroundImage: `url(${p.image})` }} />
+                                            <div className="w-12 h-12 bg-slate-100 bg-cover bg-center rounded border" style={{ backgroundImage: `url(${p.image.startsWith('http') ? p.image : `${API_URL}${p.image}`})` }} />
                                             <div>
                                                 <span className="font-medium hover:text-[#21246b] cursor-pointer" onClick={() => openEditModal(p)}>{p.name}</span>
                                                 <p className="text-xs text-slate-500">{p.subcategory?.name}</p>
