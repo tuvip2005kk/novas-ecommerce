@@ -77,4 +77,26 @@ export class SeedController {
             };
         }
     }
+
+    @Get('create-admin')
+    async createAdmin() {
+        const bcrypt = require('bcrypt');
+        const hashedPassword = await bcrypt.hash('admin123', 10);
+
+        try {
+            const admin = await this.prisma.user.upsert({
+                where: { email: 'admin@novas.vn' },
+                update: { role: 'admin', password: hashedPassword },
+                create: {
+                    email: 'admin@novas.vn',
+                    password: hashedPassword,
+                    name: 'Admin',
+                    role: 'admin',
+                },
+            });
+            return { message: 'Admin created!', email: 'admin@novas.vn', password: 'admin123' };
+        } catch (error) {
+            return { error: error.message };
+        }
+    }
 }
