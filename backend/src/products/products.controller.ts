@@ -9,8 +9,13 @@ export class ProductsController {
     }
 
     @Get()
-    findAll(@Query('search') search?: string, @Query('category') category?: string, @Query('sort') sort?: string) {
-        return this.productsService.findAll(search, category, sort);
+    findAll(
+        @Query('search') search?: string,
+        @Query('category') category?: string,
+        @Query('sort') sort?: string,
+        @Query('subcategoryId') subcategoryId?: string
+    ) {
+        return this.productsService.findAll(search, category, sort, subcategoryId ? parseInt(subcategoryId) : undefined);
     }
 
     @Get(':id')

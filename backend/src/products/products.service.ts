@@ -6,7 +6,7 @@ import { Product } from '@prisma/client';
 export class ProductsService {
     constructor(private prisma: PrismaService) { }
 
-    async findAll(search?: string, category?: string, sort?: string): Promise<any[]> {
+    async findAll(search?: string, category?: string, sort?: string, subcategoryId?: number): Promise<any[]> {
         const where: any = {};
 
         if (search) {
@@ -14,6 +14,10 @@ export class ProductsService {
                 { name: { contains: search } },
                 { description: { contains: search } },
             ];
+        }
+
+        if (subcategoryId) {
+            where.subcategoryId = subcategoryId;
         }
 
         const orderBy: any = {};
