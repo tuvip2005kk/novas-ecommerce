@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
-import { ArrowLeft, Loader2, Save, X, Edit2, Package, Clock, Eye } from "lucide-react";
+import { ArrowLeft, Loader2, Save, X, Edit2, Package, Clock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -30,7 +30,6 @@ interface ProfileData {
     id: number;
     email: string;
     name: string | null;
-    phone?: string | null;
     createdAt: string;
     orders: Order[];
 }
@@ -43,9 +42,7 @@ export default function ProfilePage() {
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [editName, setEditName] = useState('');
-    const [editPhone, setEditPhone] = useState('');
     const [saving, setSaving] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
     useEffect(() => {
         if (!isLoading && !user) router.push('/login');
@@ -60,7 +57,6 @@ export default function ProfilePage() {
                 .then(data => {
                     setProfile(data);
                     setEditName(data.name || '');
-                    setEditPhone(data.phone || '');
                     if (data.orders && Array.isArray(data.orders)) {
                         setOrders(data.orders);
                     }
@@ -79,9 +75,9 @@ export default function ProfilePage() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ name: editName, phone: editPhone })
+                body: JSON.stringify({ name: editName })
             });
-            setProfile(prev => prev ? { ...prev, name: editName, phone: editPhone } : null);
+            setProfile(prev => prev ? { ...prev, name: editName } : null);
             setIsEditing(false);
         } catch (err) {
             console.error(err);
@@ -103,7 +99,7 @@ export default function ProfilePage() {
     const formatPrice = (price: number) => new Intl.NumberFormat('vi-VN').format(price) + 'đ';
     const formatDate = (date: string) => new Date(date).toLocaleDateString('vi-VN');
 
-    const paidOrders = orders.filter(o => o.status === 'Đã thanh toán');
+    const paidOrders = orders.filter(o => o.status === 'Đã thanh toán' || o.status === 'Đang chuẩn bị' || o.status === 'Đang giao' || o.status === 'Đã giao');
     const totalSpent = paidOrders.reduce((sum, o) => sum + o.total, 0);
 
     return (
@@ -118,11 +114,11 @@ export default function ProfilePage() {
                     {/* Thống kê */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         <div className="border p-4 rounded">
-                            <p className="text-gray-600 text-sm">Tổng tiền đã chi</p>
+                            <p className="text-gray-500 text-sm">Tổng tiền đã chi</p>
                             <p className="text-lg">{formatPrice(totalSpent)}</p>
                         </div>
                         <div className="border p-4 rounded">
-                            <p className="text-gray-600 text-sm">Số đơn hàng</p>
+                            <p className="text-gray-500 text-sm">Số đơn hàng</p>
                             <p className="text-lg">{orders.length} đơn</p>
                         </div>
                     </div>
@@ -130,7 +126,7 @@ export default function ProfilePage() {
                     {/* Hồ sơ */}
                     <div className="border p-6 rounded mb-6">
                         <div className="flex justify-between mb-4">
-                            <h2 className="text-lg font-bold">Hồ sơ cá nhân</h2>
+                            <h2 className="font-bold">Hồ sơ cá nhân</h2>
                             {!isEditing ? (
                                 <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
                                     <Edit2 className="h-4 w-4 mr-1" /> Chỉnh sửa
@@ -147,13 +143,13 @@ export default function ProfilePage() {
                             )}
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             <div>
-                                <p className="text-gray-600 text-sm">Email</p>
+                                <p className="text-gray-500 text-sm">Email</p>
                                 <p>{user.email}</p>
                             </div>
                             <div>
-                                <p className="text-gray-600 text-sm">Họ và tên</p>
+                                <p className="text-gray-500 text-sm">Họ và tên</p>
                                 {isEditing ? (
                                     <input
                                         type="text"
@@ -167,21 +163,7 @@ export default function ProfilePage() {
                                 )}
                             </div>
                             <div>
-                                <p className="text-gray-600 text-sm">Số điện thoại</p>
-                                {isEditing ? (
-                                    <input
-                                        type="tel"
-                                        value={editPhone}
-                                        onChange={e => setEditPhone(e.target.value)}
-                                        className="w-full border rounded px-3 py-2"
-                                        placeholder="Nhập số điện thoại"
-                                    />
-                                ) : (
-                                    <p>{profile?.phone || 'Chưa cập nhật'}</p>
-                                )}
-                            </div>
-                            <div>
-                                <p className="text-gray-600 text-sm">Ngày đăng ký</p>
+                                <p className="text-gray-500 text-sm">Ngày đăng ký</p>
                                 <p>{profile?.createdAt ? formatDate(profile.createdAt) : 'N/A'}</p>
                             </div>
                         </div>
@@ -195,7 +177,7 @@ export default function ProfilePage() {
 
                     {/* Lịch sử đơn hàng */}
                     <div className="border p-6 rounded">
-                        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                        <h2 className="font-bold mb-4 flex items-center gap-2">
                             <Package className="h-5 w-5" /> Lịch sử đơn hàng ({orders.length})
                         </h2>
 
@@ -204,23 +186,24 @@ export default function ProfilePage() {
                         ) : (
                             <div className="divide-y">
                                 {orders.map(order => (
-                                    <div key={order.id} className="py-3 flex justify-between">
+                                    <div key={order.id} className="py-3 flex justify-between items-center">
                                         <div>
-                                            <button
-                                                onClick={() => setSelectedOrder(order)}
-                                                className="text-blue-600 hover:underline flex items-center gap-1"
+                                            <Link
+                                                href={`/order/${order.id}`}
+                                                className="text-blue-600 hover:underline"
                                             >
-                                                #{order.paymentContent} <Eye className="h-3 w-3" />
-                                            </button>
+                                                #{order.paymentContent}
+                                            </Link>
                                             <p className="text-gray-500 text-sm flex items-center gap-1">
                                                 <Clock className="h-3 w-3" /> {formatDate(order.createdAt)}
                                             </p>
                                         </div>
                                         <div className="text-right">
                                             <p>{formatPrice(order.total)}</p>
-                                            <span className={`text-xs px-2 py-1 rounded ${order.status === 'Đã thanh toán' ? 'bg-green-100 text-green-700' :
-                                                order.status === 'Đã hủy' ? 'bg-red-100 text-red-700' :
-                                                    'bg-yellow-100 text-yellow-700'
+                                            <span className={`text-xs px-2 py-1 rounded ${order.status === 'Đã thanh toán' || order.status === 'Đã giao' ? 'bg-green-100 text-green-700' :
+                                                    order.status === 'Đã hủy' || order.status === 'Hoàn hàng' ? 'bg-red-100 text-red-700' :
+                                                        order.status === 'Đang giao' ? 'bg-blue-100 text-blue-700' :
+                                                            'bg-yellow-100 text-yellow-700'
                                                 }`}>
                                                 {order.status}
                                             </span>
@@ -232,41 +215,6 @@ export default function ProfilePage() {
                     </div>
                 </div>
             </main>
-
-            {/* Modal */}
-            {selectedOrder && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedOrder(null)}>
-                    <div className="bg-white rounded max-w-md w-full max-h-[80vh] overflow-auto" onClick={e => e.stopPropagation()}>
-                        <div className="flex justify-between p-4 border-b">
-                            <h3>Đơn hàng #{selectedOrder.paymentContent}</h3>
-                            <button onClick={() => setSelectedOrder(null)}><X className="h-5 w-5" /></button>
-                        </div>
-                        <div className="p-4 space-y-3">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-gray-500">Trạng thái</span>
-                                <span>{selectedOrder.status}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-gray-500">Ngày đặt</span>
-                                <span>{formatDate(selectedOrder.createdAt)}</span>
-                            </div>
-                            <hr />
-                            {selectedOrder.items.map(item => (
-                                <div key={item.id} className="flex justify-between text-sm">
-                                    <span>{item.product.name} x{item.quantity}</span>
-                                    <span>{formatPrice(item.product.price * item.quantity)}</span>
-                                </div>
-                            ))}
-                            <hr />
-                            <div className="flex justify-between">
-                                <span>Tổng cộng</span>
-                                <span>{formatPrice(selectedOrder.total)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             <Footer />
         </>
     );
