@@ -1,9 +1,25 @@
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
 async function main() {
     console.log('=== START SEEDING ===');
+
+    // Create Admin User
+    console.log('Creating admin user...');
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    await prisma.user.upsert({
+        where: { email: 'admin@novas.vn' },
+        update: { role: 'admin' },
+        create: {
+            email: 'admin@novas.vn',
+            password: hashedPassword,
+            name: 'Admin',
+            role: 'admin',
+        },
+    });
+    console.log('Admin user created: admin@novas.vn / admin123');
 
     // Categories (matching local MySQL data)
     console.log('Creating categories...');
