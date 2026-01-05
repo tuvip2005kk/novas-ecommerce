@@ -266,7 +266,7 @@ export default function SlugPage() {
         const extraImages = Array.isArray(product.images) ? product.images : [];
         const productImages = [product.image, ...extraImages]
             .filter(Boolean)
-            .map(img => img.startsWith('http') ? img : `${API_URL}${img}`);
+            .map(img => img.startsWith('http') ? img : `${API_URL}${img.startsWith('/') ? '' : '/'}${img}`);
 
         const productSpecs = (product as any).specs || {};
 
@@ -560,7 +560,7 @@ function ProductCard({ product, categorySlug }: { product: Product; categorySlug
                     </div>
                 </div>
                 <img
-                    src={product.image ? (product.image.startsWith('http') ? product.image : `${API_URL}${product.image}`) : '/images/placeholder.png'}
+                    src={product.image ? (product.image.startsWith('http') ? product.image : `${API_URL}${product.image.startsWith('/') ? '' : '/'}${product.image}`) : '/images/placeholder.png'}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
