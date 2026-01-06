@@ -80,6 +80,23 @@ export class ProductsService {
     }
 
     async delete(id: number): Promise<Product> {
+        // Delete all related records first to avoid foreign key constraints
+        await this.prisma.$transaction([
+            // Delete likes for this product
+            this.prisma.like.deleteMany({
+                where: { productId: id }
+            }),
+            // Delete reviews for this product
+            this.prisma.review.deleteMany({
+                where: { productId: id }
+            }),
+            // Delete order items for this product
+            this.prisma.orderItem.deleteMany({
+                where: { productId: id }
+            })
+        ]);
+
+        // Now delete the product
         return this.prisma.product.delete({
             where: { id },
         });
