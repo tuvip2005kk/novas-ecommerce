@@ -173,7 +173,7 @@ export default function CategoryPage() {
                                                 </span>
                                             </div>
                                             <img
-                                                src={sub.image ? (sub.image.startsWith('http') ? sub.image : `${API_URL}${sub.image}`) : (sub.products[0]?.image ? (sub.products[0].image.startsWith('http') ? sub.products[0].image : `${API_URL}${sub.products[0].image}`) : '/images/placeholder.png')}
+                                                src={sub.image ? (sub.image.startsWith('http') ? sub.image : `${API_URL}${sub.image}`) : (sub.products[0]?.image ? (sub.products[0].image.startsWith('http') ? sub.products[0].image : `${API_URL}${sub.products[0].image}`) : getSubcategoryFallbackImage(sub.slug, categorySlug || ''))}
                                                 alt={sub.name}
                                                 className="w-full h-full object-cover"
                                                 loading="lazy"
