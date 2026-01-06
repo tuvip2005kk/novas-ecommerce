@@ -1,0 +1,72 @@
+"use client";
+import { API_URL } from '@/config';
+
+import { useEffect, useState } from "next/navigation";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { Header } from "@/components/Header";
+import Footer from "@/components/Footer";
+import { CommitmentSection } from "@/components/CommitmentSection";
+import { Star, ChevronDown, ChevronUp } from "lucide-react";
+
+interface Subcategory {
+    id: number;
+    name: string;
+    slug: string;
+    image?: string;
+    products: Product[];
+}
+
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    subcategories: Subcategory[];
+}
+
+interface Product {
+    id: number;
+    name: string;
+    slug: string;
+    price: number;
+    image: string;
+    soldCount: number;
+}
+
+interface Banner {
+    id: number;
+    image: string;
+    title: string;
+    description: string;
+}
+
+// Fallback banners if API fails
+const FALLBACK_BANNERS: Record&lt;string, string&gt; = {
+    'bon-cau': '/images/banners/bon-cau-banner.png',
+    'lavabo': '/images/banners/lavabo-banner.png',
+    'voi-sen': '/images/banners/voi-sen-banner.png',
+    'bon-tam': '/images/banners/bon-tam-banner.png',
+    'phu-kien': '/images/banners/phu-kien-banner.png',
+    'voi-chau-lavabo': '/images/banners/voi-chau-lavabo-banner.png'
+};
+
+function getSubcategoryFallbackImage(subcategorySlug: string, categorySlug: string): string {
+    const imageMap: Record&lt;string, string&gt; = {
+        '1-khoi': '/images/product/bon-cau/toilet_product_1_1767717640766.png',
+        'mot-khoi': '/images/product/bon-cau/toilet_product_1_1767717640766.png',
+        'trung': '/images/product/bon-cau/toilet_product_2_1767717658445.png',
+        'thong-minh': '/images/product/bon-cau-thong-minh/smart_toilet_white_1767717842259.png',
+        'treo-tuong': '/images/product/bon-cau-treo-tuong/wall_toilet_white_1767718022974.png',
+        'lavabo': '/images/product/lavabo/lavabo_flower_pattern_1767718373362.png',
+        'bon-tam': '/images/product/bon-tam/bathtub_product_1767717719012.png'
+    };
+
+    for (const [pattern, imagePath] of Object.entries(imageMap)) {
+        if (subcategorySlug.includes(pattern)) {
+            return imagePath;
+        }
+    }
+
+    return /images/product//toilet_product_3_1767717681037.png;
+}
