@@ -23,7 +23,7 @@ export default function AdminDesign() {
         <div className="space-y-4">
             <div>
                 <h1 className="text-xl font-bold text-slate-900">Thiết kế</h1>
-                <p className="text-sm text-slate-500">Tùy chỉnh giao diện</p>
+                <p className="text-sm text-slate-500 font-normal">Tùy chỉnh giao diện</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -34,7 +34,7 @@ export default function AdminDesign() {
                                 <option.icon className="w-5 h-5 text-slate-600" />
                                 <div>
                                     <h3 className="font-medium text-slate-900">{option.title}</h3>
-                                    <p className="text-xs text-slate-500">{option.description}</p>
+                                    <p className="text-xs text-slate-500 font-normal">{option.description}</p>
                                 </div>
                             </div>
                         </div>
@@ -44,3 +44,4 @@ export default function AdminDesign() {
         </div>
     );
 }
+

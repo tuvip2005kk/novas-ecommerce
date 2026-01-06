@@ -36,7 +36,7 @@ export default function AdminLayout({
                 <div className="border border-slate-200 p-6 max-w-sm w-full text-center">
                     <ShieldAlert className="h-8 w-8 text-red-600 mx-auto mb-3" />
                     <h2 className="text-lg font-bold text-slate-900 mb-1">Truy cập bị từ chối</h2>
-                    <p className="text-sm text-slate-500 mb-4">Bạn không có quyền truy cập trang Admin.</p>
+                    <p className="text-sm text-slate-500 font-normal mb-4">Bạn không có quyền truy cập trang Admin.</p>
                     <Link href="/" className="text-sm text-blue-600 hover:underline">
                         Về trang chủ
                     </Link>
@@ -72,3 +72,4 @@ export default function AdminLayout({
         </div>
     );
 }
+

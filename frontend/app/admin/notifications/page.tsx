@@ -22,7 +22,7 @@ export default function AdminNotifications() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-bold text-slate-900">Thông báo</h1>
-                <p className="text-slate-500">Gửi thông báo đến người dùng</p>
+                <p className="text-slate-500 font-normal">Gửi thông báo đến người dùng</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -74,7 +74,7 @@ export default function AdminNotifications() {
                                     <Bell className="h-5 w-5 text-[#21246b]" />
                                     <div className="flex-1">
                                         <p className="font-medium">{n.title}</p>
-                                        <p className="text-sm text-slate-500">{n.time} • {n.recipients} người nhận</p>
+                                        <p className="text-sm text-slate-500 font-normal">{n.time} • {n.recipients} người nhận</p>
                                     </div>
                                 </div>
                             ))}
@@ -85,3 +85,4 @@ export default function AdminNotifications() {
         </div>
     );
 }
+

@@ -109,7 +109,7 @@ export default function AdminSales() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">Khuyến mãi (Sales)</h1>
-                    <p className="text-slate-500">Quản lý mã giảm giá - Dữ liệu thật từ database</p>
+                    <p className="text-slate-500 font-normal">Quản lý mã giảm giá - Dữ liệu thật từ database</p>
                 </div>
                 <Button className="bg-[#21246b] hover:bg-[#1a1d55]" onClick={() => setShowModal(true)}>
                     <Plus className="h-4 w-4 mr-2" /> Thêm mã giảm giá
@@ -220,14 +220,14 @@ export default function AdminSales() {
             <Card>
                 <CardContent className="pt-6">
                     {sales.length === 0 ? (
-                        <div className="text-center py-12 text-slate-500">
+                        <div className="text-center py-12 text-slate-500 font-normal">
                             <Tag className="h-12 w-12 mx-auto mb-4 text-slate-300" />
                             <p>Chưa có mã giảm giá nào</p>
                         </div>
                     ) : (
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b text-left text-sm text-slate-500">
+                                <tr className="border-b text-left text-sm text-slate-500 font-normal">
                                     <th className="pb-3">Mã code</th>
                                     <th className="pb-3">Giảm giá</th>
                                     <th className="pb-3">Điều kiện</th>
@@ -247,9 +247,9 @@ export default function AdminSales() {
                                                 {s.type === 'PERCENT' ? <Percent className="h-4 w-4" /> : '$'}
                                                 {s.discount}{s.type === 'PERCENT' ? '%' : ''}
                                             </span>
-                                            {s.maxDiscount && <span className="text-xs text-slate-500">Tối đa ${s.maxDiscount}</span>}
+                                            {s.maxDiscount && <span className="text-xs text-slate-500 font-normal">Tối đa ${s.maxDiscount}</span>}
                                         </td>
-                                        <td className="py-4 text-sm text-slate-500">
+                                        <td className="py-4 text-sm text-slate-500 font-normal">
                                             {s.minOrder > 0 && <p>Đơn tối thiểu: ${s.minOrder}</p>}
                                             {s.expiresAt && <p>Hết hạn: {new Date(s.expiresAt).toLocaleDateString('vi-VN')}</p>}
                                         </td>
@@ -277,3 +277,4 @@ export default function AdminSales() {
         </div>
     );
 }
+

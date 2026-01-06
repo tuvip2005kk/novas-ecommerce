@@ -17,7 +17,7 @@ export default function AdminSettings() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-bold text-slate-900">Cài đặt hệ thống</h1>
-                <p className="text-slate-500">Cấu hình cửa hàng và thanh toán</p>
+                <p className="text-slate-500 font-normal">Cấu hình cửa hàng và thanh toán</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -72,3 +72,4 @@ export default function AdminSettings() {
         </div>
     );
 }
+

@@ -92,7 +92,7 @@ export default function ReviewsPage() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-bold text-slate-800">Quản lý Đánh giá</h1>
-                <p className="text-slate-500">Xem và quản lý đánh giá sản phẩm từ khách hàng</p>
+                <p className="text-slate-500 font-normal">Xem và quản lý đánh giá sản phẩm từ khách hàng</p>
             </div>
 
             {/* Stats */}
@@ -100,7 +100,7 @@ export default function ReviewsPage() {
                 <Card>
                     <CardContent className="pt-6 text-center">
                         <div className="text-3xl font-bold text-[#21246b]">{stats.total}</div>
-                        <div className="text-sm text-slate-500">Tổng đánh giá</div>
+                        <div className="text-sm text-slate-500 font-normal">Tổng đánh giá</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -109,18 +109,18 @@ export default function ReviewsPage() {
                             <span className="text-3xl font-bold text-[#21246b]">{stats.avg}</span>
                             <Star className="h-6 w-6 text-yellow-400 fill-yellow-400" />
                         </div>
-                        <div className="text-sm text-slate-500">Điểm trung bình</div>
+                        <div className="text-sm text-slate-500 font-normal">Điểm trung bình</div>
                     </CardContent>
                 </Card>
                 <Card className="md:col-span-2">
                     <CardContent className="pt-6">
-                        <div className="text-sm text-slate-500 mb-2">Phân bố đánh giá</div>
+                        <div className="text-sm text-slate-500 font-normal mb-2">Phân bố đánh giá</div>
                         <div className="flex gap-4">
                             {stats.distribution.map(d => (
                                 <div key={d.rating} className="flex items-center gap-1">
                                     <span className="text-sm font-medium">{d.rating}</span>
                                     <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                                    <span className="text-sm text-slate-500">({d.count})</span>
+                                    <span className="text-sm text-slate-500 font-normal">({d.count})</span>
                                 </div>
                             ))}
                         </div>
@@ -151,7 +151,7 @@ export default function ReviewsPage() {
             <Card>
                 <CardContent className="pt-6">
                     {filteredReviews.length === 0 ? (
-                        <p className="text-center text-slate-400 py-8">Chưa có đánh giá nào</p>
+                        <p className="text-center text-slate-400 font-normal py-8">Chưa có đánh giá nào</p>
                     ) : (
                         <div className="space-y-4">
                             {filteredReviews.map(review => (
@@ -178,7 +178,7 @@ export default function ReviewsPage() {
                                                                 />
                                                             ))}
                                                         </div>
-                                                        <span className="text-sm text-slate-500">
+                                                        <span className="text-sm text-slate-500 font-normal">
                                                             {formatDate(review.createdAt)}
                                                         </span>
                                                     </div>
@@ -194,12 +194,12 @@ export default function ReviewsPage() {
 
                                             {review.comment && (
                                                 <p className="mt-2 text-sm text-slate-600 flex items-start gap-2">
-                                                    <MessageSquare className="h-4 w-4 mt-0.5 text-slate-400" />
+                                                    <MessageSquare className="h-4 w-4 mt-0.5 text-slate-400 font-normal" />
                                                     {review.comment}
                                                 </p>
                                             )}
 
-                                            <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+                                            <div className="mt-2 flex items-center gap-2 text-sm text-slate-500 font-normal">
                                                 <User className="h-4 w-4" />
                                                 <span>{review.user.name || review.user.email}</span>
                                             </div>
@@ -214,3 +214,4 @@ export default function ReviewsPage() {
         </div>
     );
 }
+

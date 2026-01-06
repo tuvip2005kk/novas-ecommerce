@@ -180,7 +180,7 @@ export default function AdminBanners() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div>
-                    <Link href="/admin/design" className="text-xs text-slate-500 hover:text-slate-900">← Thiết kế</Link>
+                    <Link href="/admin/design" className="text-xs text-slate-500 font-normal hover:text-slate-900">← Thiết kế</Link>
                     <h1 className="text-xl font-bold text-slate-900">Banner</h1>
                 </div>
                 <Button onClick={openAddModal} size="sm" className="bg-slate-900 hover:bg-slate-800 text-xs">
@@ -189,7 +189,7 @@ export default function AdminBanners() {
             </div>
 
             <div className="flex items-center gap-4 border border-slate-200 bg-white p-3">
-                <span className="text-sm text-slate-500">Chọn trang:</span>
+                <span className="text-sm text-slate-500 font-normal">Chọn trang:</span>
                 <select
                     value={pageType}
                     onChange={(e) => setPageType(e.target.value as 'homepage' | 'category')}
@@ -218,7 +218,7 @@ export default function AdminBanners() {
                 <div className="border border-slate-200 bg-white divide-y divide-slate-200">
                     {banners.length === 0 ? (
                         <div className="p-8 text-center">
-                            <p className="text-sm text-slate-500">Chưa có banner</p>
+                            <p className="text-sm text-slate-500 font-normal">Chưa có banner</p>
                             <button onClick={openAddModal} className="mt-2 text-xs text-blue-600 hover:underline">+ Thêm banner</button>
                         </div>
                     ) : (
@@ -227,8 +227,8 @@ export default function AdminBanners() {
                                 <div className="w-32 h-20 bg-slate-100 bg-cover bg-center flex-shrink-0" style={{ backgroundImage: `url(${banner.image.startsWith('/uploads') ? '${API_URL}' + banner.image : banner.image})` }} />
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-medium text-sm">{banner.title}</h3>
-                                    <p className="text-xs text-slate-500 truncate">{banner.description}</p>
-                                    <p className="text-xs text-slate-400 mt-1">Link: {banner.link}</p>
+                                    <p className="text-xs text-slate-500 font-normal truncate">{banner.description}</p>
+                                    <p className="text-xs text-slate-400 font-normal mt-1">Link: {banner.link}</p>
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <button onClick={() => moveUp(index)} disabled={index === 0} className="p-1.5 hover:bg-slate-100 disabled:opacity-30"><ArrowUp className="h-3 w-3" /></button>
@@ -304,3 +304,4 @@ export default function AdminBanners() {
         </div>
     );
 }
+

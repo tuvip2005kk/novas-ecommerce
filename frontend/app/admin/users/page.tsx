@@ -160,7 +160,7 @@ export default function AdminUsers() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Quản lý người dùng</h1>
-                    <p className="text-slate-500 text-sm">{users.length} người dùng</p>
+                    <p className="text-slate-500 font-normal text-sm">{users.length} người dùng</p>
                 </div>
                 <Button onClick={handleCreate} className="gap-2">
                     <Plus className="h-4 w-4" /> Thêm người dùng
@@ -170,7 +170,7 @@ export default function AdminUsers() {
             {/* Search & Filter */}
             <div className="flex gap-4">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 font-normal" />
                     <input
                         type="text"
                         placeholder="Tìm theo email hoặc tên..."
@@ -195,7 +195,7 @@ export default function AdminUsers() {
                 <CardContent className="p-0">
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b bg-slate-50 text-left text-xs text-slate-500 uppercase">
+                            <tr className="border-b bg-slate-50 text-left text-xs text-slate-500 font-normal uppercase">
                                 <th className="p-3">ID</th>
                                 <th className="p-3">Email</th>
                                 <th className="p-3">Tên</th>
@@ -208,7 +208,7 @@ export default function AdminUsers() {
                         <tbody>
                             {filteredUsers.map(u => (
                                 <tr key={u.id} className="border-b hover:bg-slate-50">
-                                    <td className="p-3 text-slate-500">#{u.id}</td>
+                                    <td className="p-3 text-slate-500 font-normal">#{u.id}</td>
                                     <td className="p-3 font-medium">{u.email}</td>
                                     <td className="p-3">{u.name || "-"}</td>
                                     <td className="p-3">
@@ -217,19 +217,19 @@ export default function AdminUsers() {
                                             {u.role}
                                         </span>
                                     </td>
-                                    <td className="p-3 text-slate-500">{u._count?.orders || 0}</td>
-                                    <td className="p-3 text-slate-500 text-sm">{new Date(u.createdAt).toLocaleDateString("vi-VN")}</td>
+                                    <td className="p-3 text-slate-500 font-normal">{u._count?.orders || 0}</td>
+                                    <td className="p-3 text-slate-500 font-normal text-sm">{new Date(u.createdAt).toLocaleDateString("vi-VN")}</td>
                                     <td className="p-3">
                                         <div className="flex justify-end items-center">
                                             <button onClick={() => handleView(u)} className="p-1.5 hover:bg-slate-100 rounded" title="Xem chi tiết">
-                                                <Eye className="h-4 w-4 text-slate-500" />
+                                                <Eye className="h-4 w-4 text-slate-500 font-normal" />
                                             </button>
                                             <div className="relative">
                                                 <button
                                                     onClick={() => setOpenMenu(openMenu === u.id ? null : u.id)}
                                                     className="p-1.5 hover:bg-slate-100 rounded"
                                                 >
-                                                    <MoreVertical className="h-4 w-4 text-slate-500" />
+                                                    <MoreVertical className="h-4 w-4 text-slate-500 font-normal" />
                                                 </button>
                                                 {openMenu === u.id && (
                                                     <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg py-1 z-10 w-36">
@@ -261,7 +261,7 @@ export default function AdminUsers() {
                         </tbody>
                     </table>
                     {filteredUsers.length === 0 && (
-                        <div className="text-center py-10 text-slate-500">Không tìm thấy người dùng</div>
+                        <div className="text-center py-10 text-slate-500 font-normal">Không tìm thấy người dùng</div>
                     )}
                 </CardContent>
             </Card>
@@ -340,16 +340,16 @@ export default function AdminUsers() {
                                 </div>
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div><span className="text-slate-500">ID:</span> #{userDetail.id}</div>
-                                        <div><span className="text-slate-500">Vai trò:</span> {userDetail.role}</div>
-                                        <div className="col-span-2"><span className="text-slate-500">Email:</span> {userDetail.email}</div>
-                                        <div className="col-span-2"><span className="text-slate-500">Tên:</span> {userDetail.name || "-"}</div>
-                                        <div className="col-span-2"><span className="text-slate-500">Ngày tạo:</span> {new Date(userDetail.createdAt).toLocaleString("vi-VN")}</div>
+                                        <div><span className="text-slate-500 font-normal">ID:</span> #{userDetail.id}</div>
+                                        <div><span className="text-slate-500 font-normal">Vai trò:</span> {userDetail.role}</div>
+                                        <div className="col-span-2"><span className="text-slate-500 font-normal">Email:</span> {userDetail.email}</div>
+                                        <div className="col-span-2"><span className="text-slate-500 font-normal">Tên:</span> {userDetail.name || "-"}</div>
+                                        <div className="col-span-2"><span className="text-slate-500 font-normal">Ngày tạo:</span> {new Date(userDetail.createdAt).toLocaleString("vi-VN")}</div>
                                     </div>
                                     <div className="border-t pt-4">
                                         <div className="flex gap-4 text-sm">
-                                            <div><span className="text-slate-500">Đơn hàng:</span> {userDetail._count?.orders || 0}</div>
-                                            <div><span className="text-slate-500">Yêu thích:</span> {userDetail._count?.likes || 0}</div>
+                                            <div><span className="text-slate-500 font-normal">Đơn hàng:</span> {userDetail._count?.orders || 0}</div>
+                                            <div><span className="text-slate-500 font-normal">Yêu thích:</span> {userDetail._count?.likes || 0}</div>
                                         </div>
                                     </div>
                                     {userDetail.orders.length > 0 && (
@@ -417,3 +417,4 @@ export default function AdminUsers() {
         </div>
     );
 }
+

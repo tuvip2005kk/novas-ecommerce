@@ -118,25 +118,25 @@ export default function AdminDashboard() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-xl font-bold text-slate-900">Dashboard</h1>
-                <p className="text-sm text-slate-500">Tổng quan hoạt động kinh doanh</p>
+                <p className="text-sm text-slate-500 font-normal">Tổng quan hoạt động kinh doanh</p>
             </div>
 
             {/* Stats Grid - Simple boxes without icons */}
             <div className="grid md:grid-cols-4 gap-4">
                 <div className="border border-slate-200 bg-white p-4">
-                    <p className="text-xs text-slate-500">Sản phẩm</p>
+                    <p className="text-xs text-slate-500 font-normal">Sản phẩm</p>
                     <p className="text-2xl font-bold mt-1">{stats.totalProducts}</p>
                 </div>
                 <div className="border border-slate-200 bg-white p-4">
-                    <p className="text-xs text-slate-500">Đơn hàng</p>
+                    <p className="text-xs text-slate-500 font-normal">Đơn hàng</p>
                     <p className="text-2xl font-bold mt-1">{stats.totalOrders}</p>
                 </div>
                 <div className="border border-slate-200 bg-white p-4">
-                    <p className="text-xs text-slate-500">Doanh thu</p>
+                    <p className="text-xs text-slate-500 font-normal">Doanh thu</p>
                     <p className="text-2xl font-bold mt-1">${stats.totalRevenue}</p>
                 </div>
                 <div className="border border-slate-200 bg-white p-4">
-                    <p className="text-xs text-slate-500">Người dùng</p>
+                    <p className="text-xs text-slate-500 font-normal">Người dùng</p>
                     <p className="text-2xl font-bold mt-1">{stats.totalUsers}</p>
                 </div>
             </div>
@@ -226,3 +226,4 @@ export default function AdminDashboard() {
         </div>
     );
 }
+

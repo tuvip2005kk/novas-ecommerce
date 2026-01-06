@@ -202,7 +202,7 @@ export default function AdminCategories() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">Quản lý danh mục</h1>
-                    <p className="text-slate-500">Thêm, sửa, xóa danh mục và danh mục con</p>
+                    <p className="text-slate-500 font-normal">Thêm, sửa, xóa danh mục và danh mục con</p>
                 </div>
                 <Button className="bg-[#21246b] hover:bg-[#1a1d55]" onClick={activeTab === 'main' ? openAddCategoryModal : () => categories.length > 0 && openAddSubcategoryModal(categories[0].id)}>
                     <Plus className="h-4 w-4 mr-2" /> Thêm {activeTab === 'main' ? 'danh mục' : 'danh mục phụ'}
@@ -311,7 +311,7 @@ export default function AdminCategories() {
                 <div className="space-y-4">
                     {categories.length === 0 ? (
                         <Card>
-                            <CardContent className="py-10 text-center text-slate-500">
+                            <CardContent className="py-10 text-center text-slate-500 font-normal">
                                 Chưa có danh mục nào. Nhấn &quot;Thêm danh mục&quot; để bắt đầu.
                             </CardContent>
                         </Card>
@@ -326,7 +326,7 @@ export default function AdminCategories() {
                                             </div>
                                             <div>
                                                 <CardTitle className="text-lg">{category.name}</CardTitle>
-                                                <p className="text-sm text-slate-500">/{category.slug} • {category.subcategories.length} danh mục phụ</p>
+                                                <p className="text-sm text-slate-500 font-normal">/{category.slug} • {category.subcategories.length} danh mục phụ</p>
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
@@ -348,9 +348,9 @@ export default function AdminCategories() {
                                             {category.subcategories.map((sub) => (
                                                 <div key={sub.id} className="flex items-center justify-between py-2 px-4 bg-slate-50 rounded-lg">
                                                     <div className="flex items-center gap-2">
-                                                        <ChevronRight className="h-4 w-4 text-slate-400" />
+                                                        <ChevronRight className="h-4 w-4 text-slate-400 font-normal" />
                                                         <span className="font-medium">{sub.name}</span>
-                                                        <span className="text-xs text-slate-400">/{sub.slug}</span>
+                                                        <span className="text-xs text-slate-400 font-normal">/{sub.slug}</span>
                                                     </div>
                                                     <div className="flex gap-2">
                                                         <Button variant="ghost" size="icon" onClick={() => openEditSubcategoryModal(sub, category.id)}>
@@ -376,11 +376,11 @@ export default function AdminCategories() {
                 <Card>
                     <CardContent className="pt-6">
                         {allSubcategories.length === 0 ? (
-                            <p className="text-center text-slate-500 py-10">Chưa có danh mục phụ nào</p>
+                            <p className="text-center text-slate-500 font-normal py-10">Chưa có danh mục phụ nào</p>
                         ) : (
                             <table className="w-full">
                                 <thead>
-                                    <tr className="border-b text-left text-sm text-slate-500">
+                                    <tr className="border-b text-left text-sm text-slate-500 font-normal">
                                         <th className="pb-3">ID</th>
                                         <th className="pb-3">Tên</th>
                                         <th className="pb-3">Slug</th>
@@ -393,7 +393,7 @@ export default function AdminCategories() {
                                         <tr key={sub.id} className="border-b">
                                             <td className="py-3 text-sm">{sub.id}</td>
                                             <td className="py-3 text-sm font-medium">{sub.name}</td>
-                                            <td className="py-3 text-sm text-slate-500">/{sub.slug}</td>
+                                            <td className="py-3 text-sm text-slate-500 font-normal">/{sub.slug}</td>
                                             <td className="py-3 text-sm">{sub.categoryName}</td>
                                             <td className="py-3">
                                                 <div className="flex gap-2">
@@ -416,3 +416,4 @@ export default function AdminCategories() {
         </div>
     );
 }
+

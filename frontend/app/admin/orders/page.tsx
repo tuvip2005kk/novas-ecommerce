@@ -74,7 +74,7 @@ export default function AdminOrders() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-bold text-slate-900">Quản lý đơn hàng</h1>
-                <p className="text-slate-500">Xem và cập nhật trạng thái đơn hàng - Nhấn vào mã đơn để xem chi tiết</p>
+                <p className="text-slate-500 font-normal">Xem và cập nhật trạng thái đơn hàng - Nhấn vào mã đơn để xem chi tiết</p>
             </div>
 
             {/* Order Detail Modal */}
@@ -97,22 +97,22 @@ export default function AdminOrders() {
                                     <h3 className="font-semibold flex items-center gap-2">
                                         <User className="h-4 w-4 text-[#21246b]" /> Thông tin khách hàng
                                     </h3>
-                                    <p><span className="text-slate-500">Họ tên:</span> <strong>{selectedOrder.customerName || 'N/A'}</strong></p>
+                                    <p><span className="text-slate-500 font-normal">Họ tên:</span> <strong>{selectedOrder.customerName || 'N/A'}</strong></p>
                                     <p className="flex items-center gap-2">
-                                        <Phone className="h-4 w-4 text-slate-400" />
+                                        <Phone className="h-4 w-4 text-slate-400 font-normal" />
                                         {selectedOrder.customerPhone || 'Không có SĐT'}
                                     </p>
                                     {selectedOrder.customerAddress && (
-                                        <p><span className="text-slate-500">📍 Địa chỉ:</span> {selectedOrder.customerAddress}</p>
+                                        <p><span className="text-slate-500 font-normal">📍 Địa chỉ:</span> {selectedOrder.customerAddress}</p>
                                     )}
                                 </div>
                                 <div className="p-4 bg-slate-50 rounded-xl space-y-2">
                                     <h3 className="font-semibold flex items-center gap-2">
                                         <Calendar className="h-4 w-4 text-[#21246b]" /> Thông tin đơn hàng
                                     </h3>
-                                    <p><span className="text-slate-500">Mã đơn:</span> <strong className="text-[#21246b]">{selectedOrder.paymentContent}</strong></p>
-                                    <p><span className="text-slate-500">Ngày tạo:</span> {new Date(selectedOrder.createdAt).toLocaleString('vi-VN')}</p>
-                                    <p><span className="text-slate-500">Trạng thái:</span> {getStatusBadge(selectedOrder.status)}</p>
+                                    <p><span className="text-slate-500 font-normal">Mã đơn:</span> <strong className="text-[#21246b]">{selectedOrder.paymentContent}</strong></p>
+                                    <p><span className="text-slate-500 font-normal">Ngày tạo:</span> {new Date(selectedOrder.createdAt).toLocaleString('vi-VN')}</p>
+                                    <p><span className="text-slate-500 font-normal">Trạng thái:</span> {getStatusBadge(selectedOrder.status)}</p>
                                 </div>
                             </div>
 
@@ -136,10 +136,10 @@ export default function AdminOrders() {
                                             />
                                             <div className="flex-1">
                                                 <p className="font-medium">{item.product?.name || 'Sản phẩm không xác định'}</p>
-                                                <p className="text-sm text-slate-500">Đơn giá: {new Intl.NumberFormat('vi-VN').format(item.product?.price || 0)}đ</p>
+                                                <p className="text-sm text-slate-500 font-normal">Đơn giá: {new Intl.NumberFormat('vi-VN').format(item.product?.price || 0)}đ</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-slate-500">x{item.quantity}</p>
+                                                <p className="text-slate-500 font-normal">x{item.quantity}</p>
                                                 <p className="font-bold">{new Intl.NumberFormat('vi-VN').format((item.product?.price || 0) * item.quantity)}đ</p>
                                             </div>
                                         </div>
@@ -184,7 +184,7 @@ export default function AdminOrders() {
                 <CardContent className="pt-6">
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b text-left text-sm text-slate-500">
+                            <tr className="border-b text-left text-sm text-slate-500 font-normal">
                                 <th className="pb-3">Mã đơn</th>
                                 <th className="pb-3">Khách hàng</th>
                                 <th className="pb-3">Tổng tiền</th>
@@ -206,11 +206,11 @@ export default function AdminOrders() {
                                     </td>
                                     <td className="py-4">
                                         <p className="font-medium">{o.customerName || 'N/A'}</p>
-                                        <p className="text-sm text-slate-500">{o.customerPhone}</p>
+                                        <p className="text-sm text-slate-500 font-normal">{o.customerPhone}</p>
                                     </td>
                                     <td className="py-4 font-bold">{new Intl.NumberFormat('vi-VN').format(o.total)}đ</td>
                                     <td className="py-4">{getStatusBadge(o.status)}</td>
-                                    <td className="py-4 text-slate-500">{new Date(o.createdAt).toLocaleDateString('vi-VN')}</td>
+                                    <td className="py-4 text-slate-500 font-normal">{new Date(o.createdAt).toLocaleDateString('vi-VN')}</td>
                                     <td className="py-4">
                                         <select
                                             value={o.status}
@@ -234,3 +234,4 @@ export default function AdminOrders() {
         </div>
     );
 }
+

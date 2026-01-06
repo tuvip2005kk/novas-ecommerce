@@ -133,7 +133,7 @@ export default function AdminFooter() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div>
-                    <Link href="/admin/design" className="text-xs text-slate-500 hover:text-slate-900">← Thiết kế</Link>
+                    <Link href="/admin/design" className="text-xs text-slate-500 font-normal hover:text-slate-900">← Thiết kế</Link>
                     <h1 className="text-xl font-bold text-slate-900">Footer & Liên hệ</h1>
                 </div>
                 <Button onClick={handleSave} size="sm" disabled={saving} className={`text-xs ${saved ? 'bg-green-600' : 'bg-slate-900 hover:bg-slate-800'}`}>
@@ -153,14 +153,14 @@ export default function AdminFooter() {
                             <div key={s.id} className="p-2 flex items-center gap-2">
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium truncate">{s.name}</p>
-                                    <p className="text-xs text-slate-500 truncate">{s.address}</p>
+                                    <p className="text-xs text-slate-500 font-normal truncate">{s.address}</p>
                                 </div>
                                 <button onClick={() => openEditModal(s)} className="p-1 text-blue-600"><Edit className="h-3 w-3" /></button>
                                 <button onClick={() => deleteShowroom(s.id)} className="p-1 text-red-600"><Trash2 className="h-3 w-3" /></button>
                             </div>
                         ))}
                         {showrooms.length === 0 && (
-                            <div className="p-4 text-center text-xs text-slate-500">Chưa có showroom</div>
+                            <div className="p-4 text-center text-xs text-slate-500 font-normal">Chưa có showroom</div>
                         )}
                     </div>
                 </div>
@@ -173,24 +173,24 @@ export default function AdminFooter() {
                     <div className="p-3 space-y-3">
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className="text-xs text-slate-500">Hotline CSKH</label>
+                                <label className="text-xs text-slate-500 font-normal">Hotline CSKH</label>
                                 <input type="text" value={contact.hotline1} onChange={e => setContact({ ...contact, hotline1: e.target.value })} className="w-full mt-1 px-2 py-1 border border-slate-200 text-xs" />
                             </div>
                             <div>
-                                <label className="text-xs text-slate-500">Hotline tư vấn</label>
+                                <label className="text-xs text-slate-500 font-normal">Hotline tư vấn</label>
                                 <input type="text" value={contact.hotline2} onChange={e => setContact({ ...contact, hotline2: e.target.value })} className="w-full mt-1 px-2 py-1 border border-slate-200 text-xs" />
                             </div>
                         </div>
                         <div>
-                            <label className="text-xs text-slate-500">Email kinh doanh</label>
+                            <label className="text-xs text-slate-500 font-normal">Email kinh doanh</label>
                             <input type="email" value={contact.emailSales} onChange={e => setContact({ ...contact, emailSales: e.target.value })} className="w-full mt-1 px-2 py-1 border border-slate-200 text-xs" />
                         </div>
                         <div>
-                            <label className="text-xs text-slate-500">Email CSKH</label>
+                            <label className="text-xs text-slate-500 font-normal">Email CSKH</label>
                             <input type="email" value={contact.emailSupport} onChange={e => setContact({ ...contact, emailSupport: e.target.value })} className="w-full mt-1 px-2 py-1 border border-slate-200 text-xs" />
                         </div>
                         <div>
-                            <label className="text-xs text-slate-500">Link Facebook</label>
+                            <label className="text-xs text-slate-500 font-normal">Link Facebook</label>
                             <input type="text" value={contact.facebookUrl} onChange={e => setContact({ ...contact, facebookUrl: e.target.value })} className="w-full mt-1 px-2 py-1 border border-slate-200 text-xs" />
                         </div>
                     </div>
@@ -230,3 +230,4 @@ export default function AdminFooter() {
         </div>
     );
 }
+

@@ -258,7 +258,7 @@ export default function AdminProducts() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">Quản lý sản phẩm</h1>
-                    <p className="text-slate-500">Thêm, sửa, xóa sản phẩm trong kho • Tổng: {products.length} sản phẩm</p>
+                    <p className="text-slate-500 font-normal">Thêm, sửa, xóa sản phẩm trong kho • Tổng: {products.length} sản phẩm</p>
                 </div>
                 <Button className="bg-[#21246b] hover:bg-[#1a1d55]" onClick={openAddModal}>
                     <Plus className="h-4 w-4 mr-2" /> Thêm sản phẩm
@@ -646,7 +646,7 @@ export default function AdminProducts() {
 
                                         {/* No category selected */}
                                         {!form.categorySlug && (
-                                            <p className="col-span-2 text-slate-400 text-sm">Vui lòng chọn danh mục trước để nhập thông số kỹ thuật</p>
+                                            <p className="col-span-2 text-slate-400 font-normal text-sm">Vui lòng chọn danh mục trước để nhập thông số kỹ thuật</p>
                                         )}
                                     </div>
                                 </div>
@@ -665,7 +665,7 @@ export default function AdminProducts() {
                 <CardContent className="pt-6">
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b text-left text-sm text-slate-500">
+                            <tr className="border-b text-left text-sm text-slate-500 font-normal">
                                 <th className="pb-3">Sản phẩm</th>
                                 <th className="pb-3">Danh mục</th>
                                 <th className="pb-3">Giá</th>
@@ -682,7 +682,7 @@ export default function AdminProducts() {
                                             <div className="w-12 h-12 bg-slate-100 bg-cover bg-center rounded border" style={{ backgroundImage: `url(${p.image.startsWith('http') ? p.image : `${API_URL}${p.image}`})` }} />
                                             <div>
                                                 <span className="font-medium hover:text-[#21246b] cursor-pointer" onClick={() => openEditModal(p)}>{p.name}</span>
-                                                <p className="text-xs text-slate-500 font-normal">{p.subcategory?.name}</p>
+                                                <p className="text-xs text-slate-500 font-normal font-normal">{p.subcategory?.name}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -711,7 +711,7 @@ export default function AdminProducts() {
                         </tbody>
                     </table>
                     {filteredProducts.length === 0 && (
-                        <div className="text-center py-10 text-slate-500">
+                        <div className="text-center py-10 text-slate-500 font-normal">
                             Không có sản phẩm nào trong danh mục này
                         </div>
                     )}
@@ -721,3 +721,4 @@ export default function AdminProducts() {
         </div>
     );
 }
+

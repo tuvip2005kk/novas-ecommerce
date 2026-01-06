@@ -122,7 +122,7 @@ export default function AdminAnalytics() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-bold text-slate-900">Thống kê & Phân tích</h1>
-                <p className="text-slate-500">Dữ liệu thật từ database - cập nhật realtime</p>
+                <p className="text-slate-500 font-normal">Dữ liệu thật từ database - cập nhật realtime</p>
             </div>
 
             {/* Revenue Trend */}
@@ -146,7 +146,7 @@ export default function AdminAnalytics() {
                                 ))}
                             </div>
 
-                            <span className="text-slate-400">|</span>
+                            <span className="text-slate-400 font-normal">|</span>
 
                             {/* Month/Year selector */}
                             <div className="flex gap-2 items-center">
@@ -175,7 +175,7 @@ export default function AdminAnalytics() {
                 <CardContent>
                     <div className="h-80">
                         {revenueData.every(d => d.revenue === 0) ? (
-                            <div className="flex items-center justify-center h-full text-slate-500">
+                            <div className="flex items-center justify-center h-full text-slate-500 font-normal">
                                 Chưa có đơn hàng đã thanh toán trong khoảng thời gian này
                             </div>
                         ) : (
@@ -202,7 +202,7 @@ export default function AdminAnalytics() {
                     <CardContent>
                         <div className="h-64">
                             {categoryData.length === 0 ? (
-                                <div className="flex items-center justify-center h-full text-slate-500">
+                                <div className="flex items-center justify-center h-full text-slate-500 font-normal">
                                     Chưa có dữ liệu sản phẩm
                                 </div>
                             ) : (
@@ -229,7 +229,7 @@ export default function AdminAnalytics() {
                     <CardContent>
                         <div className="h-64">
                             {topProducts.length === 0 ? (
-                                <div className="flex items-center justify-center h-full text-slate-500">
+                                <div className="flex items-center justify-center h-full text-slate-500 font-normal">
                                     Chưa có đơn hàng nào
                                 </div>
                             ) : (
@@ -250,3 +250,4 @@ export default function AdminAnalytics() {
         </div>
     );
 }
+
