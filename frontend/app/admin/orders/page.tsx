@@ -136,11 +136,11 @@ export default function AdminOrders() {
                                             />
                                             <div className="flex-1">
                                                 <p className="font-medium">{item.product?.name || 'Sản phẩm không xác định'}</p>
-                                                <p className="text-sm text-slate-500">Đơn giá: ${item.product?.price}</p>
+                                                <p className="text-sm text-slate-500">Đơn giá: {new Intl.NumberFormat('vi-VN').format(item.product?.price || 0)}đ</p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-slate-500">x{item.quantity}</p>
-                                                <p className="font-bold">${(item.product?.price || 0) * item.quantity}</p>
+                                                <p className="font-bold">{new Intl.NumberFormat('vi-VN').format((item.product?.price || 0) * item.quantity)}đ</p>
                                             </div>
                                         </div>
                                     ))}
@@ -152,7 +152,7 @@ export default function AdminOrders() {
                                 <span className="text-lg font-semibold flex items-center gap-2">
                                     <DollarSign className="h-5 w-5 text-[#21246b]" /> Tổng cộng
                                 </span>
-                                <span className="text-2xl font-bold text-[#21246b]">${selectedOrder.total}</span>
+                                <span className="text-2xl font-bold text-[#21246b]">{new Intl.NumberFormat('vi-VN').format(selectedOrder.total)}đ</span>
                             </div>
 
                             {/* Actions */}
@@ -208,7 +208,7 @@ export default function AdminOrders() {
                                         <p className="font-medium">{o.customerName || 'N/A'}</p>
                                         <p className="text-sm text-slate-500">{o.customerPhone}</p>
                                     </td>
-                                    <td className="py-4 font-bold">${o.total}</td>
+                                    <td className="py-4 font-bold">{new Intl.NumberFormat('vi-VN').format(o.total)}đ</td>
                                     <td className="py-4">{getStatusBadge(o.status)}</td>
                                     <td className="py-4 text-slate-500">{new Date(o.createdAt).toLocaleDateString('vi-VN')}</td>
                                     <td className="py-4">
@@ -217,9 +217,12 @@ export default function AdminOrders() {
                                             onChange={(e) => updateStatus(o.id, e.target.value)}
                                             className="border rounded px-2 py-1 text-sm"
                                         >
-                                            <option value="PENDING">Chờ thanh toán</option>
-                                            <option value="PAID">Đã thanh toán</option>
-                                            <option value="CANCELLED">Đã hủy</option>
+                                            <option value="Chờ thanh toán">Chờ thanh toán</option>
+                                            <option value="Đã thanh toán">Đã thanh toán</option>
+                                            <option value="Đang chuẩn bị">Đang chuẩn bị</option>
+                                            <option value="Đang giao">Đang giao</option>
+                                            <option value="Đã giao">Đã giao</option>
+                                            <option value="Đã hủy">Đã hủy</option>
                                         </select>
                                     </td>
                                 </tr>

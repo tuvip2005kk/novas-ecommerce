@@ -64,11 +64,12 @@ export default function OrderDetailPage() {
     }
 
     const statusColors: Record<string, string> = {
-        PENDING: "bg-yellow-100 text-yellow-800",
-        PAID: "bg-green-100 text-green-800",
-        SHIPPED: "bg-blue-100 text-blue-800",
-        COMPLETED: "bg-emerald-100 text-emerald-800",
-        CANCELLED: "bg-red-100 text-red-800",
+        "Chờ thanh toán": "bg-yellow-100 text-yellow-800",
+        "Đã thanh toán": "bg-green-100 text-green-800",
+        "Đang chuẩn bị": "bg-blue-100 text-blue-800",
+        "Đang giao": "bg-purple-100 text-purple-800",
+        "Đã giao": "bg-emerald-100 text-emerald-800",
+        "Đã hủy": "bg-red-100 text-red-800",
     };
 
     return (
@@ -114,15 +115,15 @@ export default function OrderDetailPage() {
                         {/* Payment Section */}
                         <div className="border-t mt-4 pt-4">
                             <h4 className="font-semibold mb-3">Thanh toán</h4>
-                            <div className={`p-4 rounded-lg ${order.status === "PAID" || order.status === "COMPLETED" ? "bg-green-50" : "bg-yellow-50"}`}>
+                            <div className={`p-4 rounded-lg ${order.status === "Đã thanh toán" || order.status === "Đã giao" ? "bg-green-50" : "bg-yellow-50"}`}>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className={`font-medium ${order.status === "PAID" || order.status === "COMPLETED" ? "text-green-700" : "text-yellow-700"}`}>
-                                            {order.status === "PAID" || order.status === "COMPLETED" ? "✓ Đã thanh toán" : "⏳ Chờ thanh toán"}
+                                        <p className={`font-medium ${order.status === "Đã thanh toán" || order.status === "Đã giao" ? "text-green-700" : "text-yellow-700"}`}>
+                                            {order.status === "Đã thanh toán" || order.status === "Đã giao" ? "✓ Đã thanh toán" : "⏳ Chờ thanh toán"}
                                         </p>
                                         <p className="text-sm text-slate-500 mt-1">Nội dung CK: {order.paymentContent || `DH${order.id}`}</p>
                                     </div>
-                                    {order.status === "PENDING" && (
+                                    {order.status === "Chờ thanh toán" && (
                                         <img
                                             src={`https://qr.sepay.vn/img?acc=0348868647&bank=MBBank&amount=${Math.round(order.total)}&des=${order.paymentContent || `DH${order.id}`}`}
                                             alt="QR Code"
