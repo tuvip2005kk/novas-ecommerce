@@ -682,7 +682,7 @@ export default function AdminProducts() {
                                             <div className="w-12 h-12 bg-slate-100 bg-cover bg-center rounded border" style={{ backgroundImage: `url(${p.image.startsWith('http') ? p.image : `${API_URL}${p.image}`})` }} />
                                             <div>
                                                 <span className="font-medium hover:text-[#21246b] cursor-pointer" onClick={() => openEditModal(p)}>{p.name}</span>
-                                                <p className="text-xs text-slate-500">{p.subcategory?.name}</p>
+                                                <p className="text-xs text-slate-500 font-normal">{p.subcategory?.name}</p>
                                             </div>
                                         </div>
                                     </td>
