@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { Plus, Trash2, Edit, Loader2, X, Package } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useToast, ToastContainer } from "@/components/Toast";
 
 interface Subcategory {
     id: number;
@@ -56,6 +57,7 @@ export default function AdminProducts() {
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [saving, setSaving] = useState(false);
     const [filterCategory, setFilterCategory] = useState('');
+    const { toasts, showToast, removeToast } = useToast();
     const [form, setForm] = useState({
         name: '',
         slug: '',
@@ -169,12 +171,20 @@ export default function AdminProducts() {
     };
 
     const deleteProduct = async (id: number) => {
-        if (!confirm('Xác nhận xóa sản phẩm này?')) return;
-        await fetch(`${API_URL}/api/products/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        fetchProducts();
+        try {
+            const res = await fetch(`${API_URL}/api/products/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                showToast('Đã xóa sản phẩm thành công', 'success');
+                fetchProducts();
+            } else {
+                showToast('Không thể xóa sản phẩm', 'error');
+            }
+        } catch (error) {
+            showToast('Lỗi kết nối', 'error');
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -182,7 +192,7 @@ export default function AdminProducts() {
 
         // Validate image
         if (!form.image) {
-            alert("Vui lòng chọn ảnh chính cho sản phẩm!");
+            showToast("Vui lòng chọn ảnh chính cho sản phẩm!", "error");
             return;
         }
 
@@ -217,7 +227,7 @@ export default function AdminProducts() {
             fetchProducts();
         } catch (error) {
             console.error("Error saving product:", error);
-            alert("Có lỗi xảy ra khi lưu sản phẩm");
+            showToast("Đã có lỗi khi lưu sản phẩm", "error");
         } finally {
             setSaving(false);
         }
@@ -707,6 +717,7 @@ export default function AdminProducts() {
                     )}
                 </CardContent>
             </Card>
+            <ToastContainer toasts={toasts} onClose={removeToast} />
         </div>
     );
 }
