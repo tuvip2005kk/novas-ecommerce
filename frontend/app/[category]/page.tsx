@@ -49,7 +49,7 @@ const FALLBACK_BANNERS: Record<string, string> = {
     'bon-tam': '/images/banners/bon-tam-banner.png',
     'phu-kien': '/images/banners/phu-kien-banner.png',
     'voi-chau-lavabo': '/images/banners/voi-chau-lavabo-banner.png'
-};
+}; \r\n\r\n// Helper to get subcategory fallback image based on slug\r\nfunction getSubcategoryFallbackImage(subcategorySlug: string, categorySlug: string): string {\r\n    // Map of subcategory patterns to images\r\n    const imageMap: Record\u003cstring, string\u003e = {\r\n        '1-khoi': '/images/product/bon-cau/toilet_product_1_1767717640766.png',\r\n        'mot-khoi': '/images/product/bon-cau/toilet_product_1_1767717640766.png',\r\n        'trung': '/images/product/bon-cau/toilet_product_2_1767717658445.png',\r\n        'thong-minh': '/images/product/bon-cau-thong-minh/smart_toilet_white_1767717842259.png',\r\n        'treo-tuong': '/images/product/bon-cau-treo-tuong/wall_toilet_white_1767718022974.png',\r\n        'lavabo': '/images/product/lavabo/lavabo_flower_pattern_1767718373362.png',\r\n        'bon-tam': '/images/product/bon-tam/bathtub_product_1767717719012.png'\r\n    };\r\n\r\n    // Find matching pattern\r\n    for (const [pattern, imagePath] of Object.entries(imageMap)) {\r\n        if (subcategorySlug.includes(pattern)) {\r\n            return imagePath;\r\n        }\r\n    }\r\n\r\n    // Default fallback\r\n    return `/images/product/${categorySlug}/toilet_product_3_1767717681037.png`;\r\n}
 
 export default function CategoryPage() {
     const params = useParams();
