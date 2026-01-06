@@ -51,228 +51,228 @@ const FALLBACK_BANNERS: Record<string, string> = {
     'voi-chau-lavabo': '/images/banners/voi-chau-lavabo-banner.png'
 }; \r\n\r\n// Helper to get subcategory fallback image based on slug\r\nfunction getSubcategoryFallbackImage(subcategorySlug: string, categorySlug: string): string {\r\n    // Map of subcategory patterns to images\r\n    const imageMap: Record\u003cstring, string\u003e = {\r\n        '1-khoi': '/images/product/bon-cau/toilet_product_1_1767717640766.png',\r\n        'mot-khoi': '/images/product/bon-cau/toilet_product_1_1767717640766.png',\r\n        'trung': '/images/product/bon-cau/toilet_product_2_1767717658445.png',\r\n        'thong-minh': '/images/product/bon-cau-thong-minh/smart_toilet_white_1767717842259.png',\r\n        'treo-tuong': '/images/product/bon-cau-treo-tuong/wall_toilet_white_1767718022974.png',\r\n        'lavabo': '/images/product/lavabo/lavabo_flower_pattern_1767718373362.png',\r\n        'bon-tam': '/images/product/bon-tam/bathtub_product_1767717719012.png'\r\n    };\r\n\r\n    // Find matching pattern\r\n    for (const [pattern, imagePath] of Object.entries(imageMap)) {\r\n        if (subcategorySlug.includes(pattern)) {\r\n            return imagePath;\r\n        }\r\n    }\r\n\r\n    // Default fallback\r\n    return `/images/product/${categorySlug}/toilet_product_3_1767717681037.png`;\r\n}
 
-export default function CategoryPage() {
-    const params = useParams();
-    const categorySlug = Array.isArray(params.category) ? params.category[0] : params.category;
+\r\n// Fallback image selector for subcategories without images\r\nfunction getSubcategoryFallbackImage(slug: string, cat: string): string {\r\n    if (slug.includes('1-khoi') || slug.includes('mot-khoi')) return '/images/product/bon-cau/toilet_product_1_1767717640766.png';\r\n    if (slug.includes('trung')) return '/images/product/bon-cau/toilet_product_2_1767717658445.png';\r\n    if (slug.includes('thong-minh')) return '/images/product/bon-cau-thong-minh/smart_toilet_white_1767717842259.png';\r\n    if (slug.includes('treo-tuong')) return '/images/product/bon-cau-treo-tuong/wall_toilet_white_1767718022974.png';\r\n    if (slug.includes('lavabo')) return '/images/product/lavabo/lavabo_flower_pattern_1767718373362.png';\r\n    if (slug.includes('bon-tam')) return '/images/product/bon-tam/bathtub_product_1_1767717719012.png';\r\n    return `/images/product/${cat}/toilet_product_3_1767717681037.png`;\r\n}\n\r\nexport default function CategoryPage() {
+const params = useParams();
+const categorySlug = Array.isArray(params.category) ? params.category[0] : params.category;
 
-    const [category, setCategory] = useState<Category | null>(null);
-    const [banner, setBanner] = useState<Banner | null>(null);
-    const [expandedSubcategories, setExpandedSubcategories] = useState<Set<number>>(new Set());
-    const [loading, setLoading] = useState(true);
+const [category, setCategory] = useState<Category | null>(null);
+const [banner, setBanner] = useState<Banner | null>(null);
+const [expandedSubcategories, setExpandedSubcategories] = useState<Set<number>>(new Set());
+const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (!categorySlug) return;
+useEffect(() => {
+    if (!categorySlug) return;
 
-        const fetchCategory = async () => {
-            setLoading(true);
-            try {
-                // Fetch category
-                const res = await fetch(`${API_URL}/api/categories/slug/${categorySlug}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setCategory(data);
-                }
-
-                // Fetch banner for this category
-                const bannerRes = await fetch(`${API_URL}/api/banners?pageType=category&categorySlug=${categorySlug}`);
-                if (bannerRes.ok) {
-                    const banners = await bannerRes.json();
-                    if (Array.isArray(banners) && banners.length > 0) {
-                        setBanner(banners[0]);
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to fetch category", error);
-            } finally {
-                setLoading(false);
+    const fetchCategory = async () => {
+        setLoading(true);
+        try {
+            // Fetch category
+            const res = await fetch(`${API_URL}/api/categories/slug/${categorySlug}`);
+            if (res.ok) {
+                const data = await res.json();
+                setCategory(data);
             }
-        };
 
-        fetchCategory();
-    }, [categorySlug]);
-
-    const toggleExpand = (subcategoryId: number) => {
-        setExpandedSubcategories(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(subcategoryId)) {
-                newSet.delete(subcategoryId);
-            } else {
-                newSet.add(subcategoryId);
+            // Fetch banner for this category
+            const bannerRes = await fetch(`${API_URL}/api/banners?pageType=category&categorySlug=${categorySlug}`);
+            if (bannerRes.ok) {
+                const banners = await bannerRes.json();
+                if (Array.isArray(banners) && banners.length > 0) {
+                    setBanner(banners[0]);
+                }
             }
-            return newSet;
-        });
+        } catch (error) {
+            console.error("Failed to fetch category", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-white">
-                <Header />
-                <div className="flex items-center justify-center py-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#21246b]"></div>
-                </div>
-            </div>
-        );
-    }
+    fetchCategory();
+}, [categorySlug]);
 
-    if (!category) {
-        return (
-            <div className="min-h-screen bg-white">
-                <Header />
-                <div className="flex items-center justify-center py-20">
-                    <p className="text-slate-500">Không tìm thấy danh mục</p>
-                </div>
-            </div>
-        );
-    }
+const toggleExpand = (subcategoryId: number) => {
+    setExpandedSubcategories(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(subcategoryId)) {
+            newSet.delete(subcategoryId);
+        } else {
+            newSet.add(subcategoryId);
+        }
+        return newSet;
+    });
+};
 
+if (loading) {
     return (
-        <div className="min-h-screen bg-white" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <div className="min-h-screen bg-white">
             <Header />
+            <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#21246b]"></div>
+            </div>
+        </div>
+    );
+}
 
-            {/* Banner */}
-            <section className="pt-16">
-                <div className="max-w-[1200px] mx-auto px-4 md:px-6">
-                    <img
-                        src={banner?.image?.startsWith('http')
-                            ? banner.image
-                            : (banner?.image ? `${API_URL}${banner.image}` : (FALLBACK_BANNERS[categorySlug || ''] || '/images/banners/bon-cau-banner.png'))}
-                        alt={banner?.title || category?.name || 'Banner'}
-                        className="w-full rounded-lg"
-                    />
+if (!category) {
+    return (
+        <div className="min-h-screen bg-white">
+            <Header />
+            <div className="flex items-center justify-center py-20">
+                <p className="text-slate-500">Không tìm thấy danh mục</p>
+            </div>
+        </div>
+    );
+}
+
+return (
+    <div className="min-h-screen bg-white" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <Header />
+
+        {/* Banner */}
+        <section className="pt-16">
+            <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+                <img
+                    src={banner?.image?.startsWith('http')
+                        ? banner.image
+                        : (banner?.image ? `${API_URL}${banner.image}` : (FALLBACK_BANNERS[categorySlug || ''] || '/images/banners/bon-cau-banner.png'))}
+                    alt={banner?.title || category?.name || 'Banner'}
+                    className="w-full rounded-lg"
+                />
+            </div>
+        </section>
+
+        {/* Commitment Section */}
+        <CommitmentSection />
+
+        {/* Subcategories Title */}
+        <section className="py-4 bg-slate-50">
+            <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+                <div className="flex items-center justify-center gap-4">
+                    <div className="flex-1 h-[2px] bg-[#21246b]"></div>
+                    <h2 className="text-lg font-bold text-[#21246b] uppercase tracking-wide whitespace-nowrap">
+                        DANH MỤC {category.name.toUpperCase()}
+                    </h2>
+                    <div className="flex-1 h-[2px] bg-[#21246b]"></div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            {/* Commitment Section */}
-            <CommitmentSection />
-
-            {/* Subcategories Title */}
-            <section className="py-4 bg-slate-50">
+        {/* Subcategory Cards */}
+        {category.subcategories.length > 0 && (
+            <section className="py-6 bg-slate-50">
                 <div className="max-w-[1200px] mx-auto px-4 md:px-6">
-                    <div className="flex items-center justify-center gap-4">
-                        <div className="flex-1 h-[2px] bg-[#21246b]"></div>
-                        <h2 className="text-lg font-bold text-[#21246b] uppercase tracking-wide whitespace-nowrap">
-                            DANH MỤC {category.name.toUpperCase()}
-                        </h2>
-                        <div className="flex-1 h-[2px] bg-[#21246b]"></div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Subcategory Cards */}
-            {category.subcategories.length > 0 && (
-                <section className="py-6 bg-slate-50">
-                    <div className="max-w-[1200px] mx-auto px-4 md:px-6">
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {category.subcategories.map((sub) => (
-                                <Link href={`/${categorySlug}/${sub.slug}`} key={sub.id} className="group">
-                                    <div className="h-full rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:ring-2 hover:ring-[#21246b] transition-all duration-300 flex flex-col">
-                                        <div className="aspect-square bg-gradient-to-b from-blue-100 via-blue-50 to-white overflow-hidden relative">
-                                            <div className="absolute top-2 left-2 z-10">
-                                                <span className="px-2 py-0.5 bg-[#21246b] text-white text-xs font-bold rounded">
-                                                    Novas
-                                                </span>
-                                            </div>
-                                            <img
-                                                src={sub.image ? (sub.image.startsWith('http') ? sub.image : `${API_URL}${sub.image}`) : (sub.products[0]?.image ? (sub.products[0].image.startsWith('http') ? sub.products[0].image : `${API_URL}${sub.products[0].image}`) : getSubcategoryFallbackImage(sub.slug, categorySlug || ''))}
-                                                alt={sub.name}
-                                                className="w-full h-full object-cover"
-                                                loading="lazy"
-                                            />
-                                        </div>
-                                        <div className="bg-[#21246b] py-2 text-center">
-                                            <span className="text-white font-bold text-xs uppercase tracking-wide">
-                                                {sub.name}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {category.subcategories.map((sub) => (
+                            <Link href={`/${categorySlug}/${sub.slug}`} key={sub.id} className="group">
+                                <div className="h-full rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:ring-2 hover:ring-[#21246b] transition-all duration-300 flex flex-col">
+                                    <div className="aspect-square bg-gradient-to-b from-blue-100 via-blue-50 to-white overflow-hidden relative">
+                                        <div className="absolute top-2 left-2 z-10">
+                                            <span className="px-2 py-0.5 bg-[#21246b] text-white text-xs font-bold rounded">
+                                                Novas
                                             </span>
                                         </div>
+                                        <img
+                                            src={sub.image ? (sub.image.startsWith('http') ? sub.image : `${API_URL}${sub.image}`) : (sub.products[0]?.image ? (sub.products[0].image.startsWith('http') ? sub.products[0].image : `${API_URL}${sub.products[0].image}`) : getSubcategoryFallbackImage(sub.slug, categorySlug || ''))}
+                                            alt={sub.name}
+                                            className="w-full h-full object-cover"
+                                            loading="lazy"
+                                        />
                                     </div>
-                                </Link>
-                            ))}
-                        </div>
+                                    <div className="bg-[#21246b] py-2 text-center">
+                                        <span className="text-white font-bold text-xs uppercase tracking-wide">
+                                            {sub.name}
+                                        </span>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
                     </div>
-                </section>
-            )}
+                </div>
+            </section>
+        )}
 
-            {/* Subcategories with Products - Grouped */}
-            <section className="py-4 bg-white">
-                <div className="max-w-[1200px] mx-auto px-4 md:px-6">
-                    {(() => {
-                        const hasSubcategories = category.subcategories.length > 0;
-                        const firstSubcategory = category.subcategories[0];
-                        const isExpanded = expandedSubcategories.has(category.id);
+        {/* Subcategories with Products - Grouped */}
+        <section className="py-4 bg-white">
+            <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+                {(() => {
+                    const hasSubcategories = category.subcategories.length > 0;
+                    const firstSubcategory = category.subcategories[0];
+                    const isExpanded = expandedSubcategories.has(category.id);
 
-                        if (!hasSubcategories || !firstSubcategory) return null;
+                    if (!hasSubcategories || !firstSubcategory) return null;
 
-                        return (
-                            <div className="mb-8">
-                                {!isExpanded ? (
-                                    <>
-                                        {/* Preview: First subcategory + 2 rows products */}
-                                        <div className="flex items-center gap-4 mb-4">
-                                            <h3 className="text-xl font-bold text-[#21246b] uppercase whitespace-nowrap">
-                                                {firstSubcategory.name}
-                                            </h3>
-                                            <div className="flex-1 h-[1px] bg-slate-300"></div>
-                                        </div>
+                    return (
+                        <div className="mb-8">
+                            {!isExpanded ? (
+                                <>
+                                    {/* Preview: First subcategory + 2 rows products */}
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <h3 className="text-xl font-bold text-[#21246b] uppercase whitespace-nowrap">
+                                            {firstSubcategory.name}
+                                        </h3>
+                                        <div className="flex-1 h-[1px] bg-slate-300"></div>
+                                    </div>
 
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            {firstSubcategory.products.slice(0, 8).map((product) => (
-                                                <ProductCard key={product.id} product={product} categorySlug={categorySlug || ''} />
-                                            ))}
-                                        </div>
-
-                                        {/* View More Button */}
-                                        {category.subcategories.length > 1 && (
-                                            <div className="text-center mt-4">
-                                                <button
-                                                    onClick={() => toggleExpand(category.id)}
-                                                    className="inline-flex items-center gap-2 px-5 py-2 border-2 border-[#21246b] text-[#21246b] text-sm font-bold rounded-lg hover:bg-[#21246b] hover:text-white transition-colors"
-                                                >
-                                                    Xem thêm sản phẩm
-                                                    <ChevronDown className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        {/* Expanded: Show all subcategories */}
-                                        {category.subcategories.map((subcategory) => (
-                                            <div key={subcategory.id} className="mb-6">
-                                                <div className="flex items-center gap-4 mb-4">
-                                                    <h3 className="text-xl font-bold text-[#21246b] uppercase whitespace-nowrap">
-                                                        {subcategory.name}
-                                                    </h3>
-                                                    <div className="flex-1 h-[1px] bg-slate-300"></div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                    {subcategory.products.slice(0, 8).map((product) => (
-                                                        <ProductCard key={product.id} product={product} categorySlug={categorySlug || ''} />
-                                                    ))}
-                                                </div>
-                                            </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {firstSubcategory.products.slice(0, 8).map((product) => (
+                                            <ProductCard key={product.id} product={product} categorySlug={categorySlug || ''} />
                                         ))}
+                                    </div>
 
-                                        {/* Collapse Button */}
+                                    {/* View More Button */}
+                                    {category.subcategories.length > 1 && (
                                         <div className="text-center mt-4">
                                             <button
                                                 onClick={() => toggleExpand(category.id)}
                                                 className="inline-flex items-center gap-2 px-5 py-2 border-2 border-[#21246b] text-[#21246b] text-sm font-bold rounded-lg hover:bg-[#21246b] hover:text-white transition-colors"
                                             >
-                                                Thu gọn
-                                                <ChevronUp className="w-4 h-4" />
+                                                Xem thêm sản phẩm
+                                                <ChevronDown className="w-4 h-4" />
                                             </button>
                                         </div>
-                                    </>
-                                )}
-                            </div>
-                        );
-                    })()}
-                </div>
-            </section>
-            <Footer />
-        </div>
-    );
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    {/* Expanded: Show all subcategories */}
+                                    {category.subcategories.map((subcategory) => (
+                                        <div key={subcategory.id} className="mb-6">
+                                            <div className="flex items-center gap-4 mb-4">
+                                                <h3 className="text-xl font-bold text-[#21246b] uppercase whitespace-nowrap">
+                                                    {subcategory.name}
+                                                </h3>
+                                                <div className="flex-1 h-[1px] bg-slate-300"></div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                {subcategory.products.slice(0, 8).map((product) => (
+                                                    <ProductCard key={product.id} product={product} categorySlug={categorySlug || ''} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {/* Collapse Button */}
+                                    <div className="text-center mt-4">
+                                        <button
+                                            onClick={() => toggleExpand(category.id)}
+                                            className="inline-flex items-center gap-2 px-5 py-2 border-2 border-[#21246b] text-[#21246b] text-sm font-bold rounded-lg hover:bg-[#21246b] hover:text-white transition-colors"
+                                        >
+                                            Thu gọn
+                                            <ChevronUp className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    );
+                })()}
+            </div>
+        </section>
+        <Footer />
+    </div>
+);
 }
 
 // Product Card Component - Enic Style
