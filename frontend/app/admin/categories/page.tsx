@@ -133,6 +133,7 @@ export default function AdminCategories() {
                         description: form.description || null
                     })
                 });
+                console.log('Category payload:', { name: form.name, slug, image: form.image || null, description: form.description || null });
             } else {
                 const url = editingItem
                     ? `${API_URL}/api/subcategories/${editingItem.id}`
