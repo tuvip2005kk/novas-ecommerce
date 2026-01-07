@@ -183,11 +183,11 @@ export default function AdminCategories() {
     };
 
     const handleNameChange = (name: string) => {
-        setForm({
-            ...form,
+        setForm(prev => ({
+            ...prev,
             name,
-            slug: editingItem ? form.slug : generateSlug(name)
-        });
+            slug: editingItem ? prev.slug : generateSlug(name)
+        }));
     };
 
     const [activeTab, setActiveTab] = useState<'main' | 'sub'>('main');
