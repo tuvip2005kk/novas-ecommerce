@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { API_URL } from '@/config';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Plus, Trash2, Edit, Loader2, X, Package } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast, ToastContainer } from "@/components/Toast";
+import DynamicSpecs from "@/components/admin/DynamicSpecs";
 
 interface Subcategory {
     id: number;
@@ -68,32 +69,7 @@ export default function AdminProducts() {
         categorySlug: '',
         subcategoryId: '',
         stock: '',
-        specs: {
-            // Bồn cầu
-            kichThuoc: '',
-            tienIch: '',
-            dungTich: '',
-            phuongPhapXa: '',
-            chatLieuThan: '',
-            chatLieuNutXa: '',
-            chatLieuNapBe: '',
-            tamHo: '',
-            khoangCachTamHo: '',
-            taiTrong: '',
-            // Bồn tắm (additional)
-            thongSoLapDat: '',
-            luuYLapDat: '',
-            // Lavabo
-            tinhChat: '',
-            canNang: '',
-            // Phụ kiện + Vòi chậu + Vòi sen
-            tinhNang: '',
-            phuongPhapMa: '',
-            lapDat: '',
-            canNangCuSen: '',
-            // Phụ kiện combo
-            comboOptions: '' // JSON string for combo items
-        }
+        specs: [{ title: '', value: '' }] as { title: string; value: string }[]
     });
 
     useEffect(() => {
@@ -120,12 +96,54 @@ export default function AdminProducts() {
         }
     };
 
+    // Specs template management per subcategory
+    const getSpecsTemplate = (subcategoryId: string) => {
+        if (!subcategoryId) return null;
+        try {
+            const saved = localStorage.getItem(`specs_template_${subcategoryId}`);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) { console.error('Error loading specs template', e); }
+        return null;
+    };
+
+    const saveSpecsTemplate = (subcategoryId: string, specs: { title: string; value: string }[]) => {
+        if (!subcategoryId) return;
+        // Filter out empty specs
+        const validSpecs = specs.filter(s => s.title.trim() || s.value.trim());
+        if (validSpecs.length > 0) {
+            // Save template with just titles (values will be different per product)
+            const template = validSpecs.map(s => ({ title: s.title, value: '' }));
+            localStorage.setItem(`specs_template_${subcategoryId}`, JSON.stringify(template));
+        } else {
+            // Remove template if all specs are empty
+            localStorage.removeItem(`specs_template_${subcategoryId}`);
+        }
+    };
+
+    // Load specs template when subcategory changes (only in add mode)
+    const handleSubcategoryChange = (newSubcategoryId: string) => {
+        setForm(prev => {
+            const newForm = { ...prev, subcategoryId: newSubcategoryId };
+            if (!editingProduct && newSubcategoryId) {
+                const template = getSpecsTemplate(newSubcategoryId);
+                if (template) {
+                    newForm.specs = template;
+                }
+            }
+            return newForm;
+        });
+    };
+
+
     const openAddModal = () => {
         setEditingProduct(null);
         setForm({
             name: '', slug: '', description: '', price: '', image: '',
             images: [''], categorySlug: '', subcategoryId: '', stock: '',
-            specs: { kichThuoc: '', tienIch: '', dungTich: '', phuongPhapXa: '', chatLieuThan: '', chatLieuNutXa: '', chatLieuNapBe: '', tamHo: '', khoangCachTamHo: '', taiTrong: '', thongSoLapDat: '', luuYLapDat: '', tinhChat: '', canNang: '', tinhNang: '', phuongPhapMa: '', lapDat: '', canNangCuSen: '', comboOptions: '' }
+            specs: [{ title: '', value: '' }]
         });
         setShowModal(true);
     };
@@ -134,38 +152,18 @@ export default function AdminProducts() {
         setEditingProduct(product);
         const categorySlug = product.subcategory?.category?.slug || '';
         const images = Array.isArray(product.images) && product.images.length > 0 ? product.images : [''];
-        const specs = (product as any).specs || {};
+        const rawSpecs = (product as any).specs || {};
+        let specsArray: { title: string; value: string }[] = [];
+        if (Array.isArray(rawSpecs)) { specsArray = rawSpecs; }
+        else if (typeof rawSpecs === 'object') {
+            specsArray = Object.entries(rawSpecs).filter(([_, v]) => v && String(v).trim() !== '').map(([k, v]) => ({ title: k, value: String(v) }));
+        }
+        if (specsArray.length === 0) specsArray = [{ title: '', value: '' }];
         setForm({
-            name: product.name,
-            slug: product.slug || '',
-            description: product.description,
-            price: product.price.toString(),
-            image: product.image,
-            images: images,
-            categorySlug: categorySlug,
-            subcategoryId: product.subcategoryId?.toString() || '',
-            stock: product.stock.toString(),
-            specs: {
-                kichThuoc: specs.kichThuoc || '',
-                tienIch: specs.tienIch || '',
-                dungTich: specs.dungTich || '',
-                phuongPhapXa: specs.phuongPhapXa || '',
-                chatLieuThan: specs.chatLieuThan || '',
-                chatLieuNutXa: specs.chatLieuNutXa || '',
-                chatLieuNapBe: specs.chatLieuNapBe || '',
-                tamHo: specs.tamHo || '',
-                khoangCachTamHo: specs.khoangCachTamHo || '',
-                taiTrong: specs.taiTrong || '',
-                thongSoLapDat: specs.thongSoLapDat || '',
-                luuYLapDat: specs.luuYLapDat || '',
-                tinhChat: specs.tinhChat || '',
-                canNang: specs.canNang || '',
-                tinhNang: specs.tinhNang || '',
-                phuongPhapMa: specs.phuongPhapMa || '',
-                lapDat: specs.lapDat || '',
-                canNangCuSen: specs.canNangCuSen || '',
-                comboOptions: specs.comboOptions || ''
-            }
+            name: product.name, slug: product.slug || '', description: product.description,
+            price: product.price.toString(), image: product.image, images: images,
+            categorySlug: categorySlug, subcategoryId: product.subcategoryId?.toString() || '',
+            stock: product.stock.toString(), specs: specsArray
         });
         setShowModal(true);
     };
@@ -377,7 +375,7 @@ export default function AdminProducts() {
                                         <label className="text-sm font-medium">Danh mục con</label>
                                         <select
                                             value={form.subcategoryId}
-                                            onChange={(e) => setForm({ ...form, subcategoryId: e.target.value })}
+                                            onChange={(e) => handleSubcategoryChange(e.target.value)}
                                             className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#21246b]"
                                             disabled={!form.categorySlug}
                                         >
@@ -464,192 +462,13 @@ export default function AdminProducts() {
                                     </div>
                                 </div>
 
-                                {/* Product Specifications - Dynamic based on category */}
-                                <div className="col-span-2 border-t pt-4 mt-2">
-                                    <h3 className="font-semibold text-[#21246b] mb-3">Thông tin sản phẩm</h3>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {/* Bồn Cầu */}
-                                        {form.categorySlug === 'bon-cau' && (
-                                            <>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Kích thước (D*R*C)</label>
-                                                    <input value={form.specs.kichThuoc} onChange={e => setForm({ ...form, specs: { ...form.specs, kichThuoc: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="680*400*740mm" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Tiện ích khác</label>
-                                                    <input value={form.specs.tienIch} onChange={e => setForm({ ...form, specs: { ...form.specs, tienIch: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Nắp thường" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Dung tích</label>
-                                                    <input value={form.specs.dungTich} onChange={e => setForm({ ...form, specs: { ...form.specs, dungTich: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="8L" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Phương pháp xả</label>
-                                                    <input value={form.specs.phuongPhapXa} onChange={e => setForm({ ...form, specs: { ...form.specs, phuongPhapXa: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Xả xoáy" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Chất liệu thân</label>
-                                                    <input value={form.specs.chatLieuThan} onChange={e => setForm({ ...form, specs: { ...form.specs, chatLieuThan: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Gốm sứ Nano Bạc" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Chất liệu nút xả</label>
-                                                    <input value={form.specs.chatLieuNutXa} onChange={e => setForm({ ...form, specs: { ...form.specs, chatLieuNutXa: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Nhựa ABS" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Chất liệu nắp + bệ ngồi</label>
-                                                    <input value={form.specs.chatLieuNapBe} onChange={e => setForm({ ...form, specs: { ...form.specs, chatLieuNapBe: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Nhựa UF" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Tâm hố</label>
-                                                    <input value={form.specs.tamHo} onChange={e => setForm({ ...form, specs: { ...form.specs, tamHo: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="90-114mm" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Khoảng cách tâm hố</label>
-                                                    <input value={form.specs.khoangCachTamHo} onChange={e => setForm({ ...form, specs: { ...form.specs, khoangCachTamHo: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="200mm" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Tải trọng</label>
-                                                    <input value={form.specs.taiTrong} onChange={e => setForm({ ...form, specs: { ...form.specs, taiTrong: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="300kg" />
-                                                </div>
-                                            </>
-                                        )}
 
-                                        {/* Bồn Tắm */}
-                                        {form.categorySlug === 'bon-tam' && (
-                                            <>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Kích thước</label>
-                                                    <input value={form.specs.kichThuoc} onChange={e => setForm({ ...form, specs: { ...form.specs, kichThuoc: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="1700*800*600mm" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Dung tích</label>
-                                                    <input value={form.specs.dungTich} onChange={e => setForm({ ...form, specs: { ...form.specs, dungTich: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="250L" />
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <label className="text-sm font-normal text-black">Tiện ích (mỗi dòng 1 thông số)</label>
-                                                    <textarea value={form.specs.tienIch} onChange={e => setForm({ ...form, specs: { ...form.specs, tienIch: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal h-24" placeholder="Khả năng cách điện&#10;Thiết kế hiện đại&#10;Lỗ thoát nước chống tràn" />
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <label className="text-sm font-normal text-black">Chất liệu (mỗi dòng 1 thông số)</label>
-                                                    <textarea value={form.specs.chatLieuThan} onChange={e => setForm({ ...form, specs: { ...form.specs, chatLieuThan: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal h-24" placeholder="Thân bồn: Nhựa Acrylic 4 lớp&#10;Chân khung: Inox 304&#10;Xiphong thoát nước: Nhựa PVC" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Thông số lắp đặt</label>
-                                                    <input value={form.specs.thongSoLapDat} onChange={e => setForm({ ...form, specs: { ...form.specs, thongSoLapDat: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Lắp đặt âm sàn" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Lưu ý lắp đặt</label>
-                                                    <input value={form.specs.luuYLapDat} onChange={e => setForm({ ...form, specs: { ...form.specs, luuYLapDat: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Cần không gian rộng" />
-                                                </div>
-                                            </>
-                                        )}
+                                {/* Product Specifications - Dynamic */}
+                                <DynamicSpecs
+                                    specs={form.specs}
+                                    onChange={(specs) => setForm({ ...form, specs })}
+                                />
 
-                                        {/* Lavabo */}
-                                        {form.categorySlug === 'lavabo' && (
-                                            <>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Kích thước (D*R*C)</label>
-                                                    <input value={form.specs.kichThuoc} onChange={e => setForm({ ...form, specs: { ...form.specs, kichThuoc: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="600*450*200mm" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Chất liệu</label>
-                                                    <input value={form.specs.chatLieuThan} onChange={e => setForm({ ...form, specs: { ...form.specs, chatLieuThan: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Gốm sứ cao cấp" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Tính chất</label>
-                                                    <input value={form.specs.tinhChat} onChange={e => setForm({ ...form, specs: { ...form.specs, tinhChat: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Chống bám bẩn, dễ vệ sinh" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Cân nặng</label>
-                                                    <input value={form.specs.canNang} onChange={e => setForm({ ...form, specs: { ...form.specs, canNang: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="15kg" />
-                                                </div>
-                                            </>
-                                        )}
-
-                                        {/* Phụ Kiện */}
-                                        {form.categorySlug === 'phu-kien' && (
-                                            <>
-                                                <div className="col-span-2">
-                                                    <label className="text-sm font-normal text-black">Combo Options (JSON - ví dụ: ["Combo thân tròn", "Combo thân dẹp", "Hộp giấy"])</label>
-                                                    <input value={form.specs.comboOptions} onChange={e => setForm({ ...form, specs: { ...form.specs, comboOptions: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder='["Combo thân tròn", "Combo thân dẹp"]' />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Tiện ích</label>
-                                                    <input value={form.specs.tienIch} onChange={e => setForm({ ...form, specs: { ...form.specs, tienIch: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Chống gỉ, bền bỉ" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Chất liệu</label>
-                                                    <input value={form.specs.chatLieuThan} onChange={e => setForm({ ...form, specs: { ...form.specs, chatLieuThan: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Inox 304" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Phương pháp mạ</label>
-                                                    <input value={form.specs.phuongPhapMa} onChange={e => setForm({ ...form, specs: { ...form.specs, phuongPhapMa: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Mạ chrome" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Lắp đặt</label>
-                                                    <input value={form.specs.lapDat} onChange={e => setForm({ ...form, specs: { ...form.specs, lapDat: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Khoan tường" />
-                                                </div>
-                                            </>
-                                        )}
-
-                                        {/* Vòi Chậu Lavabo */}
-                                        {form.categorySlug === 'voi-chau-lavabo' && (
-                                            <>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Tính năng</label>
-                                                    <input value={form.specs.tinhNang} onChange={e => setForm({ ...form, specs: { ...form.specs, tinhNang: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Nóng lạnh, xoay 360°" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Chất liệu</label>
-                                                    <input value={form.specs.chatLieuThan} onChange={e => setForm({ ...form, specs: { ...form.specs, chatLieuThan: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Đồng thau" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Phương pháp mạ</label>
-                                                    <input value={form.specs.phuongPhapMa} onChange={e => setForm({ ...form, specs: { ...form.specs, phuongPhapMa: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Mạ chrome 5 lớp" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Lắp đặt</label>
-                                                    <input value={form.specs.lapDat} onChange={e => setForm({ ...form, specs: { ...form.specs, lapDat: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Lắp trên chậu" />
-                                                </div>
-                                            </>
-                                        )}
-
-                                        {/* Vòi Sen */}
-                                        {form.categorySlug === 'voi-sen' && (
-                                            <>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Tính năng</label>
-                                                    <input value={form.specs.tinhNang} onChange={e => setForm({ ...form, specs: { ...form.specs, tinhNang: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Điều chỉnh nhiệt độ" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Tiện ích</label>
-                                                    <input value={form.specs.tienIch} onChange={e => setForm({ ...form, specs: { ...form.specs, tienIch: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="3 chế độ phun" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Chất liệu</label>
-                                                    <input value={form.specs.chatLieuThan} onChange={e => setForm({ ...form, specs: { ...form.specs, chatLieuThan: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Đồng thau mạ chrome" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Phương pháp mạ</label>
-                                                    <input value={form.specs.phuongPhapMa} onChange={e => setForm({ ...form, specs: { ...form.specs, phuongPhapMa: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Mạ chrome 7 lớp" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Cân nặng củ sen</label>
-                                                    <input value={form.specs.canNangCuSen} onChange={e => setForm({ ...form, specs: { ...form.specs, canNangCuSen: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="500g" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-normal text-black">Lắp đặt</label>
-                                                    <input value={form.specs.lapDat} onChange={e => setForm({ ...form, specs: { ...form.specs, lapDat: e.target.value } })} className="w-full px-3 py-2 border rounded text-slate-600 font-normal" placeholder="Âm tường hoặc nổi" />
-                                                </div>
-                                            </>
-                                        )}
-
-                                        {/* No category selected */}
-                                        {!form.categorySlug && (
-                                            <p className="col-span-2 text-slate-400 font-normal text-sm">Vui lòng chọn danh mục trước để nhập thông số kỹ thuật</p>
-                                        )}
-                                    </div>
-                                </div>
 
                                 <Button type="submit" className="w-full bg-[#21246b] hover:bg-[#1a1d55]" disabled={saving}>
                                     {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : editingProduct ? <Edit className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
@@ -721,4 +540,10 @@ export default function AdminProducts() {
         </div>
     );
 }
+
+
+
+
+
+
 
