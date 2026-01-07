@@ -262,7 +262,7 @@ export default function AdminCategories() {
                                     <input
                                         type="text"
                                         value={form.slug}
-                                        onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                                        onChange={(e) => setForm(prev => ({ ...prev, slug: e.target.value }))}
                                         className="w-full mt-1 px-4 py-2 border rounded-lg bg-slate-50 font-normal"
                                         placeholder="bon-cau"
                                     />
@@ -272,7 +272,7 @@ export default function AdminCategories() {
                                         <label className="text-sm font-medium">Mô tả</label>
                                         <textarea
                                             value={form.description}
-                                            onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                            onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
                                             className="w-full mt-1 px-4 py-2 border rounded-lg h-20 font-normal"
                                             placeholder="Mô tả ngắn về danh mục..."
                                         />
