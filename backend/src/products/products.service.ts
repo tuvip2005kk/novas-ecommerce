@@ -66,13 +66,13 @@ export class ProductsService {
         });
     }
 
-    async create(data: { name: string; slug: string; description: string; price: number; image: string; subcategoryId?: number; stock: number }): Promise<Product> {
+    async create(data: { name: string; slug: string; description: string; price: number; image: string; images?: string[]; subcategoryId?: number; stock: number; specs?: any }): Promise<Product> {
         return this.prisma.product.create({
             data,
         });
     }
 
-    async update(id: number, data: { name?: string; slug?: string; description?: string; price?: number; image?: string; subcategoryId?: number; stock?: number }): Promise<Product> {
+    async update(id: number, data: { name?: string; slug?: string; description?: string; price?: number; image?: string; images?: string[]; subcategoryId?: number; stock?: number; specs?: any }): Promise<Product> {
         return this.prisma.product.update({
             where: { id },
             data,
