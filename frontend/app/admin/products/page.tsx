@@ -220,6 +220,12 @@ export default function AdminProducts() {
                     specs: form.specs
                 })
             });
+
+            // Save specs template for this subcategory (for future products)
+            if (form.subcategoryId) {
+                saveSpecsTemplate(form.subcategoryId, form.specs);
+            }
+
             setShowModal(false);
             setEditingProduct(null);
             fetchProducts();
