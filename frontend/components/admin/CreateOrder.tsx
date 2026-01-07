@@ -174,11 +174,11 @@ export default function CreateOrder({ onClose, onSuccess }: CreateOrderProps) {
                                         <p className="font-medium text-sm truncate">{product.name}</p>
                                         <div className="flex items-center gap-2">
                                             <span className="text-red-500 font-bold text-sm">
-                                                ${(product.salePrice || product.price).toLocaleString()}
+                                                {new Intl.NumberFormat('vi-VN').format(product.salePrice || product.price)}đ
                                             </span>
                                             {product.salePrice && (
                                                 <span className="text-slate-400 text-xs line-through">
-                                                    ${product.price.toLocaleString()}
+                                                    {new Intl.NumberFormat('vi-VN').format(product.price)}đ
                                                 </span>
                                             )}
                                             <span className="text-xs text-slate-500 ml-auto">Kho: {product.stock}</span>
@@ -253,7 +253,7 @@ export default function CreateOrder({ onClose, onSuccess }: CreateOrderProps) {
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <p className="text-sm font-bold text-slate-700">
-                                                ${((item.salePrice || item.price) * item.quantity).toLocaleString()}
+                                                {new Intl.NumberFormat('vi-VN').format((item.salePrice || item.price) * item.quantity)}đ
                                             </p>
                                             <div className="flex items-center gap-2">
                                                 <button

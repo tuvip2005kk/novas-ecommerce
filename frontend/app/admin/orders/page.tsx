@@ -7,6 +7,7 @@ import { Loader2, X, Package, User, Phone, Calendar, DollarSign } from "lucide-r
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import CreateOrder from "@/components/admin/CreateOrder";
+import { useToast, ToastContainer } from "@/components/Toast";
 
 interface OrderItem {
     id: number;
@@ -49,6 +50,7 @@ export default function AdminOrders() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>('all');
     const [showCreateOrder, setShowCreateOrder] = useState(false);
+    const toast = useToast();
 
     useEffect(() => { fetchOrders(); }, []);
 
@@ -179,7 +181,7 @@ export default function AdminOrders() {
                         onSuccess={() => {
                             fetchOrders();
                             setShowCreateOrder(false);
-                            alert('Tạo đơn hàng thành công!');
+                            toast.success('Đơn hàng đã được tạo thành công!');
                         }}
                     />
                 </div>
@@ -357,6 +359,7 @@ export default function AdminOrders() {
             )}
 
         </div>
+            <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     );
 }
 
