@@ -38,11 +38,17 @@ export class SubcategoriesService {
     }
 
     async create(data: { name: string; slug: string; image?: string; categoryId: number }) {
-        return this.prisma.subcategory.create({ data });
+        console.log('[SubcategoriesService] Creating subcategory with data:', data);
+        const result = await this.prisma.subcategory.create({ data });
+        console.log('[SubcategoriesService] Created subcategory:', result);
+        return result;
     }
 
     async update(id: number, data: { name?: string; slug?: string; image?: string; categoryId?: number }) {
-        return this.prisma.subcategory.update({ where: { id }, data });
+        console.log('[SubcategoriesService] Updating subcategory', id, 'with data:', data);
+        const result = await this.prisma.subcategory.update({ where: { id }, data });
+        console.log('[SubcategoriesService] Updated subcategory:', result);
+        return result;
     }
 
     async delete(id: number) {
