@@ -280,7 +280,7 @@ export default function CreateOrder({ onClose, onSuccess }: CreateOrderProps) {
                     <div className="mt-auto pt-4 border-t">
                         <div className="flex justify-between items-center mb-4">
                             <span className="font-semibold">Tổng cộng:</span>
-                            <span className="text-xl font-bold text-[#21246b]">${total.toLocaleString()}</span>
+                            <span className="text-xl font-bold text-[#21246b]">{new Intl.NumberFormat('vi-VN').format(total)}đ</span>
                         </div>
                         <Button
                             className="w-full bg-[#21246b] hover:bg-[#1a1d55]"
