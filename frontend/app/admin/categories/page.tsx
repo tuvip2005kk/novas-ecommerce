@@ -307,7 +307,11 @@ export default function AdminCategories() {
                                         className="w-full mt-1 px-4 py-2 border rounded-lg font-normal"
                                     />
                                     {form.image && (
-                                        <img src={`${API_URL}${form.image}`} alt="Preview" className="mt-2 h-16 w-16 object-cover rounded" />
+                                        <img
+                                            src={form.image.startsWith('http') ? form.image : `${API_URL}${form.image}`}
+                                            alt="Preview"
+                                            className="mt-2 h-16 w-16 object-cover rounded"
+                                        />
                                     )}
                                 </div>
                                 <Button type="submit" className="w-full bg-[#21246b] hover:bg-[#1a1d55]" disabled={saving}>
