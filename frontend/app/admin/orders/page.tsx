@@ -3,7 +3,7 @@ import { API_URL } from '@/config';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, X, Package, User, Phone, Calendar, DollarSign, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { Loader2, X, Package, User, Phone, Calendar, DollarSign } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 
@@ -77,9 +77,8 @@ export default function AdminOrders() {
             PENDING_STATUSES.includes(o.status)
         );
 
-        // Đã xử lý hôm nay: hoàn thành trong ngày hôm nay (dựa vào updatedAt)
+        // Đã xử lý hôm nay: đơn có thay đổi trạng thái trong ngày hôm nay (dựa vào updatedAt)
         const completedToday = orders.filter(o => {
-            if (!COMPLETED_STATUSES.includes(o.status)) return false;
             const updatedAt = new Date(o.updatedAt);
             return updatedAt >= todayStart && updatedAt <= todayEnd;
         });
@@ -119,9 +118,14 @@ export default function AdminOrders() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold text-slate-900">Quản lý đơn hàng</h1>
-                <p className="text-slate-500 font-normal">Xem và cập nhật trạng thái đơn hàng - Nhấn vào mã đơn để xem chi tiết</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900">Quản lý đơn hàng</h1>
+                    <p className="text-slate-500 font-normal">Xem và cập nhật trạng thái đơn hàng - Nhấn vào mã đơn để xem chi tiết</p>
+                </div>
+                <Button className="bg-[#21246b] hover:bg-[#1a1d55]" onClick={() => alert('Tính năng đang phát triển')}>
+                    + Tạo đơn hàng
+                </Button>
             </div>
 
             {/* Summary Cards */}
@@ -130,17 +134,9 @@ export default function AdminOrders() {
                     className={`cursor-pointer transition-all hover:shadow-md ${activeTab === 'pending' ? 'ring-2 ring-orange-500' : ''}`}
                     onClick={() => setActiveTab(activeTab === 'pending' ? 'all' : 'pending')}
                 >
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-slate-500 font-normal">Cần xử lý</p>
-                                <p className="text-3xl font-bold text-orange-600">{pendingOrders.length}</p>
-                            </div>
-                            <div className="p-3 bg-orange-100 rounded-full">
-                                <AlertCircle className="h-6 w-6 text-orange-600" />
-                            </div>
-                        </div>
-                        <p className="text-xs text-slate-400 mt-2">Đơn hàng chưa hoàn thành</p>
+                    <CardContent className="pt-6 pb-4">
+                        <p className="text-sm text-slate-500 font-normal">Cần xử lý</p>
+                        <p className="text-3xl font-bold text-orange-600">{pendingOrders.length}</p>
                     </CardContent>
                 </Card>
 
@@ -148,44 +144,27 @@ export default function AdminOrders() {
                     className={`cursor-pointer transition-all hover:shadow-md ${activeTab === 'completed-today' ? 'ring-2 ring-green-500' : ''}`}
                     onClick={() => setActiveTab(activeTab === 'completed-today' ? 'all' : 'completed-today')}
                 >
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-slate-500 font-normal">Đã xử lý hôm nay</p>
-                                <p className="text-3xl font-bold text-green-600">{completedTodayOrders.length}</p>
-                            </div>
-                            <div className="p-3 bg-green-100 rounded-full">
-                                <CheckCircle2 className="h-6 w-6 text-green-600" />
-                            </div>
-                        </div>
-                        <p className="text-xs text-slate-400 mt-2">Reset lúc 00:00 mỗi ngày</p>
+                    <CardContent className="pt-6 pb-4">
+                        <p className="text-sm text-slate-500 font-normal">Đã xử lý hôm nay</p>
+                        <p className="text-3xl font-bold text-green-600">{completedTodayOrders.length}</p>
                     </CardContent>
                 </Card>
 
                 <Card className="cursor-pointer transition-all hover:shadow-md" onClick={() => setActiveTab('all')}>
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-slate-500 font-normal">Tổng đơn hàng</p>
-                                <p className="text-3xl font-bold text-slate-700">{orders.length}</p>
-                            </div>
-                            <div className="p-3 bg-slate-100 rounded-full">
-                                <Package className="h-6 w-6 text-slate-600" />
-                            </div>
-                        </div>
-                        <p className="text-xs text-slate-400 mt-2">Tất cả đơn hàng</p>
+                    <CardContent className="pt-6 pb-4">
+                        <p className="text-sm text-slate-500 font-normal">Tổng đơn hàng</p>
+                        <p className="text-3xl font-bold text-slate-700">{orders.length}</p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Active Filter Indicator */}
             {activeTab !== 'all' && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
-                    <Clock className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm text-blue-700">
-                        Đang lọc: <strong>{activeTab === 'pending' ? 'Cần xử lý' : 'Đã xử lý hôm nay'}</strong>
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg">
+                    <span className="text-sm text-slate-600 font-normal">
+                        Đang lọc: {activeTab === 'pending' ? 'Cần xử lý' : 'Đã xử lý hôm nay'}
                     </span>
-                    <Button variant="ghost" size="sm" onClick={() => setActiveTab('all')} className="ml-auto text-blue-600 hover:text-blue-800">
+                    <Button variant="ghost" size="sm" onClick={() => setActiveTab('all')} className="ml-auto text-slate-600 hover:text-slate-800">
                         Xem tất cả
                     </Button>
                 </div>

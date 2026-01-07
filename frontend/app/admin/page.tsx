@@ -1,8 +1,8 @@
 "use client";
 import { API_URL } from '@/config';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
@@ -16,8 +16,17 @@ interface Order {
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
+interface Stats {
+    totalProducts: number;
+    totalOrders: number;
+    totalRevenue: number;
+    totalUsers: number;
+    pendingOrders: number;
+    todayOrders: number;
+}
+
 export default function AdminDashboard() {
-    const [stats, setStats] = useState({ totalProducts: 0, totalOrders: 0, totalRevenue: 0, totalUsers: 0, pendingOrders: 0 });
+    const [stats, setStats] = useState<Stats>({ totalProducts: 0, totalOrders: 0, totalRevenue: 0, totalUsers: 0, pendingOrders: 0, todayOrders: 0 });
     const [revenueData, setRevenueData] = useState<any[]>([]);
     const [statusData, setStatusData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -49,12 +58,18 @@ export default function AdminDashboard() {
             const paidOrders = ordersArray.filter((o: Order) => o.status === 'PAID');
             const totalRevenue = paidOrders.reduce((sum: number, o: Order) => sum + o.total, 0);
 
+            // Today's orders
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            const todayOrders = ordersArray.filter((o: Order) => o.createdAt.startsWith(todayStr));
+
             setStats({
                 totalProducts: products.length,
                 totalOrders: ordersArray.length,
                 totalRevenue,
                 totalUsers: usersArray.length,
-                pendingOrders: ordersArray.filter((o: Order) => o.status === 'PENDING').length
+                pendingOrders: ordersArray.filter((o: Order) => o.status === 'PENDING').length,
+                todayOrders: todayOrders.length
             });
 
             const chartData = [];
@@ -122,7 +137,11 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Grid - Simple boxes without icons */}
-            <div className="grid md:grid-cols-4 gap-4">
+            <div className="grid md:grid-cols-5 gap-4">
+                <div className="border border-slate-200 bg-white p-4">
+                    <p className="text-xs text-slate-500 font-normal">Hôm nay</p>
+                    <p className="text-2xl font-bold mt-1 text-orange-600">{stats.todayOrders}</p>
+                </div>
                 <div className="border border-slate-200 bg-white p-4">
                     <p className="text-xs text-slate-500 font-normal">Sản phẩm</p>
                     <p className="text-2xl font-bold mt-1">{stats.totalProducts}</p>
