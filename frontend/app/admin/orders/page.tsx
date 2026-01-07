@@ -151,10 +151,14 @@ export default function AdminOrders() {
                                         <p className="text-sm text-slate-500 font-normal">Cần xử lý</p>
                                         <p className="text-3xl font-bold text-orange-600">{pendingOrders.length}</p>
                                     </div>
-                                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white" onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowCreateOrder(true);
-                                    }}>
+                                    <Button
+                                        size="sm"
+                                        className="bg-[#22246b] hover:bg-[#1a1d55] text-white shadow-md"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowCreateOrder(true);
+                                        }}
+                                    >
                                         + Tạo đơn
                                     </Button>
                                 </div>
@@ -347,7 +351,7 @@ export default function AdminOrders() {
                     </Card>
 
                     {showCreateOrder && (
-                        <div className="fixed inset-0 bg-black/50 z-50 hidden"></div> // Spacer to prevent drift
+                        <div className="hidden"></div>
                     )}
                 </>
             )}
