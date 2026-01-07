@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, X, Package, User, Phone, Calendar, DollarSign } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import CreateOrder from "@/components/admin/CreateOrder";
 
 interface OrderItem {
     id: number;
@@ -47,6 +48,7 @@ export default function AdminOrders() {
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>('all');
+    const [showCreateOrder, setShowCreateOrder] = useState(false);
 
     useEffect(() => { fetchOrders(); }, []);
 
@@ -123,7 +125,7 @@ export default function AdminOrders() {
                     <h1 className="text-3xl font-bold text-slate-900">Quản lý đơn hàng</h1>
                     <p className="text-slate-500 font-normal">Xem và cập nhật trạng thái đơn hàng - Nhấn vào mã đơn để xem chi tiết</p>
                 </div>
-                <Button className="bg-[#21246b] hover:bg-[#1a1d55]" onClick={() => alert('Tính năng đang phát triển')}>
+                <Button className="bg-[#21246b] hover:bg-[#1a1d55]" onClick={() => setShowCreateOrder(true)}>
                     + Tạo đơn hàng
                 </Button>
             </div>
@@ -324,6 +326,16 @@ export default function AdminOrders() {
                     </table>
                 </CardContent>
             </Card>
+
+            {showCreateOrder && (
+                <CreateOrder
+                    onClose={() => setShowCreateOrder(false)}
+                    onSuccess={() => {
+                        fetchOrders();
+                        alert('Tạo đơn hàng thành công!');
+                    }}
+                />
+            )}
         </div>
     );
 }
