@@ -5,6 +5,8 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 
 import * as fs from 'fs';
+import helmet from 'helmet';
+import { ValidationPipe } from '@nestjs/common';
 
 console.log('--- SYSTEM LOADING: IMPORTS COMPLETE ---');
 
@@ -25,8 +27,18 @@ async function bootstrap() {
         const networkInterfaces = require('os').networkInterfaces();
         console.log('[BOOTSTRAP] Network Interfaces:', JSON.stringify(networkInterfaces, null, 2));
 
-        // Configure CORS - default permissive
-        app.enableCors();
+        // Security Headers
+        app.use(helmet());
+
+        // Global Validation
+        app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+
+        // Configure strict CORS
+        app.enableCors({
+            origin: [process.env.FRONTEND_URL || 'http://localhost:3000'],
+            credentials: true,
+            methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        });
 
         // Set global API prefix for all controllers
         app.setGlobalPrefix('api', {

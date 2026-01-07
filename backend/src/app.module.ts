@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -28,6 +31,13 @@ import { PrismaModule } from './prisma.module';
             rootPath: join(process.cwd(), 'uploads'),
             serveRoot: '/uploads',
         }),
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
+        ThrottlerModule.forRoot([{
+            ttl: 60000,
+            limit: 100, // 100 requests per minute
+        }]),
         PrismaModule,
         SePayModule,
         ProductsModule,
@@ -46,7 +56,13 @@ import { PrismaModule } from './prisma.module';
         SeedModule,
     ],
     controllers: [AppController],
-    providers: [AppService],
+    providers: [
+        AppService,
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
+        },
+    ],
 })
 export class AppModule {
     constructor() {
