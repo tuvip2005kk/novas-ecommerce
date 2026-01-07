@@ -323,8 +323,6 @@ export default function AdminCategories() {
                                                     const data = await res.json();
                                                     console.log('Upload response:', data);
                                                     setForm(prev => ({ ...prev, image: data.url }));
-                                                    console.log('Form updated with image:', data.url);
-                                                    alert('✅ Ảnh đã upload thành công!\nURL: ' + data.url + '\n\nNhớ click "Thêm mới" để lưu!');
                                                 } catch (error) {
                                                     console.error('Upload error:', error);
                                                     alert('Upload failed: ' + error);
