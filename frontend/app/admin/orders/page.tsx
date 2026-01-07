@@ -102,18 +102,18 @@ export default function AdminOrders() {
 
     const getStatusBadge = (status: string) => {
         const styles: any = {
-            'Chờ thanh toán': 'bg-yellow-100 text-yellow-700',
-            'Đã thanh toán': 'bg-blue-100 text-blue-700',
-            'Đang chuẩn bị': 'bg-orange-100 text-orange-700',
-            'Đang giao hàng': 'bg-purple-100 text-purple-700',
-            'Đang giao': 'bg-purple-100 text-purple-700',
-            'Đã giao thành công': 'bg-green-100 text-green-700',
-            'Đã giao': 'bg-green-100 text-green-700',
-            'Hoàn thành': 'bg-green-100 text-green-700',
-            'Hoàn hàng': 'bg-red-100 text-red-700',
-            'Đã hủy': 'bg-slate-100 text-slate-700'
+            'Chờ thanh toán': 'text-yellow-600 font-medium',
+            'Đã thanh toán': 'text-blue-600 font-medium',
+            'Đang chuẩn bị': 'text-orange-600 font-medium',
+            'Đang giao hàng': 'text-purple-600 font-medium',
+            'Đang giao': 'text-purple-600 font-medium',
+            'Đã giao thành công': 'text-green-600 font-medium',
+            'Đã giao': 'text-green-600 font-medium',
+            'Hoàn thành': 'text-green-700 font-bold',
+            'Hoàn hàng': 'text-red-600 font-medium',
+            'Đã hủy': 'text-slate-500 font-medium'
         };
-        return <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-slate-100'}`}>{status}</span>;
+        return <span className={`text-sm ${styles[status] || 'text-slate-600'}`}>{status}</span>;
     };
 
     if (loading) return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin" /></div>;

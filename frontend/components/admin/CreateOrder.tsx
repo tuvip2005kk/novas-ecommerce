@@ -156,7 +156,14 @@ export default function CreateOrder({ onClose, onSuccess }: CreateOrderProps) {
                                         <div className="h-12 w-12 bg-slate-100 rounded overflow-hidden flex-shrink-0">
                                             {product.images && (
                                                 <img
-                                                    src={JSON.parse(product.images)[0]}
+                                                    src={(() => {
+                                                        try {
+                                                            const parsed = JSON.parse(product.images);
+                                                            return Array.isArray(parsed) ? parsed[0] : '/placeholder.png';
+                                                        } catch (e) {
+                                                            return '/placeholder.png';
+                                                        }
+                                                    })()}
                                                     alt={product.name}
                                                     className="w-full h-full object-cover"
                                                 />
@@ -173,10 +180,18 @@ export default function CreateOrder({ onClose, onSuccess }: CreateOrderProps) {
                                                         ${product.price.toLocaleString()}
                                                     </span>
                                                 )}
-                                                <span className="text-xs text-slate-500 ml-auto">Stock: {product.stock}</span>
+                                                <span className="text-xs text-slate-500 ml-auto">Kho: {product.stock}</span>
                                             </div>
                                         </div>
-                                        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-8 w-8 p-0"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                addToCart(product);
+                                            }}
+                                        >
                                             <Plus className="h-4 w-4" />
                                         </Button>
                                     </div>

@@ -55,7 +55,7 @@ export default function AdminDashboard() {
             const ordersArray = Array.isArray(orders) ? orders : [];
             const usersArray = Array.isArray(users) ? users : [];
 
-            const paidOrders = ordersArray.filter((o: Order) => o.status === 'PAID');
+            const paidOrders = ordersArray.filter((o: Order) => o.status === 'Đã thanh toán' || o.status === 'Hoàn thành' || o.status === 'Đã giao');
             const totalRevenue = paidOrders.reduce((sum: number, o: Order) => sum + o.total, 0);
 
             // Today's orders
