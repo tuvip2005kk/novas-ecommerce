@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, LogIn, LayoutDashboard } from "lucide-react";
+import { LogOut, User, LogIn, LayoutDashboard, CircleUserRound } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 
@@ -42,7 +42,7 @@ export function UserMenu() {
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
-                <User className="h-5 w-5 text-white" />
+                <CircleUserRound className="h-5 w-5 text-white" />
             </button>
 
             {isOpen && (
