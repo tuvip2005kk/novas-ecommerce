@@ -168,18 +168,23 @@ export default function AdminCategories() {
 
     const deleteCategory = async (id: number) => {
         if (!confirm('Xóa danh mục này sẽ xóa tất cả danh mục con. Tiếp tục?')) return;
+        console.log('Deleting category', id, 'with token:', token ? 'exists' : 'MISSING');
         try {
             const res = await fetch(`${API_URL}/api/categories/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            console.log('Delete response status:', res.status);
             if (res.ok) {
                 toast.showToast('Xóa danh mục thành công!', 'success');
                 fetchCategories();
             } else {
-                toast.showToast('Không thể xóa danh mục!', 'error');
+                const errorText = await res.text();
+                console.error('Delete error:', errorText);
+                toast.showToast(`Lỗi: ${res.status} - Không thể xóa danh mục!`, 'error');
             }
         } catch (err) {
+            console.error('Delete exception:', err);
             toast.showToast('Lỗi kết nối!', 'error');
         }
     };
