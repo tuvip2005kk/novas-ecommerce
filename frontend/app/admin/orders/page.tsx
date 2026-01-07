@@ -163,17 +163,17 @@ export default function AdminOrders() {
                 </Card>
             </div>
 
-            <div className="flex justify-center">
+            <div>
                 <Button
-                    className="w-full bg-[#22246b] hover:bg-[#1a1d55] text-white font-medium rounded-none py-6 text-lg shadow-sm transition-all"
+                    className="bg-[#22246b] hover:bg-[#1a1d55] text-white font-normal rounded-none px-6 py-2 text-sm"
                     onClick={() => setShowCreateOrder(!showCreateOrder)}
                 >
-                    {showCreateOrder ? '- Đóng bảng tạo đơn' : '+ Tạo đơn hàng mới'}
+                    {showCreateOrder ? 'Đóng' : '+ Tạo đơn'}
                 </Button>
             </div>
 
             {showCreateOrder && (
-                <div className="mt-6 mb-8 border border-slate-200 rounded-lg shadow-sm overflow-hidden animate-in slide-in-from-top-4 fade-in duration-200">
+                <div className="border border-slate-200 overflow-hidden">
                     <CreateOrder
                         onClose={() => setShowCreateOrder(false)}
                         onSuccess={() => {

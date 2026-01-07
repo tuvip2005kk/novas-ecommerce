@@ -122,11 +122,11 @@ export default function CreateOrder({ onClose, onSuccess }: CreateOrderProps) {
     };
 
     return (
-        <div className="bg-white rounded-lg w-full h-full flex flex-col border shadow-sm">
+        <div className="bg-white w-full h-full flex flex-col border">
             <div className="p-4 border-b flex items-center justify-between">
-                <h2 className="text-xl font-bold">Tạo đơn hàng mới</h2>
-                <button onClick={onClose} className="px-3 py-1 text-sm bg-slate-100 hover:bg-slate-200 rounded text-slate-600">
-                    Quay lại
+                <h2 className="text-lg font-normal">Tạo đơn hàng mới</h2>
+                <button onClick={onClose} className="px-3 py-1 text-sm bg-slate-100 hover:bg-slate-200 text-slate-600">
+                    Đóng
                 </button>
             </div>
 
