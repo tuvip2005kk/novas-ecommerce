@@ -3,8 +3,8 @@ import { API_URL } from '@/config';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, X, Package, User, Phone, Calendar, DollarSign } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Loader2, X, Package, User, Phone, Calendar, DollarSign, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 
 interface OrderItem {
@@ -29,13 +29,24 @@ interface Order {
     customerAddress: string | null;
     note: string | null;
     createdAt: string;
+    updatedAt: string;
     items: OrderItem[];
 }
+
+type TabType = 'all' | 'pending' | 'completed-today';
+
+// Trạng thái coi là "chưa hoàn thành"
+const PENDING_STATUSES = ['Chờ thanh toán', 'Đã thanh toán', 'Đang chuẩn bị', 'Đang giao hàng', 'Đang giao'];
+// Trạng thái coi là "đã hoàn thành"
+const COMPLETED_STATUSES = ['Đã giao thành công', 'Đã giao', 'Hoàn thành'];
+// Trạng thái đã hủy
+const CANCELLED_STATUSES = ['Đã hủy', 'Hoàn hàng'];
 
 export default function AdminOrders() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [activeTab, setActiveTab] = useState<TabType>('all');
 
     useEffect(() => { fetchOrders(); }, []);
 
@@ -55,13 +66,49 @@ export default function AdminOrders() {
         fetchOrders();
     };
 
+    // Tính toán số liệu
+    const { pendingOrders, completedTodayOrders, filteredOrders } = useMemo(() => {
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+        // Đơn cần xử lý: không phải Hoàn thành và không phải Đã hủy
+        const pending = orders.filter(o =>
+            PENDING_STATUSES.includes(o.status)
+        );
+
+        // Đã xử lý hôm nay: hoàn thành trong ngày hôm nay (dựa vào updatedAt)
+        const completedToday = orders.filter(o => {
+            if (!COMPLETED_STATUSES.includes(o.status)) return false;
+            const updatedAt = new Date(o.updatedAt);
+            return updatedAt >= todayStart && updatedAt <= todayEnd;
+        });
+
+        // Filter theo tab
+        let filtered = orders;
+        if (activeTab === 'pending') {
+            filtered = pending;
+        } else if (activeTab === 'completed-today') {
+            filtered = completedToday;
+        }
+
+        return {
+            pendingOrders: pending,
+            completedTodayOrders: completedToday,
+            filteredOrders: filtered
+        };
+    }, [orders, activeTab]);
+
     const getStatusBadge = (status: string) => {
         const styles: any = {
             'Chờ thanh toán': 'bg-yellow-100 text-yellow-700',
             'Đã thanh toán': 'bg-blue-100 text-blue-700',
             'Đang chuẩn bị': 'bg-orange-100 text-orange-700',
             'Đang giao hàng': 'bg-purple-100 text-purple-700',
+            'Đang giao': 'bg-purple-100 text-purple-700',
             'Đã giao thành công': 'bg-green-100 text-green-700',
+            'Đã giao': 'bg-green-100 text-green-700',
+            'Hoàn thành': 'bg-green-100 text-green-700',
             'Hoàn hàng': 'bg-red-100 text-red-700',
             'Đã hủy': 'bg-slate-100 text-slate-700'
         };
@@ -76,6 +123,73 @@ export default function AdminOrders() {
                 <h1 className="text-3xl font-bold text-slate-900">Quản lý đơn hàng</h1>
                 <p className="text-slate-500 font-normal">Xem và cập nhật trạng thái đơn hàng - Nhấn vào mã đơn để xem chi tiết</p>
             </div>
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card
+                    className={`cursor-pointer transition-all hover:shadow-md ${activeTab === 'pending' ? 'ring-2 ring-orange-500' : ''}`}
+                    onClick={() => setActiveTab(activeTab === 'pending' ? 'all' : 'pending')}
+                >
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-slate-500 font-normal">Cần xử lý</p>
+                                <p className="text-3xl font-bold text-orange-600">{pendingOrders.length}</p>
+                            </div>
+                            <div className="p-3 bg-orange-100 rounded-full">
+                                <AlertCircle className="h-6 w-6 text-orange-600" />
+                            </div>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-2">Đơn hàng chưa hoàn thành</p>
+                    </CardContent>
+                </Card>
+
+                <Card
+                    className={`cursor-pointer transition-all hover:shadow-md ${activeTab === 'completed-today' ? 'ring-2 ring-green-500' : ''}`}
+                    onClick={() => setActiveTab(activeTab === 'completed-today' ? 'all' : 'completed-today')}
+                >
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-slate-500 font-normal">Đã xử lý hôm nay</p>
+                                <p className="text-3xl font-bold text-green-600">{completedTodayOrders.length}</p>
+                            </div>
+                            <div className="p-3 bg-green-100 rounded-full">
+                                <CheckCircle2 className="h-6 w-6 text-green-600" />
+                            </div>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-2">Reset lúc 00:00 mỗi ngày</p>
+                    </CardContent>
+                </Card>
+
+                <Card className="cursor-pointer transition-all hover:shadow-md" onClick={() => setActiveTab('all')}>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-slate-500 font-normal">Tổng đơn hàng</p>
+                                <p className="text-3xl font-bold text-slate-700">{orders.length}</p>
+                            </div>
+                            <div className="p-3 bg-slate-100 rounded-full">
+                                <Package className="h-6 w-6 text-slate-600" />
+                            </div>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-2">Tất cả đơn hàng</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Active Filter Indicator */}
+            {activeTab !== 'all' && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
+                    <Clock className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm text-blue-700">
+                        Đang lọc: <strong>{activeTab === 'pending' ? 'Cần xử lý' : 'Đã xử lý hôm nay'}</strong>
+                    </span>
+                    <Button variant="ghost" size="sm" onClick={() => setActiveTab('all')} className="ml-auto text-blue-600 hover:text-blue-800">
+                        Xem tất cả
+                    </Button>
+                </div>
+            )}
 
             {/* Order Detail Modal */}
             {selectedOrder && (
@@ -194,7 +308,7 @@ export default function AdminOrders() {
                             </tr>
                         </thead>
                         <tbody>
-                            {orders.map(o => (
+                            {filteredOrders.map(o => (
                                 <tr key={o.id} className="border-b hover:bg-slate-50">
                                     <td className="py-4">
                                         <Link

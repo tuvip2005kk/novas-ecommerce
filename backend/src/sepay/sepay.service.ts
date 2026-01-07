@@ -149,10 +149,26 @@ export class SePayService {
         }
 
         // Cập nhật trạng thái đơn hàng
+        const orderWithItems = await this.prisma.order.findUnique({
+            where: { id: parseInt(orderId) },
+            include: { items: true }
+        });
+
         await this.prisma.order.update({
             where: { id: parseInt(orderId) },
             data: { status: 'Đã thanh toán' }
         });
+
+        // Trừ stock cho từng sản phẩm khi thanh toán thành công
+        if (orderWithItems && orderWithItems.items) {
+            for (const item of orderWithItems.items) {
+                await this.prisma.product.update({
+                    where: { id: item.productId },
+                    data: { stock: { decrement: item.quantity } }
+                });
+            }
+            this.logger.log(`Order #${orderId}: Stock decremented for ${orderWithItems.items.length} products`);
+        }
 
         this.logger.log(`Order #${orderId} updated to "Đã thanh toán"`);
 

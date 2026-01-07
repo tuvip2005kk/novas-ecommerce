@@ -67,9 +67,38 @@ export class OrdersService {
     }
 
     async updateStatus(id: number, status: string) {
-        return this.prisma.order.update({
+        // Các trạng thái hoàn thành
+        const COMPLETED_STATUSES = ['Đã giao thành công', 'Đã giao', 'Hoàn thành'];
+
+        // Get current order to check previous status
+        const currentOrder = await this.prisma.order.findUnique({
+            where: { id },
+            include: { items: true }
+        });
+
+        if (!currentOrder) {
+            throw new Error('Order not found');
+        }
+
+        // Update order status
+        const order = await this.prisma.order.update({
             where: { id },
             data: { status },
+            include: { items: true }
         });
+
+        // Nếu chuyển sang trạng thái hoàn thành và trước đó chưa hoàn thành
+        // → Cộng soldCount cho từng sản phẩm
+        if (COMPLETED_STATUSES.includes(status) && !COMPLETED_STATUSES.includes(currentOrder.status)) {
+            for (const item of order.items) {
+                await this.prisma.product.update({
+                    where: { id: item.productId },
+                    data: { soldCount: { increment: item.quantity } }
+                });
+            }
+            console.log(`[OrdersService] Order #${id} completed. soldCount incremented for ${order.items.length} products.`);
+        }
+
+        return order;
     }
 }
