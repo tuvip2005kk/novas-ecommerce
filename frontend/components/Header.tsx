@@ -53,11 +53,11 @@ export function Header() {
 
                 <div className="flex items-center gap-1">
                     <button className="p-2 hover:bg-white/20 rounded-full transition-colors">
-                        <Search className="h-5 w-5 text-white" />
+                        <Search className="h-6 w-6 text-white" />
                     </button>
                     {user && (
                         <Link href="/likes" className="relative p-2 hover:bg-white/20 rounded-full transition-colors" title="Yêu thích">
-                            <Heart className="h-5 w-5 text-white hover:text-red-400" />
+                            <Heart className="h-6 w-6 text-white hover:text-red-400" />
                         </Link>
                     )}
                     <CartIcon />

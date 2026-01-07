@@ -42,7 +42,7 @@ export function UserMenu() {
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
-                <CircleUserRound className="h-5 w-5 text-white" />
+                <CircleUserRound className="h-6 w-6 text-white" />
             </button>
 
             {isOpen && (
