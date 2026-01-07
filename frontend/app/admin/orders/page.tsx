@@ -141,29 +141,23 @@ export default function AdminOrders() {
 
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card
-                            className={`cursor-pointer transition-all hover:shadow-md ${activeTab === 'pending' ? 'ring-2 ring-orange-500' : ''}`}
-                            onClick={() => setActiveTab(activeTab === 'pending' ? 'all' : 'pending')}
-                        >
-                            <CardContent className="pt-6 pb-4">
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <p className="text-sm text-slate-500 font-normal">Cần xử lý</p>
-                                        <p className="text-3xl font-bold text-orange-600">{pendingOrders.length}</p>
-                                    </div>
-                                    <Button
-                                        size="sm"
-                                        className="bg-[#22246b] hover:bg-[#1a1d55] text-white shadow-md"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setShowCreateOrder(true);
-                                        }}
-                                    >
-                                        + Tạo đơn
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <div className="flex flex-col gap-3">
+                            <Card
+                                className={`cursor-pointer transition-all hover:shadow-md flex-1 ${activeTab === 'pending' ? 'ring-2 ring-orange-500' : ''}`}
+                                onClick={() => setActiveTab(activeTab === 'pending' ? 'all' : 'pending')}
+                            >
+                                <CardContent className="pt-6 pb-4">
+                                    <p className="text-sm text-slate-500 font-normal">Cần xử lý</p>
+                                    <p className="text-3xl font-bold text-orange-600">{pendingOrders.length}</p>
+                                </CardContent>
+                            </Card>
+                            <Button
+                                className="w-full bg-[#22246b] hover:bg-[#1a1d55] text-white shadow-md font-medium"
+                                onClick={() => setShowCreateOrder(true)}
+                            >
+                                + Tạo đơn hàng
+                            </Button>
+                        </div>
 
                         <Card
                             className={`cursor-pointer transition-all hover:shadow-md ${activeTab === 'completed-today' ? 'ring-2 ring-green-500' : ''}`}
