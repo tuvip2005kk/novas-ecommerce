@@ -270,8 +270,16 @@ export default function SlugPage() {
 
         const productSpecs = (product as any).specs || {};
 
-        // Build specs dynamically based on category
+        // Build specs - support both new array format and legacy object format
         const buildSpecs = () => {
+            // Check if specs is in new array format
+            if (Array.isArray(productSpecs) && productSpecs.length > 0) {
+                return productSpecs
+                    .filter((s: any) => s.title && s.value)
+                    .map((s: any) => ({ label: s.title, value: s.value }));
+            }
+
+            // Legacy object format - fallback for old products
             const catSlug = categorySlug;
             let specsList: { label: string; value: string; multiline?: boolean }[] = [];
 
