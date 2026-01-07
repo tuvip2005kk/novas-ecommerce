@@ -1,0 +1,59 @@
+
+> frontend@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.3
+
+   Creating an optimized production build ...
+
+[1m[33mwarn[39m[22m - The class `duration-[10000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;10000ms&rsqb;` to silence this warning.
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/24) ...
+   Generating static pages (6/24) 
+   Generating static pages (12/24) 
+   Generating static pages (18/24) 
+ ✓ Generating static pages (24/24)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ƒ /                                    3.53 kB         114 kB
+├ ○ /_not-found                          875 B          88.1 kB
+├ ƒ /[category]                          3.02 kB         114 kB
+├ ƒ /[category]/[slug]                   5.25 kB         116 kB
+├ ○ /admin                               5.22 kB         206 kB
+├ ○ /admin/analytics                     9.55 kB         218 kB
+├ ○ /admin/categories                    6.16 kB         101 kB
+├ ○ /admin/design                        1.54 kB        95.6 kB
+├ ○ /admin/design/banners                5.03 kB         106 kB
+├ ○ /admin/design/footer                 4.71 kB         106 kB
+├ ○ /admin/notifications                 3.26 kB        97.8 kB
+├ ○ /admin/orders                        7.52 kB         109 kB
+├ ƒ /admin/orders/[id]                   4.61 kB        99.2 kB
+├ ○ /admin/products                      8.81 kB         103 kB
+├ ○ /admin/promotions                    5.41 kB         100 kB
+├ ○ /admin/reviews                       3.25 kB        97.8 kB
+├ ○ /admin/settings                      3.43 kB          98 kB
+├ ○ /admin/users                         5.46 kB         100 kB
+├ ƒ /admin/users/[id]                    4.47 kB         106 kB
+├ ○ /cart                                4.37 kB         112 kB
+├ ○ /checkout                            6.37 kB         114 kB
+├ ○ /likes                               4.33 kB         112 kB
+├ ○ /login                               1.82 kB         112 kB
+├ ƒ /order/[orderId]                     4.94 kB         112 kB
+├ ƒ /products/[id]                       5.61 kB         113 kB
+├ ○ /profile                             4.85 kB         112 kB
+├ ○ /register                            1.99 kB         112 kB
+└ ○ /thiet-bi-ve-sinh                    2.63 kB         113 kB
++ First Load JS shared by all            87.2 kB
+  ├ chunks/23-81e53c0d676c1a10.js        31.6 kB
+  ├ chunks/fd9d1056-981e55b00fe756b2.js  53.6 kB
+  └ other shared chunks (total)          1.96 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

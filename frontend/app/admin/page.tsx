@@ -152,7 +152,9 @@ export default function AdminDashboard() {
                 </div>
                 <div className="border border-slate-200 bg-white p-4">
                     <p className="text-xs text-slate-500 font-normal">Doanh thu</p>
-                    <p className="text-2xl font-bold mt-1">${stats.totalRevenue}</p>
+                    <p className="text-2xl font-bold mt-1 text-slate-900">
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.totalRevenue)}
+                    </p>
                 </div>
                 <div className="border border-slate-200 bg-white p-4">
                     <p className="text-xs text-slate-500 font-normal">Người dùng</p>
