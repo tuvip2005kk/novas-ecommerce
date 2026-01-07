@@ -151,6 +151,7 @@ export default function AdminCategories() {
                         categoryId: selectedCategoryId
                     })
                 });
+                console.log('Subcategory payload:', { name: form.name, slug, image: form.image || null, categoryId: selectedCategoryId });
             }
 
             setShowModal(false);
@@ -284,11 +285,22 @@ export default function AdminCategories() {
                                         onChange={async (e) => {
                                             const file = e.target.files?.[0];
                                             if (!file) return;
-                                            const formData = new FormData();
-                                            formData.append('file', file);
-                                            const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: formData });
-                                            const data = await res.json();
-                                            setForm({ ...form, image: data.url });
+                                            try {
+                                                const formData = new FormData();
+                                                formData.append('file', file);
+                                                const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: formData });
+                                                if (!res.ok) {
+                                                    alert('Upload failed: ' + res.statusText);
+                                                    return;
+                                                }
+                                                const data = await res.json();
+                                                console.log('Upload response:', data);
+                                                setForm(prev => ({ ...prev, image: data.url }));
+                                                console.log('Form updated with image:', data.url);
+                                            } catch (error) {
+                                                console.error('Upload error:', error);
+                                                alert('Upload failed: ' + error);
+                                            }
                                         }}
                                         className="w-full mt-1 px-4 py-2 border rounded-lg font-normal"
                                     />
