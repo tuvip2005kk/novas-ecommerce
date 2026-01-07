@@ -61,7 +61,11 @@ export default function CategorySection({ hideTitle = false }: { hideTitle?: boo
                                 {/* Image Container */}
                                 <div className="aspect-[4/5] bg-gradient-to-b from-blue-100 via-blue-50 to-white overflow-hidden">
                                     <img
-                                        src={cat.image || '/images/placeholder.png'}
+                                        src={cat.image
+                                            ? (cat.image.startsWith('http')
+                                                ? cat.image
+                                                : `${API_URL}${cat.image}`)
+                                            : '/images/placeholder.png'}
                                         alt={cat.name}
                                         className="w-full h-full object-cover"
                                         loading="lazy"
