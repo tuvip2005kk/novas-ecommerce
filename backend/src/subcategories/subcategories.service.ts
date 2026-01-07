@@ -52,6 +52,11 @@ export class SubcategoriesService {
     }
 
     async delete(id: number) {
+        // Disconnect products first
+        await this.prisma.product.updateMany({
+            where: { subcategoryId: id },
+            data: { subcategoryId: null }
+        });
         return this.prisma.subcategory.delete({ where: { id } });
     }
 }

@@ -55,7 +55,25 @@ export class CategoriesService {
     }
 
     async delete(id: number) {
+        // First, get all subcategory IDs for this category
+        const subcategories = await this.prisma.subcategory.findMany({
+            where: { categoryId: id },
+            select: { id: true }
+        });
+        const subcategoryIds = subcategories.map(s => s.id);
+
+        // Set subcategoryId to null for all products in these subcategories
+        if (subcategoryIds.length > 0) {
+            await this.prisma.product.updateMany({
+                where: { subcategoryId: { in: subcategoryIds } },
+                data: { subcategoryId: null }
+            });
+        }
+
+        // Now delete subcategories
         await this.prisma.subcategory.deleteMany({ where: { categoryId: id } });
+
+        // Finally delete the category
         return this.prisma.category.delete({ where: { id } });
     }
 }
