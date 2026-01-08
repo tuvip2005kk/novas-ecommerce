@@ -475,10 +475,10 @@ export default function SlugPage() {
 
                                 {/* Quantity Selector */}
                                 <div className="flex items-center gap-4 mb-6">
-                                    <div className="flex items-center border-2 border-slate-300 rounded-lg">
-                                        <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-4 py-2 text-xl font-bold text-slate-600 hover:bg-slate-100">-</button>
-                                        <span className="px-6 py-2 text-lg font-bold min-w-[60px] text-center">{qty}</span>
-                                        <button onClick={() => setQty(qty + 1)} className="px-4 py-2 text-xl font-bold text-slate-600 hover:bg-slate-100">+</button>
+                                    <div className="flex items-center border-2 border-slate-300">
+                                        <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2 text-xl font-bold text-slate-600 hover:bg-slate-100">-</button>
+                                        <span className="px-3 py-2 text-lg font-bold min-w-[40px] text-center">{qty}</span>
+                                        <button onClick={() => setQty(qty + 1)} className="px-3 py-2 text-xl font-bold text-slate-600 hover:bg-slate-100">+</button>
                                     </div>
                                 </div>
 
