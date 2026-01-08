@@ -416,7 +416,7 @@ export default function SlugPage() {
 
                             {/* Right: Product Info */}
                             <div>
-                                <h1 className="text-2xl font-bold text-[#21246b] mb-3 uppercase">
+                                <h1 className="text-2xl font-bold text-[#21246b] mb-3 mt-4 uppercase">
                                     {product.name}
                                 </h1>
 
@@ -446,11 +446,11 @@ export default function SlugPage() {
                                         Thông tin sản phẩm
                                     </h3>
                                     {specs.length > 0 ? (
-                                        <table className="w-full text-sm">
+                                        <table className="w-full text-base">
                                             <tbody>
                                                 {specs.map((spec, i) => (
                                                     <tr key={i} className="border-b border-slate-100">
-                                                        <td className="py-2 text-black font-normal w-1/3 align-top">{spec.label}</td>
+                                                        <td className="py-2 text-black font-bold w-1/3 align-top">{spec.label}</td>
                                                         <td className="py-2 text-slate-500 font-normal">
                                                             {spec.multiline ? (
                                                                 <div className="space-y-0">
@@ -486,13 +486,13 @@ export default function SlugPage() {
                                 <div className="flex gap-3">
                                     <button
                                         onClick={() => window.location.href = `/checkout?productId=${product.id}&quantity=${qty}`}
-                                        className="flex-1 py-3 bg-[#21246b] text-white text-sm font-bold hover:bg-blue-800 transition-colors"
+                                        className="flex-1 py-2.5 bg-[#21246b] text-white text-sm font-bold hover:bg-blue-800 transition-colors"
                                     >
                                         ĐẶT HÀNG NGAY
                                     </button>
                                     <button
                                         onClick={() => { for (let i = 0; i < qty; i++) addItem({ id: product.id, name: product.name, price: product.price, image: product.image }); showToast(`Đã thêm ${qty} ${product.name} vào giỏ!`); }}
-                                        className="flex-1 py-3 border-2 border-[#21246b] text-[#21246b] text-sm font-bold hover:bg-[#21246b] hover:text-white transition-colors"
+                                        className="flex-1 py-2.5 border-2 border-[#21246b] text-[#21246b] text-sm font-bold hover:bg-[#21246b] hover:text-white transition-colors"
                                     >
                                         THÊM VÀO GIỎ
                                     </button>
