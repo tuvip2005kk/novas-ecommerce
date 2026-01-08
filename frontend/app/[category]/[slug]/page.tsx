@@ -483,7 +483,7 @@ export default function SlugPage() {
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="flex gap-3">
+                                <div className="flex gap-3 max-w-[400px]">
                                     <button
                                         onClick={() => window.location.href = `/checkout?productId=${product.id}&quantity=${qty}`}
                                         className="flex-1 py-2.5 bg-[#21246b] text-white text-sm font-bold hover:bg-blue-800 transition-colors"
