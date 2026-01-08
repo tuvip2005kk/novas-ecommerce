@@ -271,12 +271,13 @@ export default function SlugPage() {
         const productSpecs = (product as any).specs || {};
 
         // Build specs - support both new array format and legacy object format
-        const buildSpecs = () => {
+        // Build specs - support both new array format and legacy object format
+        const buildSpecs = (): { label: string; value: string; multiline?: boolean }[] => {
             // Check if specs is in new array format
             if (Array.isArray(productSpecs) && productSpecs.length > 0) {
                 return productSpecs
                     .filter((s: any) => s.title && s.value)
-                    .map((s: any) => ({ label: s.title, value: s.value }));
+                    .map((s: any) => ({ label: s.title, value: s.value, multiline: false }));
             }
 
             // Legacy object format - fallback for old products
