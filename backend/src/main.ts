@@ -35,7 +35,11 @@ async function bootstrap() {
 
         // Configure strict CORS
         app.enableCors({
-            origin: [process.env.FRONTEND_URL || 'http://localhost:3000'],
+            origin: [
+                process.env.FRONTEND_URL || 'http://localhost:3000',
+                'https://vmnovas.vercel.app',
+                'https://novas-ecommerce.vercel.app'
+            ],
             credentials: true,
             methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         });
