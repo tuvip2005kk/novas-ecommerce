@@ -437,7 +437,7 @@ export default function ProfilePage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">Chất lượng sản phẩm</label>
+                                        <label className="block text-sm font-normal mb-1">Chất lượng sản phẩm</label>
                                         <div className="flex gap-2">
                                             {[1, 2, 3, 4, 5].map(star => (
                                                 <button
@@ -461,7 +461,7 @@ export default function ProfilePage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">Nhận xét của bạn</label>
+                                        <label className="block text-sm font-normal mb-1">Nhận xét của bạn</label>
                                         <textarea
                                             value={comment}
                                             onChange={(e) => setComment(e.target.value)}
