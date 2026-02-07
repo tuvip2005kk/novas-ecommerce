@@ -56,7 +56,7 @@ export class ReviewsService {
         const deliveredOrder = await this.prisma.order.findFirst({
             where: {
                 userId,
-                status: 'Đã giao thành công',
+                status: { in: ['Đã giao thành công', 'Đã giao', 'Hoàn thành'] },
                 items: {
                     some: { productId }
                 }

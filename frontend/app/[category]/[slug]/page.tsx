@@ -511,32 +511,89 @@ export default function SlugPage() {
                         </div>
 
                         {/* Reviews Section */}
+                        {/* Reviews Section */}
                         <div id="reviews" className="mt-12 border-t border-slate-200 pt-8">
-                            <h2 className="text-xl font-bold text-[#21246b] mb-6">Đánh giá từ khách hàng</h2>
+                            <h2 className="text-xl font-bold text-[#21246b] mb-6">
+                                {product.reviews?.length || 0} đánh giá cho {product.name}
+                            </h2>
 
-                            {product.reviews && product.reviews.length > 0 ? (
-                                <div className="space-y-4">
-                                    {product.reviews.map((review) => (
-                                        <div key={review.id} className="border-b border-slate-100 pb-4">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className="w-10 h-10 bg-[#21246b] rounded-full flex items-center justify-center text-white font-bold">
-                                                    {review.user?.name?.charAt(0) || 'K'}
+                            <div className="bg-white border rounded-lg p-6 mb-8 flex flex-col md:flex-row gap-8">
+                                {/* Average Rating */}
+                                <div className="flex-shrink-0 w-full md:w-48 text-center border-b md:border-b-0 md:border-r border-slate-100 pb-6 md:pb-0 md:pr-6 flex flex-col justify-center items-center">
+                                    <div className="text-5xl font-bold text-amber-500 mb-2">
+                                        {(product.reviews?.reduce((acc, r) => acc + r.rating, 0) / (product.reviews?.length || 1) || 5).toFixed(1)}
+                                    </div>
+                                    <div className="flex justify-center mb-2">
+                                        <Star className="w-6 h-6 fill-amber-500 text-amber-500" />
+                                    </div>
+                                    <p className="text-sm font-bold text-slate-500 uppercase">Đánh giá trung bình</p>
+                                </div>
+
+                                {/* Rating Distribution */}
+                                <div className="flex-grow space-y-2">
+                                    {[5, 4, 3, 2, 1].map((star) => {
+                                        const count = product.reviews?.filter(r => r.rating === star).length || 0;
+                                        const total = product.reviews?.length || 0;
+                                        const percent = total > 0 ? (count / total) * 100 : (star === 5 ? 100 : 0); // Fake 100% for 5 stars if no reviews to look good implies quality
+
+                                        return (
+                                            <div key={star} className="flex items-center gap-3 text-sm">
+                                                <span className="w-3 font-bold">{star}</span>
+                                                <Star className="w-4 h-4 fill-black text-black" />
+                                                <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-amber-500 rounded-full"
+                                                        style={{ width: `${percent}%` }}
+                                                    ></div>
                                                 </div>
-                                                <div>
-                                                    <div className="font-medium">{review.user?.name || 'Khách hàng'}</div>
-                                                    <div className="flex">
-                                                        {[...Array(review.rating)].map((_, i) => (
-                                                            <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-                                                        ))}
-                                                    </div>
+                                                <span className="w-12 text-right text-blue-600 font-medium">{percent.toFixed(0)}%</span>
+                                                <span className="w-20 text-right text-slate-400">| {count} đánh giá</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Review List */}
+                            {product.reviews && product.reviews.length > 0 ? (
+                                <div className="space-y-6">
+                                    {product.reviews.map((review) => (
+                                        <div key={review.id} className="flex gap-4">
+                                            <div className="flex-shrink-0">
+                                                <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 font-bold text-xl">
+                                                    {review.user?.name?.charAt(0).toUpperCase() || 'K'}
                                                 </div>
                                             </div>
-                                            <p className="text-slate-600">{review.comment}</p>
+                                            <div className="flex-grow">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-bold text-[#21246b]">{review.user?.name || 'Khách hàng'}</span>
+                                                    <span className="text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                                                        <span className="text-[10px]">✓</span> Đã mua hàng tại Novas
+                                                    </span>
+                                                </div>
+                                                <div className="flex mb-2">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star
+                                                            key={i}
+                                                            className={`w-4 h-4 ${i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <p className="text-slate-700 mb-3">{review.comment}</p>
+
+                                                <div className="flex gap-4 text-xs text-slate-500 font-medium">
+                                                    <button className="hover:text-blue-600">Trả lời</button>
+                                                    <button className="flex items-center gap-1 hover:text-blue-600">
+                                                        👍 Thích
+                                                    </button>
+                                                    <span>{new Date(review.createdAt).toLocaleDateString('vi-VN')}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-slate-500">Chưa có đánh giá nào cho sản phẩm này.</p>
+                                <p className="text-slate-500 text-center py-8">Chưa có đánh giá nào cho sản phẩm này.</p>
                             )}
                         </div>
                     </div>

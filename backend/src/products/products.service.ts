@@ -61,6 +61,14 @@ export class ProductsService {
                     include: {
                         category: true
                     }
+                },
+                reviews: {
+                    include: {
+                        user: { select: { name: true } }
+                    },
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
                 }
             }
         });
