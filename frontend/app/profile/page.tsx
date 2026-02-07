@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
 import { User, ShoppingBag, Loader2, Star, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -55,6 +56,7 @@ interface ProfileData {
 
 export default function ProfilePage() {
     const { user, token, isLoading, logout } = useAuth();
+    const { showToast } = useToast();
     const router = useRouter();
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
@@ -147,15 +149,18 @@ export default function ProfilePage() {
 
                 // Reset form
                 setReviewingProduct(null);
-                alert('Đánh giá thành công!');
+                // Reset form
+                setReviewingProduct(null);
+                showToast('Đánh giá thành công!');
+                setReviewModalOpen(false); // Close modal on success
             } else {
                 const errorData = await res.json().catch(() => ({}));
                 const errorMessage = errorData.message || 'Có lỗi xảy ra khi gửi đánh giá';
-                alert(`Không thể gửi đánh giá: ${errorMessage}`);
+                showToast(`Không thể gửi đánh giá: ${errorMessage}`);
             }
         } catch (error: any) {
             console.error(error);
-            alert(`Lỗi kết nối: ${error.message}`);
+            showToast(`Lỗi kết nối: ${error.message}`);
         } finally {
             setSubmittingReview(false);
         }
@@ -381,7 +386,7 @@ export default function ProfilePage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
                         <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
-                            <h3 className="font-bold text-lg">Đánh giá đơn hàng #{selectedOrder.paymentContent}</h3>
+                            <h3 className="font-normal text-lg">Đánh giá đơn hàng #{selectedOrder.paymentContent}</h3>
                             <button onClick={() => setReviewModalOpen(false)} className="text-gray-500 hover:text-gray-700">
                                 <X className="h-5 w-5" />
                             </button>
