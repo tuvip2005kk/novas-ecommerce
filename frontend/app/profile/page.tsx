@@ -123,7 +123,17 @@ export default function ProfilePage() {
     const handleOpenReview = (order: Order) => {
         setSelectedOrder(order);
         setReviewModalOpen(true);
-        setReviewingProduct(null); // Reset product selection
+
+        // Auto-select if there's only one product or one unreviewed product
+        const unreviewedItems = order.items.filter(item => !isReviewed(item.productId));
+        if (unreviewedItems.length === 1) {
+            const productToReview = unreviewedItems[0].product;
+            setReviewingProduct(productToReview);
+            setRating(5);
+            setComment('');
+        } else {
+            setReviewingProduct(null); // Reset product selection
+        }
     };
 
     const handleProductReviewClick = (product: Product) => {
