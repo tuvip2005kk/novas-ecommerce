@@ -78,7 +78,10 @@ export class AuthService {
     async getProfile(userId: number) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
-            include: { orders: { include: { items: { include: { product: true } } } } },
+            include: {
+                orders: { include: { items: { include: { product: true } } } },
+                reviews: true
+            },
         });
 
         if (!user) {
@@ -92,6 +95,7 @@ export class AuthService {
             role: user.role,
             createdAt: user.createdAt,
             orders: user.orders,
+            reviews: user.reviews,
         };
     }
 
