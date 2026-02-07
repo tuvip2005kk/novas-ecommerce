@@ -27,11 +27,15 @@ export class SePayController {
     /**
      * Webhook endpoint cho SePay callback
      * POST /sepay/webhook
-     * Cấu hình URL này trong SePay: https://your-domain.com/sepay/webhook
+     * Cấu hình URL này trong SePay: https://your-domain.com/api/sepay/webhook
      */
     @Post('webhook')
-    @UsePipes(new ValidationPipe({ transform: true }))
-    async handleWebhook(@Body() payload: SePayWebhookDto) {
+    async handleWebhook(@Body() payload: any) {
+        console.log('=== SEPAY WEBHOOK RECEIVED ===');
+        console.log('Payload:', JSON.stringify(payload, null, 2));
+        console.log('Payload type:', typeof payload);
+        console.log('Payload keys:', Object.keys(payload));
+        console.log('==============================');
         return this.sepayService.processWebhook(payload);
     }
 
