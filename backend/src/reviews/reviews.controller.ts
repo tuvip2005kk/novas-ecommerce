@@ -14,6 +14,11 @@ export class ReviewsController {
         return this.reviewsService.findAll();
     }
 
+    @Get('version')
+    version() {
+        return { version: '1.0.2', timestamp: new Date().toISOString(), message: "Debug endpoints enabled" };
+    }
+
     @Get('product/:productId')
     findByProduct(@Param('productId') productId: string) {
         return this.reviewsService.findByProduct(+productId);
