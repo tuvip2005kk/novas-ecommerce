@@ -16,7 +16,7 @@ export class ReviewsController {
 
     @Get('version')
     version() {
-        return { version: '1.0.2', timestamp: new Date().toISOString(), message: "Debug endpoints enabled" };
+        return { version: '1.0.4', timestamp: new Date().toISOString(), message: "AuthGuard Refactored & Global JWT" };
     }
 
     @Get('product/:productId')
