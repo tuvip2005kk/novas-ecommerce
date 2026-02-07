@@ -31,7 +31,7 @@ async function bootstrap() {
         app.use(helmet());
 
         // Global Validation
-        app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+        app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
         // Configure CORS to accept all Vercel domains
         app.enableCors({
