@@ -58,6 +58,12 @@ export default function ProfilePage() {
     const { user, token, isLoading, logout } = useAuth();
     const { showToast } = useToast();
     const router = useRouter();
+
+    // Debug Version
+    useEffect(() => {
+        console.log('ProfilePage Version: 1.0.5 (Normal Font & Toast)');
+    }, []);
+
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [activeTab, setActiveTab] = useState<'info' | 'orders'>('info');

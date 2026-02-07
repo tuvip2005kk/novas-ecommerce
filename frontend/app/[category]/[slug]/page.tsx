@@ -521,7 +521,7 @@ export default function SlugPage() {
                                 {/* Average Rating */}
                                 <div className="flex-shrink-0 w-full md:w-48 text-center border-b md:border-b-0 md:border-r border-slate-100 pb-6 md:pb-0 md:pr-6 flex flex-col justify-center items-center">
                                     <div className="text-5xl font-bold text-amber-500 mb-2">
-                                        {(product.reviews?.reduce((acc, r) => acc + r.rating, 0) / (product.reviews?.length || 1) || 5).toFixed(1)}
+                                        {((product.reviews || []).reduce((acc, r) => acc + r.rating, 0) / ((product.reviews || []).length || 1) || 5).toFixed(1)}
                                     </div>
                                     <div className="flex justify-center mb-2">
                                         <Star className="w-6 h-6 fill-amber-500 text-amber-500" />
