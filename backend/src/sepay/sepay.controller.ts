@@ -32,11 +32,19 @@ export class SePayController {
     @Post('webhook')
     async handleWebhook(@Body() payload: any) {
         console.log('=== SEPAY WEBHOOK RECEIVED ===');
+        console.log('Transaction Date:', new Date().toISOString());
         console.log('Payload:', JSON.stringify(payload, null, 2));
-        console.log('Payload type:', typeof payload);
-        console.log('Payload keys:', Object.keys(payload));
-        console.log('==============================');
-        return this.sepayService.processWebhook(payload);
+
+        // Return 200 OK immediately to prevent SePay timeout
+        // Process logic in background
+        this.sepayService.processWebhook(payload).catch(err => {
+            console.error('Background processing error:', err);
+        });
+
+        return {
+            success: true,
+            message: 'Webhook received'
+        };
     }
 
     /**

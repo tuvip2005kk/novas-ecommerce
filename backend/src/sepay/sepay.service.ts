@@ -3,11 +3,11 @@ import { PrismaService } from '../prisma.service';
 import { SePayWebhookDto } from './dto/sepay-webhook.dto';
 import { SePayPgClient } from 'sepay-pg-node';
 
-// SePay Configuration - Thay đổi thành Production khi deploy
+// SePay Configuration
 const SEPAY_CONFIG = {
-    env: 'sandbox' as const, // 'sandbox' hoặc 'production'
-    merchant_id: 'SP-TEST-VX5AB778',
-    secret_key: 'spsk_test_rqtxXYvutdiw1aAV2ZHEPF5FbjY9s69S',
+    env: (process.env.NODE_ENV === 'production' ? 'production' : 'sandbox') as 'production' | 'sandbox',
+    merchant_id: process.env.SEPAY_MERCHANT_ID || 'SP-TEST-VX5AB778',
+    secret_key: process.env.SEPAY_API_KEY || 'spsk_test_rqtxXYvutdiw1aAV2ZHEPF5FbjY9s69S',
 };
 
 // Base URLs for redirects
