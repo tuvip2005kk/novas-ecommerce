@@ -11,6 +11,7 @@ import { PrismaService } from '../prisma.service';
     imports: [
         PassportModule,
         JwtModule.registerAsync({
+            global: true,
             useFactory: async (configService: ConfigService) => ({
                 secret: configService.get<string>('JWT_SECRET') || 'sanitary-store-secret-key-2024',
                 signOptions: { expiresIn: '7d' },
