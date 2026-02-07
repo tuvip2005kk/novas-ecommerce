@@ -227,7 +227,8 @@ export class SePayService {
      */
     private parseOrderId(content: string): string | null {
         if (!content) return null;
-        const match = content.match(/DH(\d+)/i);
+        // Allow optional whitespace between DH and number
+        const match = content.match(/DH\s*(\d+)/i);
         return match ? match[1] : null;
     }
 }
