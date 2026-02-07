@@ -92,4 +92,22 @@ export class ReviewsService {
         }
         return { error: 'Unauthorized' };
     }
+
+    async debugCheck(userId: number, productId: number) {
+        const orders = await this.prisma.order.findMany({
+            where: {
+                userId,
+                items: {
+                    some: { productId }
+                }
+            },
+            select: {
+                id: true,
+                status: true,
+                paymentContent: true,
+                createdAt: true
+            }
+        });
+        return orders;
+    }
 }
