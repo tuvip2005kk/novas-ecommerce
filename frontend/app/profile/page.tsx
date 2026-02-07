@@ -147,14 +147,15 @@ export default function ProfilePage() {
 
                 // Reset form
                 setReviewingProduct(null);
-                // Optionally close modal or let user review other products
-                // Keep modal open to review others
+                alert('Đánh giá thành công!');
             } else {
-                alert('Có lỗi xảy ra khi gửi đánh giá');
+                const errorData = await res.json().catch(() => ({}));
+                const errorMessage = errorData.message || 'Có lỗi xảy ra khi gửi đánh giá';
+                alert(`Không thể gửi đánh giá: ${errorMessage}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert('Lỗi kết nối');
+            alert(`Lỗi kết nối: ${error.message}`);
         } finally {
             setSubmittingReview(false);
         }
