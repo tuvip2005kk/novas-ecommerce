@@ -118,65 +118,89 @@ export class SePayService {
 
     /**
      * Xử lý webhook từ SePay khi có giao dịch mới
+     * Accepts flexible payload formats (camelCase or snake_case)
      */
-    async processWebhook(data: SePayWebhookDto) {
-        this.logger.log(`Received Payment Webhook: ${JSON.stringify(data)}`);
+    async processWebhook(data: any) {
+        this.logger.log(`=== RECEIVED PAYMENT WEBHOOK ===`);
+        this.logger.log(`Raw Payload: ${JSON.stringify(data, null, 2)}`);
 
-        // Chỉ xử lý giao dịch tiền vào
-        if (data.transferType !== 'in') {
-            this.logger.log('Ignored: not money in');
-            return { success: true, message: 'Ignored: not money in' };
-        }
+        try {
+            // Normalize field names (support both camelCase and snake_case)
+            const normalized = {
+                transferType: data.transferType || data.transfer_type || data.type,
+                content: data.content || data.description || data.transfer_content || '',
+                id: data.id || data.transaction_id,
+                amount: data.transferAmount || data.transfer_amount || data.amount || 0
+            };
 
-        // Parse order ID từ nội dung
-        const orderId = this.parseOrderId(data.content);
+            this.logger.log(`Normalized: ${JSON.stringify(normalized, null, 2)}`);
 
-        if (!orderId) {
-            this.logger.warn('Order ID not found in content');
-            return { success: false, message: 'Order ID not found in content' };
-        }
-
-        this.logger.log(`Detected Payment for Order #${orderId}`);
-
-        // Tìm đơn hàng
-        const order = await this.prisma.order.findUnique({
-            where: { id: parseInt(orderId) }
-        });
-
-        if (!order) {
-            this.logger.warn(`Order not found: ${orderId}`);
-            return { success: false, message: 'Order not found' };
-        }
-
-        // Cập nhật trạng thái đơn hàng
-        const orderWithItems = await this.prisma.order.findUnique({
-            where: { id: parseInt(orderId) },
-            include: { items: true }
-        });
-
-        await this.prisma.order.update({
-            where: { id: parseInt(orderId) },
-            data: { status: 'Đã thanh toán' }
-        });
-
-        // Trừ stock cho từng sản phẩm khi thanh toán thành công
-        if (orderWithItems && orderWithItems.items) {
-            for (const item of orderWithItems.items) {
-                await this.prisma.product.update({
-                    where: { id: item.productId },
-                    data: { stock: { decrement: item.quantity } }
-                });
+            // Chỉ xử lý giao dịch tiền vào
+            if (normalized.transferType && normalized.transferType !== 'in') {
+                this.logger.log('Ignored: not money in');
+                return { success: true, message: 'Ignored: not money in' };
             }
-            this.logger.log(`Order #${orderId}: Stock decremented for ${orderWithItems.items.length} products`);
+
+            // Parse order ID từ nội dung
+            const orderId = this.parseOrderId(normalized.content);
+
+            if (!orderId) {
+                this.logger.warn(`Order ID not found in content: "${normalized.content}"`);
+                return { success: false, message: 'Order ID not found in content' };
+            }
+
+            this.logger.log(`✅ Detected Payment for Order #${orderId}`);
+
+            // Tìm đơn hàng
+            const order = await this.prisma.order.findUnique({
+                where: { id: parseInt(orderId) },
+                include: { items: true }
+            });
+
+            if (!order) {
+                this.logger.warn(`❌ Order not found: ${orderId}`);
+                return { success: false, message: 'Order not found' };
+            }
+
+            // Kiểm tra nếu đã thanh toán rồi thì skip
+            if (order.status === 'Đã thanh toán') {
+                this.logger.log(`⚠️ Order #${orderId} already paid, skipping`);
+                return { success: true, message: 'Order already paid' };
+            }
+
+            // Cập nhật trạng thái đơn hàng
+            await this.prisma.order.update({
+                where: { id: parseInt(orderId) },
+                data: { status: 'Đã thanh toán' }
+            });
+
+            // Trừ stock cho từng sản phẩm khi thanh toán thành công
+            if (order.items && order.items.length > 0) {
+                for (const item of order.items) {
+                    await this.prisma.product.update({
+                        where: { id: item.productId },
+                        data: { stock: { decrement: item.quantity } }
+                    });
+                }
+                this.logger.log(`📦 Stock decremented for ${order.items.length} products`);
+            }
+
+            this.logger.log(`✅ Order #${orderId} updated to "Đã thanh toán"`);
+            this.logger.log(`=== WEBHOOK PROCESSED SUCCESSFULLY ===`);
+
+            return {
+                success: true,
+                orderId,
+                message: 'Payment confirmed'
+            };
+        } catch (error) {
+            this.logger.error(`❌ Webhook processing error: ${error.message}`);
+            this.logger.error(error.stack);
+            return {
+                success: false,
+                message: `Error: ${error.message}`
+            };
         }
-
-        this.logger.log(`Order #${orderId} updated to "Đã thanh toán"`);
-
-        return {
-            success: true,
-            orderId,
-            message: 'Payment confirmed'
-        };
     }
 
     /**
@@ -202,6 +226,7 @@ export class SePayService {
      * Parse Order ID từ nội dung chuyển khoản
      */
     private parseOrderId(content: string): string | null {
+        if (!content) return null;
         const match = content.match(/DH(\d+)/i);
         return match ? match[1] : null;
     }

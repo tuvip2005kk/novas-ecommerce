@@ -70,6 +70,23 @@ export default function AdminOrders() {
         fetchOrders();
     };
 
+    const confirmPayment = async (id: number) => {
+        try {
+            const res = await fetch(`${API_URL}/api/sepay/confirm-payment/${id}`, {
+                method: 'POST',
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.showToast('Đã cập nhật thanh toán thành công!', 'success');
+                fetchOrders();
+            } else {
+                toast.showToast(data.message || 'Lỗi khi cập nhật thanh toán', 'error');
+            }
+        } catch (error) {
+            toast.showToast('Lỗi kết nối', 'error');
+        }
+    };
+
     // Tính toán số liệu
     const { pendingOrders, completedTodayOrders, filteredOrders } = useMemo(() => {
         const now = new Date();
@@ -335,18 +352,31 @@ export default function AdminOrders() {
                                         <td className="py-4">{getStatusBadge(o.status)}</td>
                                         <td className="py-4 text-slate-500 font-normal">{new Date(o.createdAt).toLocaleDateString('vi-VN')}</td>
                                         <td className="py-4">
-                                            <select
-                                                value={o.status}
-                                                onChange={(e) => updateStatus(o.id, e.target.value)}
-                                                className="border rounded px-2 py-1 text-sm"
-                                            >
-                                                <option value="Chờ thanh toán">Chờ thanh toán</option>
-                                                <option value="Đã thanh toán">Đã thanh toán</option>
-                                                <option value="Đang chuẩn bị">Đang chuẩn bị</option>
-                                                <option value="Đang giao">Đang giao</option>
-                                                <option value="Đã giao">Đã giao</option>
-                                                <option value="Đã hủy">Đã hủy</option>
-                                            </select>
+                                            <div className="flex items-center gap-2">
+                                                <select
+                                                    value={o.status}
+                                                    onChange={(e) => updateStatus(o.id, e.target.value)}
+                                                    className="border rounded px-2 py-1 text-sm"
+                                                >
+                                                    <option value="Chờ thanh toán">Chờ thanh toán</option>
+                                                    <option value="Đã thanh toán">Đã thanh toán</option>
+                                                    <option value="Đang chuẩn bị">Đang chuẩn bị</option>
+                                                    <option value="Đang giao">Đang giao</option>
+                                                    <option value="Đã giao">Đã giao</option>
+                                                    <option value="Đã hủy">Đã hủy</option>
+                                                </select>
+                                                {o.status === 'Chờ thanh toán' && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-blue-600 border-blue-600 hover:bg-blue-50 h-7 px-2 text-xs whitespace-nowrap"
+                                                        onClick={() => confirmPayment(o.id)}
+                                                        title="Kiểm tra tiền về & Cập nhật thanh toán"
+                                                    >
+                                                        Check Bank
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
