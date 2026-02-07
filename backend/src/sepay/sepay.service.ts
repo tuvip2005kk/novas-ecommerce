@@ -231,12 +231,17 @@ export class SePayService {
             }
 
             // Kiểm tra trạng thái đơn hàng hiện tại
+            const currentStatus = order.status ? order.status.trim() : '';
             const COMPLETED_STATUSES = ['Đã thanh toán', 'Đang chuẩn bị', 'Đang giao', 'Đã giao', 'Đã giao thành công', 'Hoàn thành'];
 
-            if (COMPLETED_STATUSES.includes(order.status)) {
-                this.logger.log(`⚠️ Order #${orderId} is in status "${order.status}", skipping payment update config.`);
+            this.logger.warn(`Checking Order #${orderId} status: "${currentStatus}" (Original: "${order.status}")`);
+
+            if (COMPLETED_STATUSES.includes(currentStatus)) {
+                this.logger.warn(`⚠️ Order #${orderId} matches completed status "${currentStatus}". SKIPPING UPDATE.`);
                 return { success: true, message: 'Order already processed' };
             }
+
+            this.logger.warn(`ℹ️ Order #${orderId} status "${currentStatus}" is NOT in completed list. Proceeding to update to 'Đã thanh toán'.`);
 
             // Cập nhật trạng thái đơn hàng
             await this.prisma.order.update({

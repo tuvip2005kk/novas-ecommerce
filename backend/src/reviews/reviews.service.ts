@@ -53,22 +53,27 @@ export class ReviewsService {
 
     // Check if user can review a product (must have a DELIVERED order containing this product)
     async canReview(userId: number, productId: number): Promise<boolean> {
-        const deliveredOrder = await this.prisma.order.findFirst({
+        const orders = await this.prisma.order.findMany({
             where: {
                 userId,
-                status: { in: ['Đã giao thành công', 'Đã giao', 'Hoàn thành'] },
                 items: {
                     some: { productId }
                 }
             }
         });
-        return !!deliveredOrder;
+
+        const COMPLETED = ['Đã giao thành công', 'Đã giao', 'Hoàn thành'];
+        return orders.some(o => o.status && COMPLETED.includes(o.status.trim()));
     }
 
     async create(userId: number, productId: number, rating: number, comment?: string) {
         // Check if user has a delivered order with this product
+        console.log(`[Reviews] Checking validation for User ${userId}, Product ${productId}`);
         const canReview = await this.canReview(userId, productId);
+        console.log(`[Reviews] canReview result: ${canReview}`);
+
         if (!canReview) {
+            console.log(`[Reviews] Validation Failed. Throwing BadRequestException.`);
             throw new BadRequestException('Bạn chỉ có thể đánh giá sau khi đơn hàng đã giao thành công');
         }
 
