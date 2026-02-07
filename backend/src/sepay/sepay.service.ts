@@ -8,6 +8,7 @@ const SEPAY_CONFIG = {
     env: 'production' as const,
     merchant_id: process.env.SEPAY_MERCHANT_ID || 'SP-LIVE-VX9A7368',
     secret_key: process.env.SEPAY_API_KEY || 'spsk_live_ix8bU8772hsMg6JVj3L6b9Wdf2pMM2Tu',
+    api_token: 'DWJ4PKX3DOFBYTEVZ35WQRCLYNIQPUAKMZH1G8BBZ9SG1LNHAJCWMXEMY5RNSEGR',
 };
 
 // Base URLs for redirects
@@ -34,7 +35,11 @@ export class SePayService {
     private client: SePayPgClient;
 
     constructor(private prisma: PrismaService) {
-        this.client = new SePayPgClient(SEPAY_CONFIG);
+        this.client = new SePayPgClient({
+            env: SEPAY_CONFIG.env,
+            merchant_id: SEPAY_CONFIG.merchant_id,
+            secret_key: SEPAY_CONFIG.secret_key
+        });
     }
 
     /**
@@ -117,9 +122,72 @@ export class SePayService {
     }
 
     /**
-     * Xử lý webhook từ SePay khi có giao dịch mới
-     * Accepts flexible payload formats (camelCase or snake_case)
+     * Đồng bộ giao dịch từ SePay về (Polling mechanism)
      */
+    async syncLatestTransactions() {
+        this.logger.log('Syncing transactions from SePay API...');
+        try {
+            const res = await fetch('https://my.sepay.vn/userapi/transactions/list', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${SEPAY_CONFIG.api_token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`SePay API error: ${res.status} ${text}`);
+            }
+
+            const data = await res.json();
+            // Expected data: { status: 200, messages: "Success", transactions: [...] }
+
+            let count = 0;
+            if (data.status === 200 && Array.isArray(data.transactions)) {
+                this.logger.log(`Fetched ${data.transactions.length} transactions from SePay`);
+
+                for (const trans of data.transactions) {
+                    // Map API format to our internal Webhook format
+                    const mappedData = {
+                        gateway: 'SePay API',
+                        transactionDate: trans.transaction_date,
+                        accountNumber: trans.account_number,
+                        content: trans.transaction_content,
+                        transferType: trans.amount_in > 0 ? 'in' : 'out',
+                        transferAmount: trans.amount_in,
+                        id: trans.id,
+                    };
+
+                    const result = await this.processWebhook(mappedData);
+                    if (result.success && result.message === 'Payment confirmed') {
+                        count++;
+                    }
+                }
+            }
+
+            if (count > 0) {
+                this.logger.log(`✅ Synced and updated ${count} new orders.`);
+            } else {
+                this.logger.log('No new orders to update.');
+            }
+
+            // Debug data
+            const debugInfo = Array.isArray(data.transactions) ? data.transactions.map((t: any) => ({
+                id: t.id,
+                content: t.transaction_content,
+                amount: t.amount_in,
+                date: t.transaction_date
+            })).slice(0, 10) : [];
+
+            return { success: true, updated: count, debugData: debugInfo };
+
+        } catch (error) {
+            this.logger.error(`❌ Sync error: ${error.message}`);
+            return { success: false, error: error.message };
+        }
+    }
+
     async processWebhook(data: any) {
         this.logger.log(`=== RECEIVED PAYMENT WEBHOOK ===`);
         this.logger.log(`Raw Payload: ${JSON.stringify(data, null, 2)}`);
@@ -203,9 +271,6 @@ export class SePayService {
         }
     }
 
-    /**
-     * Kiểm tra trạng thái thanh toán
-     */
     async checkPaymentStatus(orderId: number): Promise<{ paid: boolean; status: string }> {
         const order = await this.prisma.order.findUnique({
             where: { id: orderId },
@@ -220,72 +285,6 @@ export class SePayService {
             paid: order.status === 'Đã thanh toán',
             status: order.status
         };
-    }
-
-    /**
-     * Đồng bộ giao dịch từ SePay về (Polling mechanism)
-     */
-    async syncLatestTransactions() {
-        this.logger.log('Syncing transactions from SePay API...');
-        try {
-            const res = await fetch('https://my.sepay.vn/userapi/transactions/list', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${SEPAY_CONFIG.secret_key}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(`SePay API error: ${res.status} ${text}`);
-            }
-
-            const data = await res.json();
-            // Expected data: { status: 200, messages: "Success", transactions: [...] }
-
-            let count = 0;
-            if (data.status === 200 && Array.isArray(data.transactions)) {
-                this.logger.log(`Fetched ${data.transactions.length} transactions from SePay`);
-
-                for (const trans of data.transactions) {
-                    // Map API format to our internal Webhook format
-                    const mappedData = {
-                        gateway: 'SePay API',
-                        transactionDate: trans.transaction_date,
-                        accountNumber: trans.account_number,
-                        content: trans.transaction_content,
-                        transferType: trans.amount_in > 0 ? 'in' : 'out',
-                        transferAmount: trans.amount_in,
-                        id: trans.id,
-                    };
-
-                    const result = await this.processWebhook(mappedData);
-                    if (result.success && result.message === 'Payment confirmed') {
-                        count++;
-                    }
-                }
-            }
-
-            if (count > 0) {
-                this.logger.log(`✅ Synced and updated ${count} new orders.`);
-            } else {
-                this.logger.log('No new orders to update.');
-            }
-
-            const debugInfo = Array.isArray(data.transactions) ? data.transactions.map((t: any) => ({
-                id: t.id,
-                content: t.transaction_content,
-                amount: t.amount_in,
-                date: t.transaction_date
-            })).slice(0, 10) : [];
-
-            return { success: true, updated: count, debugData: debugInfo };
-
-        } catch (error) {
-            this.logger.error(`❌ Sync error: ${error.message}`);
-            return { success: false, error: error.message };
-        }
     }
 
     private parseOrderId(content: string): string | null {
