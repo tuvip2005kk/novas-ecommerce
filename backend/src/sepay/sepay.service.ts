@@ -5,9 +5,9 @@ import { SePayPgClient } from 'sepay-pg-node';
 
 // SePay Configuration
 const SEPAY_CONFIG = {
-    env: (process.env.NODE_ENV === 'production' ? 'production' : 'sandbox') as 'production' | 'sandbox',
-    merchant_id: process.env.SEPAY_MERCHANT_ID || 'SP-TEST-VX5AB778',
-    secret_key: process.env.SEPAY_API_KEY || 'spsk_test_rqtxXYvutdiw1aAV2ZHEPF5FbjY9s69S',
+    env: 'production' as const,
+    merchant_id: process.env.SEPAY_MERCHANT_ID || 'SP-LIVE-VX9A7368',
+    secret_key: process.env.SEPAY_API_KEY || 'spsk_live_ix8bU8772hsMg6JVj3L6b9Wdf2pMM2Tu',
 };
 
 // Base URLs for redirects
