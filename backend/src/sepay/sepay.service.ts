@@ -223,8 +223,64 @@ export class SePayService {
     }
 
     /**
-     * Parse Order ID từ nội dung chuyển khoản
+     * Đồng bộ giao dịch từ SePay về (Polling mechanism)
      */
+    async syncLatestTransactions() {
+        this.logger.log('Syncing transactions from SePay API...');
+        try {
+            const res = await fetch('https://my.sepay.vn/userapi/transactions/list', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${SEPAY_CONFIG.secret_key}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`SePay API error: ${res.status} ${text}`);
+            }
+
+            const data = await res.json();
+            // Expected data: { status: 200, messages: "Success", transactions: [...] }
+
+            let count = 0;
+            if (data.status === 200 && Array.isArray(data.transactions)) {
+                this.logger.log(`Fetched ${data.transactions.length} transactions from SePay`);
+
+                for (const trans of data.transactions) {
+                    // Map API format to our internal Webhook format
+                    const mappedData = {
+                        gateway: 'SePay API',
+                        transactionDate: trans.transaction_date,
+                        accountNumber: trans.account_number,
+                        content: trans.transaction_content,
+                        transferType: trans.amount_in > 0 ? 'in' : 'out',
+                        transferAmount: trans.amount_in,
+                        id: trans.id,
+                    };
+
+                    const result = await this.processWebhook(mappedData);
+                    if (result.success && result.message === 'Payment confirmed') {
+                        count++;
+                    }
+                }
+            }
+
+            if (count > 0) {
+                this.logger.log(`✅ Synced and updated ${count} new orders.`);
+            } else {
+                this.logger.log('No new orders to update.');
+            }
+
+            return { success: true, updated: count };
+
+        } catch (error) {
+            this.logger.error(`❌ Sync error: ${error.message}`);
+            return { success: false, error: error.message };
+        }
+    }
+
     private parseOrderId(content: string): string | null {
         if (!content) return null;
         // Allow optional whitespace between DH and number

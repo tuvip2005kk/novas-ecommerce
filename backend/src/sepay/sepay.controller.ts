@@ -82,18 +82,23 @@ export class SePayController {
      * POST /sepay/confirm-payment/:orderId
      * Dùng khi webhook không hoạt động
      */
+    @Get('sync')
+    async syncTransactions() {
+        return this.sepayService.syncLatestTransactions();
+    }
+
     @Post('confirm-payment/:orderId')
     async confirmPayment(@Param('orderId') orderId: string) {
-        const fakePayload = {
-            id: Date.now(),
-            gateway: 'Manual',
-            transactionDate: new Date().toISOString(),
-            accountNumber: '10000606788',
-            content: `DH${orderId}`,
-            transferType: 'in',
-            transferAmount: 0,
-            accumulated: 0,
-        };
-        return this.sepayService.processWebhook(fakePayload as any);
+        // Manual check mode: fetch from SePay API
+        await this.sepayService.syncLatestTransactions();
+
+        // Check if status updated
+        const status = await this.sepayService.checkPaymentStatus(parseInt(orderId));
+
+        if (status.paid) {
+            return { success: true, message: 'Verified: Payment confirmed by SePay API' };
+        } else {
+            return { success: false, message: 'Payment not found in recent SePay transactions' };
+        }
     }
 }
