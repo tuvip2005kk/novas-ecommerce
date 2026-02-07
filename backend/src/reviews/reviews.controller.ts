@@ -42,6 +42,17 @@ export class ReviewsController {
         };
     }
 
+    @Get('debug-order/:orderCode')
+    @UseGuards(AuthGuard)
+    async debugOrder(@Req() req: any, @Param('orderCode') orderCode: string) {
+        console.log(`[DEBUG] User ${req.user.sub} requesting debug info for Order ${orderCode}`);
+        const order = await this.reviewsService.debugOrder(orderCode);
+        return {
+            searchCode: orderCode,
+            orderFound: order
+        };
+    }
+
     @Post('product/:productId')
     @UseGuards(AuthGuard)
     create(

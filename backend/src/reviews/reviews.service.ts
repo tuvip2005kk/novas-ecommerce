@@ -110,4 +110,17 @@ export class ReviewsService {
         });
         return orders;
     }
+
+    async debugOrder(orderCode: string) {
+        return this.prisma.order.findUnique({
+            where: { paymentContent: orderCode },
+            include: {
+                items: {
+                    include: {
+                        product: { select: { id: true, name: true } }
+                    }
+                }
+            }
+        });
+    }
 }
