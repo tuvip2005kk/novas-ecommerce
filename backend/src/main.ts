@@ -33,13 +33,31 @@ async function bootstrap() {
         // Global Validation
         app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-        // Configure strict CORS
+        // Configure CORS to accept all Vercel domains
         app.enableCors({
-            origin: [
-                process.env.FRONTEND_URL || 'http://localhost:3000',
-                'https://vmnovas.vercel.app',
-                'https://novas-ecommerce.vercel.app'
-            ],
+            origin: (origin, callback) => {
+                // Allow requests with no origin (like mobile apps or curl requests)
+                if (!origin) return callback(null, true);
+
+                // Allow localhost for development
+                if (origin.includes('localhost')) return callback(null, true);
+
+                // Allow all Vercel domains (production and preview)
+                if (origin.endsWith('.vercel.app')) return callback(null, true);
+
+                // Allow specific domains
+                const allowedOrigins = [
+                    process.env.FRONTEND_URL,
+                    'https://vmnovas.vercel.app',
+                    'https://novas-ecommerce.vercel.app'
+                ].filter(Boolean);
+
+                if (allowedOrigins.includes(origin)) {
+                    return callback(null, true);
+                }
+
+                callback(new Error('Not allowed by CORS'));
+            },
             credentials: true,
             methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         });
