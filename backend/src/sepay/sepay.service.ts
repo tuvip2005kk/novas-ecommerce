@@ -230,10 +230,12 @@ export class SePayService {
                 return { success: false, message: 'Order not found' };
             }
 
-            // Kiểm tra nếu đã thanh toán rồi thì skip
-            if (order.status === 'Đã thanh toán') {
-                this.logger.log(`⚠️ Order #${orderId} already paid, skipping`);
-                return { success: true, message: 'Order already paid' };
+            // Kiểm tra trạng thái đơn hàng hiện tại
+            const COMPLETED_STATUSES = ['Đã thanh toán', 'Đang chuẩn bị', 'Đang giao', 'Đã giao', 'Đã giao thành công', 'Hoàn thành'];
+
+            if (COMPLETED_STATUSES.includes(order.status)) {
+                this.logger.log(`⚠️ Order #${orderId} is in status "${order.status}", skipping payment update config.`);
+                return { success: true, message: 'Order already processed' };
             }
 
             // Cập nhật trạng thái đơn hàng
