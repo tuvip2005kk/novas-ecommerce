@@ -12,7 +12,7 @@ import { PrismaService } from '../prisma.service';
         PassportModule,
         JwtModule.registerAsync({
             useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET'),
+                secret: configService.get<string>('JWT_SECRET') || 'sanitary-store-secret-key-2024',
                 signOptions: { expiresIn: '7d' },
             }),
             inject: [ConfigService],
