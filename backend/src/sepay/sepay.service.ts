@@ -273,7 +273,14 @@ export class SePayService {
                 this.logger.log('No new orders to update.');
             }
 
-            return { success: true, updated: count };
+            const debugInfo = Array.isArray(data.transactions) ? data.transactions.map((t: any) => ({
+                id: t.id,
+                content: t.transaction_content,
+                amount: t.amount_in,
+                date: t.transaction_date
+            })).slice(0, 10) : [];
+
+            return { success: true, updated: count, debugData: debugInfo };
 
         } catch (error) {
             this.logger.error(`❌ Sync error: ${error.message}`);
