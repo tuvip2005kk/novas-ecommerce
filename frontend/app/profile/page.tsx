@@ -213,7 +213,7 @@ export default function ProfilePage() {
                         <div className="w-full md:w-1/4">
                             <div className="bg-white rounded-lg shadow-sm p-4 sticky top-24">
                                 <div className="flex items-center gap-3 mb-6 p-2 border-b pb-4">
-                                    <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl">
+                                    <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center text-[#21246b] font-bold text-xl">
                                         {profile.name ? profile.name.charAt(0).toUpperCase() : 'U'}
                                     </div>
                                     <div className="overflow-hidden">
@@ -228,7 +228,7 @@ export default function ProfilePage() {
                                         className={cn(
                                             "w-full flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-colors",
                                             activeTab === 'info'
-                                                ? "bg-blue-50 text-blue-700"
+                                                ? "bg-gray-100 text-[#21246b]"
                                                 : "text-gray-700 hover:bg-gray-100"
                                         )}
                                     >
@@ -240,7 +240,7 @@ export default function ProfilePage() {
                                         className={cn(
                                             "w-full flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-colors",
                                             activeTab === 'orders'
-                                                ? "bg-blue-50 text-blue-700"
+                                                ? "bg-gray-100 text-[#21246b]"
                                                 : "text-gray-700 hover:bg-gray-100"
                                         )}
                                     >
@@ -291,7 +291,7 @@ export default function ProfilePage() {
                                             ) : (
                                                 <div className="flex justify-between items-center group">
                                                     <p className="py-2 text-gray-900">{profile.name || 'Chưa cập nhật'}</p>
-                                                    <Button variant="link" onClick={() => setIsEditing(true)} className="text-blue-600 p-0 h-auto">
+                                                    <Button variant="link" onClick={() => setIsEditing(true)} className="text-[#21246b] p-0 h-auto">
                                                         Thay đổi
                                                     </Button>
                                                 </div>
@@ -307,9 +307,9 @@ export default function ProfilePage() {
                                 <div className="space-y-6">
                                     {/* Stats */}
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-white p-5 rounded-lg shadow-sm border border-blue-100">
+                                        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
                                             <p className="text-sm text-gray-500 mb-1">Tổng tiền đã chi</p>
-                                            <p className="text-2xl font-bold text-blue-600">{formatPrice(totalSpent)}</p>
+                                            <p className="text-2xl font-bold text-[#21246b]">{formatPrice(totalSpent)}</p>
                                         </div>
                                         <div className="bg-white p-5 rounded-lg shadow-sm border border-blue-100">
                                             <p className="text-sm text-gray-500 mb-1">Tổng đơn hàng</p>
@@ -350,7 +350,7 @@ export default function ProfilePage() {
                                                                 <p className="text-sm text-gray-500">{formatDate(order.createdAt)}</p>
                                                             </div>
                                                             <div className="text-right">
-                                                                <p className="font-bold text-blue-600">{formatPrice(order.total)}</p>
+                                                                <p className="font-bold text-[#21246b]">{formatPrice(order.total)}</p>
                                                                 <p className="text-xs text-gray-500">{order.items.length} sản phẩm</p>
                                                             </div>
                                                         </div>
