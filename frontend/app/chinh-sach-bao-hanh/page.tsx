@@ -109,7 +109,7 @@ export default function WarrantyPolicyPage() {
                             <section>
                                 <h2 className="text-2xl font-bold text-[#21246b] mb-4 border-b pb-2">III. HỆ THỐNG SHOWROOM TRƯNG BÀY</h2>
 
-                                <div className="border border-black bg-gray-100 p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="border border-black bg-gray-100 p-8 grid grid-cols-1 gap-6 max-w-2xl mx-auto">
                                     <div>
                                         <h3 className="text-xl font-bold text-[#21246b] mb-2">Tại Hà Nội</h3>
                                         <p className="text-gray-700">502 Xã Đàn, Nam Đồng, Đống Đa, Hà Nội</p>
@@ -120,12 +120,12 @@ export default function WarrantyPolicyPage() {
                                         <p className="text-gray-700">30-32-34 Đinh Thị Thi, Vạn Phúc City, Hiệp Bình Phước, Thủ Đức, TP.HCM</p>
                                     </div>
 
-                                    <div className="md:col-span-2">
+                                    <div>
                                         <h3 className="text-xl font-bold text-[#21246b] mb-2">Tại Ninh Bình</h3>
                                         <p className="text-gray-700">543 Trần Hưng Đạo, P. Ninh Khánh, TP. Ninh Bình</p>
                                     </div>
 
-                                    <div className="md:col-span-2">
+                                    <div>
                                         <h3 className="text-xl font-bold text-[#21246b] mb-2">Tại Quảng Trị</h3>
                                         <p className="text-gray-700">Tầng 3, tòa nhà Viettel, 1 Hùng Vương, Đông Hải, Đông Hà, Quảng Trị</p>
                                     </div>
