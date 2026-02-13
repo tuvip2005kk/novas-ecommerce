@@ -48,11 +48,6 @@ export default function WarrantyPolicyPage() {
     // Section I.1: "1. Thời hạn..."
     const policySection = warrantyData.find((d: any) => d.title.includes("Thời hạn"));
 
-    // Section III starts with "1. Sản phẩm đèn..." (which was parsed as first item of that section)
-    // Actually, distinct from "Thời hạn".
-    // We filter out "Thời hạn" to get Pricing sections.
-    const pricingSections = warrantyData.filter((d: any) => !d.title.includes("Thời hạn"));
-
     return (
         <>
             <Header />
@@ -110,32 +105,30 @@ export default function WarrantyPolicyPage() {
                                 </ul>
                             </section>
 
-                            {/* Section III - Pricing */}
-                            <section>
-                                <h2 className="text-2xl font-bold text-[#21246b] mb-4 border-b pb-2">III. BẢNG GIÁ CÁC LINH KIỆN SẢN PHẨM ENIC</h2>
-                                <p className="mb-6">Khi sản phẩm hết thời gian bảo hành, vấn đề mà khách hàng thường gặp là việc thay thế linh kiện khi chúng gặp sự cố hoặc hư hỏng. Dưới đây là bảng giá linh kiện mà Enic cung cấp để quý khách hàng tiện lợi tham khảo.</p>
+                            {/* Section III - Showroom */}
+                            <section className="text-center">
+                                <h2 className="text-2xl font-bold text-[#21246b] mb-6 border-b pb-2 inline-block">III. HỆ THỐNG SHOWROOM TRƯNG BÀY</h2>
 
-                                <div className="space-y-8">
-                                    {pricingSections.map((section: any, idx: number) => (
-                                        <div key={idx} className="bg-slate-50 p-6 rounded-lg border border-slate-200">
-                                            <h3 className="text-lg font-bold text-[#21246b] mb-4 uppercase">{section.title}</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                                    <div className="bg-gray-50 p-6 rounded-lg">
+                                        <h3 className="text-xl font-bold text-[#21246b] mb-3">Tại Hà Nội</h3>
+                                        <p className="text-gray-700">502 Xã Đàn, Nam Đồng, Đống Đa, Hà Nội</p>
+                                    </div>
 
-                                            {section.items.map((item: any, itemIdx: number) => {
-                                                if (!item.table || item.table.length === 0) return null;
-                                                // Handle nested name if differs from title
-                                                const showName = item.name && item.name !== section.title;
-                                                const headers = item.table[0];
-                                                const rows = item.table.slice(1);
+                                    <div className="bg-gray-50 p-6 rounded-lg">
+                                        <h3 className="text-xl font-bold text-[#21246b] mb-3">Tại Hồ Chí Minh</h3>
+                                        <p className="text-gray-700">30-32-34 Đinh Thị Thi, Vạn Phúc City, Hiệp Bình Phước, Thủ Đức, TP.HCM</p>
+                                    </div>
 
-                                                return (
-                                                    <div key={itemIdx} className="mb-6 last:mb-0">
-                                                        {showName && <h4 className="font-semibold text-gray-800 mb-2">{item.name}</h4>}
-                                                        <TableRenderer headers={headers} rows={rows} />
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    ))}
+                                    <div className="bg-gray-50 p-6 rounded-lg md:col-span-2">
+                                        <h3 className="text-xl font-bold text-[#21246b] mb-3">Tại Ninh Bình</h3>
+                                        <p className="text-gray-700">543 Trần Hưng Đạo, P. Ninh Khánh, TP. Ninh Bình</p>
+                                    </div>
+
+                                    <div className="bg-gray-50 p-6 rounded-lg md:col-span-2">
+                                        <h3 className="text-xl font-bold text-[#21246b] mb-3">Tại Quảng Trị</h3>
+                                        <p className="text-gray-700">Tầng 3, tòa nhà Viettel, 1 Hùng Vương, Đông Hải, Đông Hà, Quảng Trị</p>
+                                    </div>
                                 </div>
                             </section>
                         </div>
