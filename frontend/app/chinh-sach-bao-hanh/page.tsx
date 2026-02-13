@@ -109,7 +109,7 @@ export default function WarrantyPolicyPage() {
                             <section>
                                 <h2 className="text-2xl font-bold text-[#21246b] mb-4 border-b pb-2">III. HỆ THỐNG SHOWROOM TRƯNG BÀY</h2>
 
-                                <div className="border border-black bg-gray-100 p-8 grid grid-cols-1 gap-6 max-w-2xl mx-auto">
+                                <div className="border border-black bg-gray-100 p-8 grid grid-cols-1 gap-6 max-w-2xl">
                                     <div>
                                         <h3 className="text-xl font-bold text-[#21246b] mb-2">Tại Hà Nội</h3>
                                         <p className="text-gray-700">502 Xã Đàn, Nam Đồng, Đống Đa, Hà Nội</p>
