@@ -54,7 +54,7 @@ export default function WarrantyPolicyPage() {
             <main className="min-h-screen bg-gray-50 pt-24 pb-12">
                 <div className="max-w-[1200px] mx-auto px-4">
                     <div className="bg-white rounded-lg shadow-sm p-8">
-                        <h1 className="text-3xl font-bold text-[#21246b] mb-8 text-center uppercase">Chính sách bảo hành, bảo trì của Enic</h1>
+                        <h1 className="text-3xl font-bold text-[#21246b] mb-8 text-center uppercase">Chính sách bảo hành, bảo trì của Novas</h1>
 
                         <div className="prose max-w-none text-gray-700 space-y-8">
                             {/* Section I */}
@@ -63,8 +63,8 @@ export default function WarrantyPolicyPage() {
 
                                 <div className="mb-6">
                                     <h3 className="text-xl font-bold text-gray-900 mb-2">1. Thời hạn bảo hành sản phẩm</h3>
-                                    <p className="mb-2">Tất cả sản phẩm mang nhãn hiệu Enic sẽ được bảo hành theo quy định sau: Thời hạn bảo hành được xác nhận dựa vào thông tin bảo hành điện tử thông qua phần mềm lưu trữ thông tin khách hàng của công ty hoặc giấy chứng từ xác nhận mua hàng.</p>
-                                    <p className="mb-4">Dưới đây là thông tin thời gian bảo hành của từng sản phẩm thuộc thương hiệu Enic (Kể từ ngày nhận hàng):</p>
+                                    <p className="mb-2">Tất cả sản phẩm mang nhãn hiệu Novas sẽ được bảo hành theo quy định sau: Thời hạn bảo hành được xác nhận dựa vào thông tin bảo hành điện tử thông qua phần mềm lưu trữ thông tin khách hàng của công ty hoặc giấy chứng từ xác nhận mua hàng.</p>
+                                    <p className="mb-4">Dưới đây là thông tin thời gian bảo hành của từng sản phẩm thuộc thương hiệu Novas (Kể từ ngày nhận hàng):</p>
 
                                     {/* Render Policy Table */}
                                     {policySection && policySection.items.map((item: any, idx: number) => {
@@ -76,7 +76,7 @@ export default function WarrantyPolicyPage() {
 
                                 <div>
                                     <h3 className="text-xl font-bold text-gray-900 mb-2">2. Điều kiện bảo hành</h3>
-                                    <p className="mb-2">Sản phẩm thuộc thương hiệu Enic sẽ được bảo hành nếu thỏa mãn các điều kiện sau:</p>
+                                    <p className="mb-2">Sản phẩm thuộc thương hiệu Novas sẽ được bảo hành nếu thỏa mãn các điều kiện sau:</p>
                                     <ul className="list-disc pl-5 space-y-1 mb-4">
                                         <li>Sản phẩm còn trong thời hạn bảo hành.</li>
                                         <li>Thông tin bảo hành trên hệ thống đầy đủ gồm tên khách hàng sử dụng, số điện thoại, địa chỉ, ngày mua, ngày nhận hàng.</li>
@@ -84,7 +84,7 @@ export default function WarrantyPolicyPage() {
                                         <li>Sản phẩm không bị các trường hợp tác động vật lý gây móp méo, bể, vỡ, trầy xước,...</li>
                                         <li>Sản phẩm không nằm trong trường hợp bị từ chối bảo hành.</li>
                                     </ul>
-                                    <div className="bg-gray-100 p-4 text-center text-sm">
+                                    <div className="text-center text-sm">
                                         <p className="font-bold mb-1">Lưu ý quan trọng:</p>
                                         <p>Novas bảo hành trên hệ thống thông qua số điện thoại đặt hàng. Khi Quý khách cần hỗ trợ bảo hành, xin vui lòng cung cấp đúng số điện thoại đã đặt hàng để được hỗ trợ tốt nhất.</p>
                                     </div>
@@ -95,7 +95,7 @@ export default function WarrantyPolicyPage() {
                             <section>
                                 <h2 className="text-2xl font-bold text-[#21246b] mb-4 border-b pb-2">II. NHỮNG TRƯỜNG HỢP BỊ TỪ CHỐI BẢO HÀNH</h2>
                                 <ul className="list-disc pl-5 space-y-2">
-                                    <li>Sản phẩm hư hỏng do việc lắp đặt, sử dụng, bảo dưỡng không đúng cách, không tuân theo nội dung hướng dẫn của Enic.</li>
+                                    <li>Sản phẩm hư hỏng do việc lắp đặt, sử dụng, bảo dưỡng không đúng cách, không tuân theo nội dung hướng dẫn của Novas.</li>
                                     <li>Sản phẩm hư hỏng do sử dụng hóa chất tẩy rửa có tính chất ăn mòn cao như muối, axit, kiềm.</li>
                                     <li>Sản phẩm hư hỏng liên quan đến tính chất nước không đúng tiêu chuẩn (nước nhiễm phèn, nhiễm mặn).</li>
                                     <li>Sản phẩm hư hỏng do chịu ảnh hưởng bởi thiên tai, cháy nổ.</li>

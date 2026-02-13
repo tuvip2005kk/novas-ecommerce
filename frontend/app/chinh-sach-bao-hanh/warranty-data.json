@@ -12,7 +12,7 @@
           ],
           [
             "1",
-            "Bá»™ vĂ²i sen táº¯m Enic",
+            "Bá»™ vĂ²i sen táº¯m Novas",
             "Sáº£n pháº©m: 4 nÄƒm\r\n\nLED: 6 thĂ¡ng"
           ],
           [
@@ -105,10 +105,10 @@
     ]
   },
   {
-    "title": "1. Sáº£n pháº©m Ä‘Ă¨n Ä‘iá»u hĂ²a thĂ´ng minh EnicÂ",
+    "title": "1. Sáº£n pháº©m Ä‘Ă¨n Ä‘iá»u hĂ²a thĂ´ng minh NovasÂ",
     "items": [
       {
-        "name": "1. Sáº£n pháº©m Ä‘Ă¨n Ä‘iá»u hĂ²a thĂ´ng minh EnicÂ",
+        "name": "1. Sáº£n pháº©m Ä‘Ă¨n Ä‘iá»u hĂ²a thĂ´ng minh NovasÂ",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -270,10 +270,10 @@
     ]
   },
   {
-    "title": "2. Sáº£n pháº©m sen táº¯m thĂ´ng minh Enic",
+    "title": "2. Sáº£n pháº©m sen táº¯m thĂ´ng minh Novas",
     "items": [
       {
-        "name": "2.1. Máº«u Enic TC",
+        "name": "2.1. Máº«u Novas TC",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -444,7 +444,7 @@
         ]
       },
       {
-        "name": "2.2 Máº«u Enic TX",
+        "name": "2.2 Máº«u Novas TX",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -576,7 +576,7 @@
         ]
       },
       {
-        "name": "2.3. Máº«u Enic TYÂ",
+        "name": "2.3. Máº«u Novas TYÂ",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -697,7 +697,7 @@
         ]
       },
       {
-        "name": "2.4. Máº«u Enic TZÂ",
+        "name": "2.4. Máº«u Novas TZÂ",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -796,7 +796,7 @@
         ]
       },
       {
-        "name": "2.5. Máº«u Enic TX Pro",
+        "name": "2.5. Máº«u Novas TX Pro",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -928,7 +928,7 @@
         ]
       },
       {
-        "name": "2.6. Máº«u Enic MT02, MT02 Pro",
+        "name": "2.6. Máº«u Novas MT02, MT02 Pro",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -1038,7 +1038,7 @@
         ]
       },
       {
-        "name": "2.7. Máº«u Enic MD06",
+        "name": "2.7. Máº«u Novas MD06",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -1170,7 +1170,7 @@
         ]
       },
       {
-        "name": "2.8. Máº«u Enic KS",
+        "name": "2.8. Máº«u Novas KS",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -1340,7 +1340,7 @@
         ]
       },
       {
-        "name": "2.9. Máº«u Enic KD",
+        "name": "2.9. Máº«u Novas KD",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -1505,7 +1505,7 @@
         ]
       },
       {
-        "name": "2.10. Máº«u Enic A23/ A25",
+        "name": "2.10. Máº«u Novas A23/ A25",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -2349,7 +2349,7 @@
     "title": "",
     "items": [
       {
-        "name": "2.12. Máº«u sáº£n pháº©m sen táº¯m cao cáº¥p Enic S23 vĂ  S35",
+        "name": "2.12. Máº«u sáº£n pháº©m sen táº¯m cao cáº¥p Novas S23 vĂ  S35",
         "table": [
           [
             "TĂªn sáº£n pháº©m",
@@ -2394,7 +2394,7 @@
         ]
       },
       {
-        "name": "2.13. Máº«u sáº£n pháº©m sen táº¯m Ă¢m tÆ°á»ng cao cáº¥p Enic B07 vĂ  B09",
+        "name": "2.13. Máº«u sáº£n pháº©m sen táº¯m Ă¢m tÆ°á»ng cao cáº¥p Novas B07 vĂ  B09",
         "table": [
           [
             "TĂªn sáº£n pháº©m",
@@ -2451,10 +2451,10 @@
     ]
   },
   {
-    "title": "3. Sáº£n pháº©m bá»“n cáº§u thĂ´ng minh Enic",
+    "title": "3. Sáº£n pháº©m bá»“n cáº§u thĂ´ng minh Novas",
     "items": [
       {
-        "name": "3.1. Máº«u Enic Smart B, D, D Pro",
+        "name": "3.1. Máº«u Novas Smart B, D, D Pro",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -2656,7 +2656,7 @@
         ]
       },
       {
-        "name": "3.2. Máº«u Enic Smart H",
+        "name": "3.2. Máº«u Novas Smart H",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -2720,7 +2720,7 @@
         ]
       },
       {
-        "name": "3.3. Máº«u Enic T55",
+        "name": "3.3. Máº«u Novas T55",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -2775,7 +2775,7 @@
         ]
       },
       {
-        "name": "3.4. Máº«u Enic Smart E Tráº¯ngÂ",
+        "name": "3.4. Máº«u Novas Smart E Tráº¯ngÂ",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -2810,7 +2810,7 @@
         ]
       },
       {
-        "name": "3.5. Máº«u Enic Smart E07",
+        "name": "3.5. Máº«u Novas Smart E07",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -2875,7 +2875,7 @@
         ]
       },
       {
-        "name": "3.6. Máº«u Enic Smart U2",
+        "name": "3.6. Máº«u Novas Smart U2",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -2965,7 +2965,7 @@
         ]
       },
       {
-        "name": "3.8. Máº«u Enic Smart Y06Â",
+        "name": "3.8. Máº«u Novas Smart Y06Â",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3005,7 +3005,7 @@
         ]
       },
       {
-        "name": "3.9. Máº«u Enic Smart X06Â",
+        "name": "3.9. Máº«u Novas Smart X06Â",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3045,7 +3045,7 @@
         ]
       },
       {
-        "name": "3.10. Máº«u Enic Smart J",
+        "name": "3.10. Máº«u Novas Smart J",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3130,7 +3130,7 @@
         ]
       },
       {
-        "name": "3.11. Máº«u Enic Smart R",
+        "name": "3.11. Máº«u Novas Smart R",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3185,7 +3185,7 @@
         ]
       },
       {
-        "name": "3.12. Máº«u Enic Smart G5",
+        "name": "3.12. Máº«u Novas Smart G5",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3260,7 +3260,7 @@
         ]
       },
       {
-        "name": "3.13. Máº«u bá»“n cáº§u 1 khá»‘i Enic G02",
+        "name": "3.13. Máº«u bá»“n cáº§u 1 khá»‘i Novas G02",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3290,7 +3290,7 @@
         ]
       },
       {
-        "name": "3.14. Máº«u bá»“n cáº§u 1 khá»‘i Enic G06",
+        "name": "3.14. Máº«u bá»“n cáº§u 1 khá»‘i Novas G06",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3320,7 +3320,7 @@
         ]
       },
       {
-        "name": "3.15. Máº«u bá»“n cáº§u trá»©ng Enic E33",
+        "name": "3.15. Máº«u bá»“n cáº§u trá»©ng Novas E33",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3360,7 +3360,7 @@
         ]
       },
       {
-        "name": "3.16. Máº«u bá»“n cáº§u thĂ´ng minh Enic Smart D07 Upgraded",
+        "name": "3.16. Máº«u bá»“n cáº§u thĂ´ng minh Novas Smart D07 Upgraded",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3450,7 +3450,7 @@
         ]
       },
       {
-        "name": "3.17. Máº«u bá»“n cáº§u thĂ´ng minh Enic Smart K1",
+        "name": "3.17. Máº«u bá»“n cáº§u thĂ´ng minh Novas Smart K1",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3480,7 +3480,7 @@
         ]
       },
       {
-        "name": "3.18. Máº«u bá»“n cáº§u trá»©ng thĂ´ng minh Enic Smart E2",
+        "name": "3.18. Máº«u bá»“n cáº§u trá»©ng thĂ´ng minh Novas Smart E2",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3540,7 +3540,7 @@
         ]
       },
       {
-        "name": "3.19. Máº«u bá»“n cáº§u trá»©ng thĂ´ng minh Enic Smart E24",
+        "name": "3.19. Máº«u bá»“n cáº§u trá»©ng thĂ´ng minh Novas Smart E24",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3620,7 +3620,7 @@
         ]
       },
       {
-        "name": "3.20. Máº«u bá»“n cáº§u treo tÆ°á»ng thĂ´ng minh Enic Smart H04",
+        "name": "3.20. Máº«u bá»“n cáº§u treo tÆ°á»ng thĂ´ng minh Novas Smart H04",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3705,7 +3705,7 @@
         ]
       },
       {
-        "name": "3.21. Máº«u bá»“n cáº§u thĂ´ng minh Enic Smart K4",
+        "name": "3.21. Máº«u bá»“n cáº§u thĂ´ng minh Novas Smart K4",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -3790,7 +3790,7 @@
         ]
       },
       {
-        "name": "3.22. Máº«u bá»“n cáº§u thĂ´ng minh Enic Smart Y",
+        "name": "3.22. Máº«u bá»“n cáº§u thĂ´ng minh Novas Smart Y",
         "table": [
           [
             "TĂªn sáº£n pháº©m",
@@ -3980,7 +3980,7 @@
         ]
       },
       {
-        "name": "3.23. Máº«u bá»“n cáº§u thĂ´ng minh Enic Smart B4",
+        "name": "3.23. Máº«u bá»“n cáº§u thĂ´ng minh Novas Smart B4",
         "table": [
           [
             "TĂªn sáº£n pháº©m",
@@ -4090,7 +4090,7 @@
         ]
       },
       {
-        "name": "3.24. Máº«u bá»“n cáº§u thĂ´ng minh Enic Smart C",
+        "name": "3.24. Máº«u bá»“n cáº§u thĂ´ng minh Novas Smart C",
         "table": [
           [
             "TĂªn sáº£n pháº©m",
@@ -4130,7 +4130,7 @@
         ]
       },
       {
-        "name": "3.25. Máº«u bá»“n cáº§u thĂ´ng minh Enic Smart S05",
+        "name": "3.25. Máº«u bá»“n cáº§u thĂ´ng minh Novas Smart S05",
         "table": [
           [
             "TĂªn sáº£n pháº©m",
@@ -4170,7 +4170,7 @@
         ]
       },
       {
-        "name": "3.26. Máº«u bá»“n cáº§u thĂ´ng minh Enic Smart S09",
+        "name": "3.26. Máº«u bá»“n cáº§u thĂ´ng minh Novas Smart S09",
         "table": [
           [
             "TĂªn sáº£n pháº©m",
@@ -4210,7 +4210,7 @@
         ]
       },
       {
-        "name": "3.27. Máº«u bá»“n cáº§u thĂ´ng minh Enic Smart S08",
+        "name": "3.27. Máº«u bá»“n cáº§u thĂ´ng minh Novas Smart S08",
         "table": [
           [
             "TĂªn sáº£n pháº©m",
@@ -5050,7 +5050,7 @@
     "title": "11. Bá»“n rá»­a chĂ©n",
     "items": [
       {
-        "name": "11.1. Máº«u bá»“n rá»­a chĂ©n thĂ´ng minh Enic K2 Plus",
+        "name": "11.1. Máº«u bá»“n rá»­a chĂ©n thĂ´ng minh Novas K2 Plus",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -5814,7 +5814,7 @@
     "title": "14. Sáº£n pháº©m vĂ²i rá»­a tayÂ",
     "items": [
       {
-        "name": "Máº«u vĂ²i rá»­a tay Enic D48",
+        "name": "Máº«u vĂ²i rá»­a tay Novas D48",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -5844,7 +5844,7 @@
     "title": "15. Sáº£n pháº©m vĂ²i bá»“n táº¯m",
     "items": [
       {
-        "name": "15.1. Máº«u vĂ²i bá»“n táº¯m Enic K011",
+        "name": "15.1. Máº«u vĂ²i bá»“n táº¯m Novas K011",
         "table": [
           [
             "TĂªn sáº£n pháº©mÂ",
@@ -5983,7 +5983,7 @@
         ]
       },
       {
-        "name": "15.2. Máº«u vĂ²i bá»“n táº¯m Enic V3",
+        "name": "15.2. Máº«u vĂ²i bá»“n táº¯m Novas V3",
         "table": [
           [
             "TĂªn sáº£n pháº©m",
