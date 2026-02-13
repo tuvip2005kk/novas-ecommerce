@@ -47,7 +47,7 @@ export function Header() {
                             </div>
                         </div>
 
-                        <Link href="/warranty" className="hover:text-yellow-300 transition-colors">Chính sách bảo hành</Link>
+                        <Link href="/chinh-sach-bao-hanh" className="hover:text-yellow-300 transition-colors">Chính sách bảo hành</Link>
                     </div>
                 </div>
 
