@@ -84,9 +84,9 @@ export default function WarrantyPolicyPage() {
                                         <li>Sản phẩm không bị các trường hợp tác động vật lý gây móp méo, bể, vỡ, trầy xước,...</li>
                                         <li>Sản phẩm không nằm trong trường hợp bị từ chối bảo hành.</li>
                                     </ul>
-                                    <div className="bg-blue-50 p-4 rounded-md border border-blue-100 text-sm">
-                                        <p className="font-medium text-[#21246b] mb-1">Lưu ý quan trọng:</p>
-                                        <p>Enic bảo hành trên hệ thống thông qua số điện thoại đặt hàng. Khi Quý khách cần hỗ trợ bảo hành, xin vui lòng cung cấp đúng số điện thoại đã đặt hàng để được hỗ trợ tốt nhất.</p>
+                                    <div className="bg-gray-100 p-4 text-center text-sm">
+                                        <p className="font-bold mb-1">Lưu ý quan trọng:</p>
+                                        <p>Novas bảo hành trên hệ thống thông qua số điện thoại đặt hàng. Khi Quý khách cần hỗ trợ bảo hành, xin vui lòng cung cấp đúng số điện thoại đã đặt hàng để được hỗ trợ tốt nhất.</p>
                                     </div>
                                 </div>
                             </section>
