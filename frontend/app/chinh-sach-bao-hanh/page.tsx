@@ -53,7 +53,7 @@ export default function WarrantyPolicyPage() {
             <Header />
             <main className="min-h-screen bg-gray-50 pt-24 pb-12">
                 <div className="max-w-[1200px] mx-auto px-4">
-                    <div className="bg-white rounded-lg shadow-sm p-8">
+                    <div className="p-8">
                         <h1 className="text-3xl font-bold text-[#21246b] mb-8 text-center uppercase">Chính sách bảo hành, bảo trì của Novas</h1>
 
                         <div className="prose max-w-none text-gray-700 space-y-8">
@@ -84,7 +84,7 @@ export default function WarrantyPolicyPage() {
                                         <li>Sản phẩm không bị các trường hợp tác động vật lý gây móp méo, bể, vỡ, trầy xước,...</li>
                                         <li>Sản phẩm không nằm trong trường hợp bị từ chối bảo hành.</li>
                                     </ul>
-                                    <div className="text-center text-sm">
+                                    <div className="bg-gray-100 p-4 text-center text-sm rounded-md">
                                         <p className="font-bold mb-1">Lưu ý quan trọng:</p>
                                         <p>Novas bảo hành trên hệ thống thông qua số điện thoại đặt hàng. Khi Quý khách cần hỗ trợ bảo hành, xin vui lòng cung cấp đúng số điện thoại đã đặt hàng để được hỗ trợ tốt nhất.</p>
                                     </div>
