@@ -32,8 +32,8 @@ export default function ReviewsPage() {
     const [filterRating, setFilterRating] = useState<number | ''>('');
 
     useEffect(() => {
-        fetchReviews();
-    }, []);
+        if (token) fetchReviews();
+    }, [token]);
 
     const fetchReviews = async () => {
         try {

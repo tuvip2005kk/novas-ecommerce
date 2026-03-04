@@ -29,7 +29,6 @@ const mainItems = [
 
 const designSubItems = [
     { href: '/admin/design/banners', icon: Image, label: 'Banner' },
-    { href: '/admin/design/footer', icon: FileText, label: 'Footer' },
 ];
 
 const otherItems = [
@@ -38,10 +37,6 @@ const otherItems = [
     { href: '/admin/orders', icon: ShoppingCart, label: 'Đơn hàng' },
     { href: '/admin/users', icon: Users, label: 'Người dùng' },
     { href: '/admin/reviews', icon: Star, label: 'Đánh giá' },
-    { href: '/admin/analytics', icon: BarChart3, label: 'Thống kê' },
-    { href: '/admin/promotions', icon: Tag, label: 'Khuyến mãi' },
-    { href: '/admin/notifications', icon: Bell, label: 'Thông báo' },
-    { href: '/admin/settings', icon: Settings, label: 'Cài đặt' },
 ];
 
 export function AdminSidebar({ onClose }: { onClose?: () => void }) {
