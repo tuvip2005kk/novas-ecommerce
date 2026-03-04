@@ -20,7 +20,7 @@ export class AdminGuard implements CanActivate {
 
         try {
             const payload = await this.jwtService.verifyAsync(token, {
-                secret: this.configService.get<string>('JWT_SECRET'),
+                secret: this.configService.get<string>('JWT_SECRET') || 'sanitary-store-secret-key-2024',
             });
 
             if (payload.role !== 'ADMIN') {
