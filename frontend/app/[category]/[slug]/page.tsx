@@ -58,6 +58,17 @@ const CATEGORY_BANNERS: Record<string, { subtitle: string; banner: string }> = {
     'voi-chau-lavabo': { subtitle: 'BỘ SƯU TẬP VÒI RỬA HIỆN ĐẠI', banner: '/images/banners/voi-chau-lavabo-banner.png' },
 };
 
+// Fallback image selector for subcategories without images
+function getSubcategoryFallbackImage(slug: string, cat: string): string {
+    if (slug.includes('1-khoi') || slug.includes('mot-khoi')) return '/images/product/bon-cau/toilet_product_1_1767717640766.png';
+    if (slug.includes('trung')) return '/images/product/bon-cau/toilet_product_2_1767717658445.png';
+    if (slug.includes('thong-minh')) return '/images/product/bon-cau-thong-minh/smart_toilet_white_1767717842259.png';
+    if (slug.includes('treo-tuong')) return '/images/product/bon-cau-treo-tuong/wall_toilet_white_1767718022974.png';
+    if (slug.includes('lavabo')) return '/images/product/lavabo/lavabo_flower_pattern_1767718373362.png';
+    if (slug.includes('bon-tam')) return '/images/product/bon-tam/bathtub_product_1_1767717719012.png';
+    return `/images/product/${cat}/toilet_product_3_1767717681037.png`;
+}
+
 export default function SlugPage() {
     const params = useParams();
     const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
@@ -207,7 +218,7 @@ export default function SlugPage() {
                                                     </span>
                                                 </div>
                                                 <img
-                                                    src={sub.image ? (sub.image.startsWith('http') ? sub.image : `${API_URL}${sub.image}`) : '/images/placeholder.png'}
+                                                    src={sub.image ? (sub.image.startsWith('http') ? sub.image : `${API_URL}${sub.image}`) : (sub.products?.[0]?.image ? (sub.products[0].image.startsWith('http') ? sub.products[0].image : `${API_URL}${sub.products[0].image}`) : getSubcategoryFallbackImage(sub.slug, categorySlug || ''))}
                                                     alt={sub.name}
                                                     className="w-full h-full object-cover"
                                                     loading="lazy"
