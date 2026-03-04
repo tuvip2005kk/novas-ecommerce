@@ -2,12 +2,14 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
+import { PrismaService } from '../../prisma.service';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
     constructor(
         private jwtService: JwtService,
-        private configService: ConfigService
+        private configService: ConfigService,
+        private prisma: PrismaService
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -23,11 +25,13 @@ export class AdminGuard implements CanActivate {
                 secret: this.configService.get<string>('JWT_SECRET') || 'sanitary-store-secret-key-2024',
             });
 
-            if (payload.role !== 'ADMIN') {
+            const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+
+            if (!user || user.role !== 'ADMIN') {
                 throw new UnauthorizedException('Chỉ Admin mới có quyền truy cập');
             }
 
-            request['user'] = payload;
+            request['user'] = user;
         } catch (error) {
             console.error('[AdminGuard] JWT Verification Error:', error.message || error);
             console.error('[AdminGuard] Token received:', token.substring(0, 15) + '...');
