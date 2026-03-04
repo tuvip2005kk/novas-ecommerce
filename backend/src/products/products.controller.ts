@@ -30,13 +30,15 @@ export class ProductsController {
 
     @Post()
     @UseGuards(AdminGuard)
-    create(@Body() data: { name: string; slug: string; description: string; price: number; image: string; images?: string[]; category: string; subcategoryId?: number; stock: number; specs?: any }) {
+    create(@Body() body: any) {
+        const { category, ...data } = body;
         return this.productsService.create(data);
     }
 
     @Patch(':id')
     @UseGuards(AdminGuard)
-    update(@Param('id') id: string, @Body() data: { name?: string; slug?: string; description?: string; price?: number; image?: string; images?: string[]; category?: string; subcategoryId?: number; stock?: number; specs?: any }) {
+    update(@Param('id') id: string, @Body() body: any) {
+        const { category, ...data } = body;
         return this.productsService.update(+id, data);
     }
 

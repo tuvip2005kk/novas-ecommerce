@@ -23,13 +23,13 @@ export class CategoriesController {
 
     @Post()
     @UseGuards(AdminGuard)
-    create(@Body() body: { name: string; slug: string; image?: string; description?: string }) {
+    create(@Body() body: any) {
         return this.categoriesService.create(body);
     }
 
     @Patch(':id')
     @UseGuards(AdminGuard)
-    update(@Param('id') id: string, @Body() body: { name?: string; slug?: string; image?: string; description?: string }) {
+    update(@Param('id') id: string, @Body() body: any) {
         return this.categoriesService.update(+id, body);
     }
 

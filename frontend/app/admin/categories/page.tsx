@@ -167,7 +167,7 @@ export default function AdminCategories() {
     };
 
     const deleteCategory = async (id: number) => {
-        if (!confirm('Xóa danh mục này sẽ xóa tất cả danh mục con. Tiếp tục?')) return;
+        if (!confirm('Xóa danh mục này sẽ xóa tất cả danh mục phụ. Tiếp tục?')) return;
         console.log('Deleting category', id, 'with token:', token ? 'exists' : 'MISSING');
         try {
             const res = await fetch(`${API_URL}/api/categories/${id}`, {
@@ -190,17 +190,17 @@ export default function AdminCategories() {
     };
 
     const deleteSubcategory = async (id: number) => {
-        if (!confirm('Xóa danh mục con này?')) return;
+        if (!confirm('Xóa danh mục phụ này?')) return;
         try {
             const res = await fetch(`${API_URL}/api/subcategories/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                toast.showToast('Xóa danh mục con thành công!', 'success');
+                toast.showToast('Xóa danh mục phụ thành công!', 'success');
                 fetchCategories();
             } else {
-                toast.showToast('Không thể xóa danh mục con!', 'error');
+                toast.showToast('Không thể xóa danh mục phụ!', 'error');
             }
         } catch (err) {
             toast.showToast('Lỗi kết nối!', 'error');
@@ -230,7 +230,7 @@ export default function AdminCategories() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900">Quản lý danh mục</h1>
-                        <p className="text-slate-500 font-normal">Thêm, sửa, xóa danh mục và danh mục con</p>
+                        <p className="text-slate-500 font-normal">Thêm, sửa, xóa danh mục và danh mục phụ</p>
                     </div>
                     <Button className="bg-[#21246b] hover:bg-[#1a1d55]" onClick={activeTab === 'main' ? openAddCategoryModal : () => categories.length > 0 && openAddSubcategoryModal(categories[0].id)}>
                         <Plus className="h-4 w-4 mr-2" /> Thêm {activeTab === 'main' ? 'danh mục' : 'danh mục phụ'}
@@ -259,7 +259,7 @@ export default function AdminCategories() {
 
                 {/* Modal */}
                 {showModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
                         <Card className="w-full max-w-lg">
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle className="flex items-center gap-2">

@@ -292,7 +292,7 @@ export default function AdminProducts() {
 
             {/* Add/Edit Product Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
                     <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                         <CardHeader className="flex flex-row items-center justify-between sticky top-0 bg-white z-10">
                             <CardTitle className="flex items-center gap-2">
@@ -378,14 +378,14 @@ export default function AdminProducts() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium">Danh mục con</label>
+                                        <label className="text-sm font-medium">Danh mục phụ</label>
                                         <select
                                             value={form.subcategoryId}
                                             onChange={(e) => handleSubcategoryChange(e.target.value)}
                                             className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#21246b]"
                                             disabled={!form.categorySlug}
                                         >
-                                            <option value="">Chọn danh mục con</option>
+                                            <option value="">Chọn danh mục phụ</option>
                                             {subcategories.map(sub => (
                                                 <option key={sub.id} value={sub.id}>{sub.name}</option>
                                             ))}
