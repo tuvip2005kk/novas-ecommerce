@@ -30,8 +30,8 @@ async function bootstrap() {
         // Security Headers
         app.use(helmet());
 
-        // Global Validation
-        app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+        // Global Validation - Disable whitelist to prevent stripping undocumented payload fields
+        app.useGlobalPipes(new ValidationPipe({ whitelist: false, transform: true }));
 
         // Configure CORS to accept all Vercel domains
         app.enableCors({
