@@ -26,17 +26,19 @@ export default async function Home() {
     const products = await getProducts();
 
     return (
-        <main className="min-h-screen bg-slate-50">
+        <>
             <Header />
-            <BannerCarousel />
-            <CommitmentSection />
-            <div className="mt-2">
-                <ShowroomBanner />
-            </div>
-            <CategorySection />
-            <TrendingSection />
+            <main className="min-h-screen bg-slate-50">
+                <BannerCarousel />
+                <CommitmentSection />
+                <div className="mt-2">
+                    <ShowroomBanner />
+                </div>
+                <CategorySection />
+                <TrendingSection />
+            </main>
             <Footer />
-        </main>
+        </>
     );
 }
 

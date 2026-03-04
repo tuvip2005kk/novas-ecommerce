@@ -28,6 +28,7 @@ export default function ReviewsPage() {
     const { token } = useAuth();
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [filterRating, setFilterRating] = useState<number | ''>('');
 
     useEffect(() => {
@@ -36,13 +37,21 @@ export default function ReviewsPage() {
 
     const fetchReviews = async () => {
         try {
+            setError(null);
             const res = await fetch(`${API_URL}/api/reviews`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
-            setReviews(data);
+            if (Array.isArray(data)) {
+                setReviews(data);
+            } else {
+                console.error('API returned non-array:', data);
+                setReviews([]);
+                setError(data?.message || 'Không thể tải đánh giá. Vui lòng đăng nhập bằng tài khoản Admin.');
+            }
         } catch (error) {
             console.error('Failed to fetch reviews', error);
+            setError('Lỗi kết nối. Vui lòng thử lại sau.');
         } finally {
             setLoading(false);
         }
@@ -94,6 +103,12 @@ export default function ReviewsPage() {
                 <h1 className="text-2xl font-bold text-slate-800">Quản lý Đánh giá</h1>
                 <p className="text-slate-500 font-normal">Xem và quản lý đánh giá sản phẩm từ khách hàng</p>
             </div>
+
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+                    {error}
+                </div>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

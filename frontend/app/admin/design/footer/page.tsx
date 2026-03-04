@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Edit, X, MapPin, Save, Phone, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 interface Showroom {
     id: number;
@@ -16,6 +17,7 @@ interface Showroom {
 }
 
 export default function AdminFooter() {
+    const { token } = useAuth();
     const [showrooms, setShowrooms] = useState<Showroom[]>([]);
     const [contact, setContact] = useState({
         hotline1: '',
@@ -83,13 +85,13 @@ export default function AdminFooter() {
             if (editingShowroom) {
                 await fetch(`${API_URL}/api/showrooms/${editingShowroom.id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(formData),
                 });
             } else {
                 await fetch(`${API_URL}/api/showrooms`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ ...formData, sortOrder: showrooms.length, isActive: true }),
                 });
             }
@@ -104,7 +106,7 @@ export default function AdminFooter() {
 
     const deleteShowroom = async (id: number) => {
         if (!confirm('Xóa showroom này?')) return;
-        await fetch(`${API_URL}/api/showrooms/${id}`, { method: 'DELETE' });
+        await fetch(`${API_URL}/api/showrooms/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
         fetchData();
     };
 
@@ -113,7 +115,7 @@ export default function AdminFooter() {
         try {
             await fetch(`${API_URL}/api/settings/bulk`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(contact),
             });
             setSaved(true);

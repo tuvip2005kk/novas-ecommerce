@@ -98,121 +98,122 @@ export default function ThietBiVeSinhPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <>
             <Header />
-
-            {/* Banner */}
-            <section className="pt-16">
-                <div className="max-w-[1200px] mx-auto">
-                    <img
-                        src="/images/showroom-banner.png"
-                        alt="Novas - Thiết bị vệ sinh thông minh cao cấp"
-                        className="w-full"
-                    />
-                </div>
-            </section>
-
-            {/* Commitment Section */}
-            <CommitmentSection />
-
-            {/* Product Categories Title with Lines */}
-            <section className="py-4 bg-slate-50">
-                <div className="max-w-[1200px] mx-auto px-4 md:px-6">
-                    <div className="flex items-center justify-center gap-4">
-                        <div className="flex-1 h-[2px] bg-[#21246b]"></div>
-                        <h2 className="text-lg font-bold text-[#21246b] uppercase tracking-wide whitespace-nowrap">
-                            DANH MỤC SẢN PHẨM
-                        </h2>
-                        <div className="flex-1 h-[2px] bg-[#21246b]"></div>
+            <main className="min-h-screen bg-white" style={{ fontFamily: 'Arial, sans-serif' }}>
+                {/* Banner */}
+                <section className="pt-16">
+                    <div className="max-w-[1200px] mx-auto">
+                        <img
+                            src="/images/showroom-banner.png"
+                            alt="Novas - Thiết bị vệ sinh thông minh cao cấp"
+                            className="w-full"
+                        />
                     </div>
-                </div>
-            </section>
+                </section>
 
-            {/* Category Cards */}
-            <CategorySection hideTitle />
+                {/* Commitment Section */}
+                <CommitmentSection />
 
-            {/* Categories with Subcategories - Grouped */}
-            <section className="py-4 bg-white">
-                <div className="max-w-[1200px] mx-auto px-4 md:px-6">
-                    {categoriesWithSubs.map((category) => {
-                        const isExpanded = expandedCategories.has(category.id);
-                        const hasSubcategories = category.subcategories.length > 0;
-                        const firstSubcategory = category.subcategories[0];
+                {/* Product Categories Title with Lines */}
+                <section className="py-4 bg-slate-50">
+                    <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+                        <div className="flex items-center justify-center gap-4">
+                            <div className="flex-1 h-[2px] bg-[#21246b]"></div>
+                            <h2 className="text-lg font-bold text-[#21246b] uppercase tracking-wide whitespace-nowrap">
+                                DANH MỤC SẢN PHẨM
+                            </h2>
+                            <div className="flex-1 h-[2px] bg-[#21246b]"></div>
+                        </div>
+                    </div>
+                </section>
 
-                        if (!hasSubcategories) return null;
+                {/* Category Cards */}
+                <CategorySection hideTitle />
 
-                        return (
-                            <div key={category.id} className="mb-8">
-                                {!isExpanded ? (
-                                    <>
-                                        {/* Preview: First subcategory name + 1 row of products */}
-                                        <div className="flex items-center gap-4 mb-4">
-                                            <h3 className="text-xl font-bold text-[#21246b] uppercase whitespace-nowrap">
-                                                {firstSubcategory.name}
-                                            </h3>
-                                            <div className="flex-1 h-[1px] bg-slate-300"></div>
-                                        </div>
+                {/* Categories with Subcategories - Grouped */}
+                <section className="py-4 bg-white">
+                    <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+                        {categoriesWithSubs.map((category) => {
+                            const isExpanded = expandedCategories.has(category.id);
+                            const hasSubcategories = category.subcategories.length > 0;
+                            const firstSubcategory = category.subcategories[0];
 
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                            {firstSubcategory.products.slice(0, 8).map((product) => (
-                                                <ProductCard key={product.id} product={product} categorySlug={category.slug} />
+                            if (!hasSubcategories) return null;
+
+                            return (
+                                <div key={category.id} className="mb-8">
+                                    {!isExpanded ? (
+                                        <>
+                                            {/* Preview: First subcategory name + 1 row of products */}
+                                            <div className="flex items-center gap-4 mb-4">
+                                                <h3 className="text-xl font-bold text-[#21246b] uppercase whitespace-nowrap">
+                                                    {firstSubcategory.name}
+                                                </h3>
+                                                <div className="flex-1 h-[1px] bg-slate-300"></div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                {firstSubcategory.products.slice(0, 8).map((product) => (
+                                                    <ProductCard key={product.id} product={product} categorySlug={category.slug} />
+                                                ))}
+                                            </div>
+
+                                            {/* View More Button - shows all subcategories of this category */}
+                                            {category.subcategories.length > 1 && (
+                                                <div className="text-center mt-4">
+                                                    <button
+                                                        onClick={() => toggleExpand(category.id)}
+                                                        className="inline-flex items-center gap-2 px-5 py-2 border-2 border-[#21246b] text-[#21246b] text-sm font-bold rounded-lg hover:bg-[#21246b] hover:text-white transition-colors"
+                                                    >
+                                                        Xem thêm sản phẩm
+                                                        <ChevronDown className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            {/* Expanded: Show all subcategories of this category */}
+                                            {category.subcategories.map((subcategory) => (
+                                                <div key={subcategory.id} className="mb-6">
+                                                    {/* Subcategory Name */}
+                                                    <div className="flex items-center gap-4 mb-4">
+                                                        <h3 className="text-xl font-bold text-[#21246b] uppercase whitespace-nowrap">
+                                                            {subcategory.name}
+                                                        </h3>
+                                                        <div className="flex-1 h-[1px] bg-slate-300"></div>
+                                                    </div>
+
+                                                    {/* Products Grid - 2 rows */}
+                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                        {subcategory.products.slice(0, 8).map((product) => (
+                                                            <ProductCard key={product.id} product={product} categorySlug={category.slug} />
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             ))}
-                                        </div>
 
-                                        {/* View More Button - shows all subcategories of this category */}
-                                        {category.subcategories.length > 1 && (
+                                            {/* Collapse Button */}
                                             <div className="text-center mt-4">
                                                 <button
                                                     onClick={() => toggleExpand(category.id)}
                                                     className="inline-flex items-center gap-2 px-5 py-2 border-2 border-[#21246b] text-[#21246b] text-sm font-bold rounded-lg hover:bg-[#21246b] hover:text-white transition-colors"
                                                 >
-                                                    Xem thêm sản phẩm
-                                                    <ChevronDown className="w-4 h-4" />
+                                                    Thu gọn
+                                                    <ChevronUp className="w-4 h-4" />
                                                 </button>
                                             </div>
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        {/* Expanded: Show all subcategories of this category */}
-                                        {category.subcategories.map((subcategory) => (
-                                            <div key={subcategory.id} className="mb-6">
-                                                {/* Subcategory Name */}
-                                                <div className="flex items-center gap-4 mb-4">
-                                                    <h3 className="text-xl font-bold text-[#21246b] uppercase whitespace-nowrap">
-                                                        {subcategory.name}
-                                                    </h3>
-                                                    <div className="flex-1 h-[1px] bg-slate-300"></div>
-                                                </div>
-
-                                                {/* Products Grid - 2 rows */}
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                    {subcategory.products.slice(0, 8).map((product) => (
-                                                        <ProductCard key={product.id} product={product} categorySlug={category.slug} />
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-
-                                        {/* Collapse Button */}
-                                        <div className="text-center mt-4">
-                                            <button
-                                                onClick={() => toggleExpand(category.id)}
-                                                className="inline-flex items-center gap-2 px-5 py-2 border-2 border-[#21246b] text-[#21246b] text-sm font-bold rounded-lg hover:bg-[#21246b] hover:text-white transition-colors"
-                                            >
-                                                Thu gọn
-                                                <ChevronUp className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </section>
+                                        </>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </section>
+            </main>
             <Footer />
-        </div>
+        </>
     );
 }
 
