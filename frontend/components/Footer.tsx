@@ -158,11 +158,6 @@ export default function Footer() {
                 </div>
             </div>
 
-            {/* Copyright */}
-            <div className="bg-[#0f0f1a] py-4 text-center text-gray-400 text-sm">
-                Copyright 2024 © <strong className="text-white">ENIC COMPANY</strong>
-            </div>
-
             {/* Fixed Buttons */}
             <div className="fixed right-4 bottom-4 flex flex-col gap-3 z-50">
                 <a
