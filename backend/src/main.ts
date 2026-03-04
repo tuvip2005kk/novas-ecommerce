@@ -64,7 +64,7 @@ async function bootstrap() {
 
         // Set global API prefix for all controllers
         app.setGlobalPrefix('api', {
-            exclude: ['/', 'sepay/webhook'] // Exclude root health check and sepay webhook
+            exclude: ['/'] // Exclude root health check
         });
 
         // Ensure uploads folder exists
