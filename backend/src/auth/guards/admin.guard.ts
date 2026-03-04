@@ -28,7 +28,10 @@ export class AdminGuard implements CanActivate {
             }
 
             request['user'] = payload;
-        } catch {
+        } catch (error) {
+            console.error('[AdminGuard] JWT Verification Error:', error.message || error);
+            console.error('[AdminGuard] Token received:', token.substring(0, 15) + '...');
+            console.error('[AdminGuard] Secret used:', this.configService.get<string>('JWT_SECRET') || 'sanitary-store-secret-key-2024');
             throw new UnauthorizedException('Không có quyền truy cập');
         }
         return true;
