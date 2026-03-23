@@ -8,8 +8,8 @@ import { ToastProvider } from '@/context/ToastContext';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Sanitary Store - Premium Equipment',
-  description: 'Luxury Sanitary Equipment E-commerce',
+  title: 'Novas - nhóm 12',
+  description: 'nhóm 12',
 };
 
 export default function RootLayout({

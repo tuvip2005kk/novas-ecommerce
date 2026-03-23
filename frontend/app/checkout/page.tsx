@@ -19,14 +19,22 @@ function CheckoutContent() {
     const quantityParam = searchParams.get("quantity");
     const quantity = parseInt(quantityParam || "1");
     const isCartMode = searchParams.get("mode") === "cart";
-    const { user } = useAuth();
+    const { user, isLoading } = useAuth();
     const { items: cartItems, totalPrice: cartTotal, clearCart } = useCart();
+    const router = useRouter();
 
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [order, setOrder] = useState<any>(null);
     const [discountCode, setDiscountCode] = useState("");
     const [discount, setDiscount] = useState(0);
+
+    // Redirect unauthenticated users to login
+    useEffect(() => {
+        if (!isLoading && !user) {
+            router.replace('/login');
+        }
+    }, [user, isLoading, router]);
 
     useEffect(() => {
         if (productId && !isCartMode) {
@@ -35,6 +43,7 @@ function CheckoutContent() {
                 .then(data => setProduct(data));
         }
     }, [productId, isCartMode]);
+
 
     const applyDiscount = () => {
         if (discountCode.toUpperCase() === "GIAM10") {
