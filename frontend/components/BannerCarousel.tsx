@@ -15,15 +15,19 @@ interface Banner {
     cta: string;
 }
 
+interface BannerCarouselProps {
+    initialBanners?: Banner[] | null;
+}
+
 // Fallback slides if API fails
 const fallbackSlides = [
     {
         id: 1,
-        image: "/images/banners/bon-cau-banner.png",
-        title: "BST Phòng Tắm Luxury",
-        description: "Không gian thư giãn đẳng cấp 5 sao ngay tại nhà bạn",
+        image: "https://res.cloudinary.com/danzj0tr5/image/upload/v1772692917/novas-ecommerce/1772692916502-Thu-ruc-ro-1900x800-1.jpg.jpg",
+        title: "THU RỰC RỠ - INAX SALE HẾT CỠ",
+        description: "Ưu đãi lên đến 40% cho các thiết bị vệ sinh cao cấp",
         link: "/products",
-        cta: "Khám Phá Ngay"
+        cta: "Mua Ngay"
     },
     {
         id: 2,
@@ -43,22 +47,26 @@ const fallbackSlides = [
     }
 ];
 
-export function BannerCarousel() {
-    const [slides, setSlides] = useState<Banner[]>(fallbackSlides);
+export function BannerCarousel({ initialBanners }: BannerCarouselProps = {}) {
+    const [slides, setSlides] = useState<Banner[]>(
+        (initialBanners && initialBanners.length > 0) ? initialBanners : fallbackSlides
+    );
     const [current, setCurrent] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!initialBanners || initialBanners.length === 0);
 
     useEffect(() => {
-        fetch(`${API_URL}/api/banners?pageType=homepage`)
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data) && data.length > 0) {
-                    setSlides(data);
-                }
-            })
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    }, []);
+        if (!initialBanners || initialBanners.length === 0) {
+            fetch(`${API_URL}/api/banners?pageType=homepage`)
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        setSlides(data);
+                    }
+                })
+                .catch(console.error)
+                .finally(() => setLoading(false));
+        }
+    }, [initialBanners]);
 
     const nextSlide = () => {
         setCurrent((curr) => (curr === slides.length - 1 ? 0 : curr + 1));

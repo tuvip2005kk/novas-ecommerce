@@ -22,14 +22,34 @@ async function getProducts() {
     }
 }
 
+async function getBanners() {
+    try {
+        const res = await fetch(`${API_URL}/api/banners?pageType=homepage`, { cache: 'no-store' });
+        const data = await res.json();
+        // console.log(`[SSR] Banners API response: ${JSON.stringify(data)}`);
+        return data;
+    } catch (error) {
+        console.error('Connection error:', error);
+        return null;
+    }
+}
+
 export default async function Home() {
     const products = await getProducts();
+    const banners = await getBanners();
+
+    console.log(`[SSR] Banners fetched: ${banners?.length || 0}`);
+    if (banners && banners.length > 0) {
+        console.log(`[SSR] First banner: ${banners[0].title}`);
+    } else {
+        console.log('[SSR] No banners available to display.');
+    }
 
     return (
         <>
             <Header />
             <main className="min-h-screen bg-slate-50">
-                <BannerCarousel />
+                <BannerCarousel initialBanners={banners} />
                 <CommitmentSection />
                 <div className="mt-2">
                     <ShowroomBanner />
