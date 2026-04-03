@@ -231,6 +231,16 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     ) {
         const { sessionId, message } = payload;
         
+        // Nếu Admin nhảy vào chat khi chưa trong trạng thái HANDOFF thì tịch thu quyền của AI ngay!
+        if (!this.handoffSessions.get(sessionId)) {
+            this.handoffSessions.set(sessionId, true);
+            await this.prisma.chatSession.update({ where: { id: sessionId }, data: { status: 'HANDOFF' } });
+            
+            const sysMsg = 'Nhân viên hỗ trợ đã tham gia cuộc trò chuyện.';
+            await this.saveMessage(sessionId, 'system', sysMsg);
+            this.sendToClient(sessionId, { role: 'system', content: sysMsg });
+        }
+
         // Save to DB
         const savedMsg = await this.saveMessage(sessionId, 'staff', message);
 

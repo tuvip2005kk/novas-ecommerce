@@ -3,6 +3,7 @@ import { API_URL } from "@/config";
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown, HeadphonesIcon } from "lucide-react";
 import { io, Socket } from "socket.io-client";
+import { usePathname } from "next/navigation";
 
 interface Message {
   role: "user" | "model" | "staff" | "system";
@@ -25,6 +26,7 @@ export default function ChatBot() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const pathname = usePathname();
 
   // Khởi tạo Socket và Session ID
   useEffect(() => {
@@ -76,6 +78,10 @@ export default function ChatBot() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   const formatMessage = (text: string) => {
     return text
