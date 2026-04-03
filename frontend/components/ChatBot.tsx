@@ -127,7 +127,7 @@ export default function ChatBot() {
               : "opacity-0 scale-95 translate-y-4 pointer-events-none"
           }`}
         >
-          <div className="w-[360px] h-[520px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-100">
+          <div className="w-[360px] h-[520px] bg-white rounded-sm shadow-2xl flex flex-col overflow-hidden border border-gray-100">
             {/* Header */}
             <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -157,7 +157,7 @@ export default function ChatBot() {
                 if (msg.role === "system") {
                   return (
                     <div key={i} className="flex justify-center my-2">
-                      <p className="text-xs text-gray-500 italic bg-gray-200/50 px-3 py-1 rounded-full">{msg.content}</p>
+                      <p className="text-xs text-gray-500 italic bg-gray-200/50 px-3 py-1 rounded-sm">{msg.content}</p>
                     </div>
                   );
                 }
@@ -169,8 +169,8 @@ export default function ChatBot() {
                       msg.role === "user"
                         ? "bg-slate-700"
                         : msg.role === "staff" 
-                          ? "bg-gradient-to-br from-green-500 to-emerald-600"
-                          : "bg-gradient-to-br from-blue-500 to-indigo-600"
+                          ? "bg-[#21246b]"
+                          : "bg-[#21246b]"
                     }`}>
                       {msg.role === "user" ? <User className="w-3.5 h-3.5 text-white" /> :
                        msg.role === "staff" ? <HeadphonesIcon className="w-3.5 h-3.5 text-white" /> :
@@ -178,14 +178,14 @@ export default function ChatBot() {
                     </div>
 
                     {/* Bubble */}
-                    <div className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
+                    <div className={`max-w-[75%] rounded-sm px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
                       msg.role === "user"
-                        ? "bg-slate-800 text-white rounded-tr-sm"
+                        ? "bg-slate-800 text-white rounded-tr-none"
                         : msg.role === "staff"
-                          ? "bg-emerald-50 text-emerald-900 border border-emerald-100 rounded-tl-sm"
-                          : "bg-white text-gray-800 rounded-tl-sm border border-gray-100"
+                          ? "bg-[#21246b] text-white rounded-tl-none"
+                          : "bg-white text-gray-800 rounded-tl-none border border-gray-100"
                     }`}>
-                      {msg.role === "staff" && <p className="text-[10px] font-bold text-emerald-600 mb-0.5 uppercase tracking-wider">Nhân viên CSKH</p>}
+                      {msg.role === "staff" && <p className="text-[10px] font-bold text-white/80 mb-0.5 uppercase tracking-wider">Nhân viên CSKH</p>}
                       <p dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }} />
                     </div>
                   </div>
@@ -215,15 +215,15 @@ export default function ChatBot() {
               <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex gap-2 overflow-x-auto no-scrollbar">
                 <button
                     onClick={() => sendMessage("[SYSTEM:REQUEST_HANDOFF]")}
-                    className="flex-shrink-0 text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full px-3 py-1.5 hover:bg-emerald-100 font-medium transition-colors whitespace-nowrap flex items-center gap-1"
+                    className="flex-shrink-0 text-xs bg-[#21246b]/5 border border-[#21246b]/20 text-[#21246b] rounded-sm px-3 py-1.5 hover:bg-[#21246b]/10 font-bold transition-colors whitespace-nowrap flex items-center gap-1"
                   >
-                    <HeadphonesIcon className="w-3 h-3" /> Gặp nhân viên
+                    <HeadphonesIcon className="w-3 h-3" /> Chat với nhân viên tư vấn
                 </button>
                 {quickQuestions.map((q, i) => (
                   <button
                     key={i}
                     onClick={() => { setInput(q); inputRef.current?.focus(); }}
-                    className="flex-shrink-0 text-xs bg-white border border-gray-200 text-gray-600 rounded-full px-3 py-1.5 hover:border-slate-400 hover:text-slate-700 transition-colors whitespace-nowrap"
+                    className="flex-shrink-0 text-xs bg-white border border-gray-200 text-gray-600 rounded-sm px-3 py-1.5 hover:border-slate-400 hover:text-slate-700 transition-colors whitespace-nowrap"
                   >
                     {q}
                   </button>
@@ -233,7 +233,7 @@ export default function ChatBot() {
 
             {/* Input area */}
             <div className="px-3 py-3 border-t border-gray-100 bg-white">
-              <div className="flex gap-2 items-center bg-gray-50 rounded-xl border border-gray-200 focus-within:border-slate-400 focus-within:bg-white transition-all px-3 py-2">
+              <div className="flex gap-2 items-center bg-gray-50 rounded-sm border border-gray-200 focus-within:border-slate-400 focus-within:bg-white transition-all px-3 py-2">
                 <input
                   ref={inputRef}
                   type="text"
@@ -247,7 +247,7 @@ export default function ChatBot() {
                 <button
                   onClick={() => sendMessage()}
                   disabled={!input.trim() || isLoading}
-                  className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0"
+                  className="w-8 h-8 bg-[#21246b] rounded-sm flex items-center justify-center hover:bg-[#1a1c54] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0"
                 >
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 text-white animate-spin" />
