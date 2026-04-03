@@ -22,6 +22,7 @@ import { ShowroomsModule } from './showrooms/showrooms.module';
 import { SettingsModule } from './settings/settings.module';
 
 import { SeedModule } from './seed/seed.module';
+import { ChatModule } from './chat/chat.module';
 
 import { PrismaModule } from './prisma.module';
 
@@ -54,6 +55,7 @@ import { PrismaModule } from './prisma.module';
         ShowroomsModule,
         SettingsModule,
         SeedModule,
+        ChatModule,
     ],
     controllers: [AppController],
     providers: [

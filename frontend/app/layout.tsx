@@ -4,6 +4,7 @@ import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
+import ChatBot from '@/components/ChatBot';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
           <CartProvider>
             <ToastProvider>
               {children}
+              <ChatBot />
             </ToastProvider>
           </CartProvider>
         </AuthProvider>
