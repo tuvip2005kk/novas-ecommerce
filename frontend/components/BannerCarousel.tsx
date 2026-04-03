@@ -93,16 +93,7 @@ export function BannerCarousel({ initialBanners }: BannerCarouselProps = {}) {
     };
 
     return (
-        <div className="relative w-full overflow-hidden bg-slate-900 group">
-            {/* Ảnh mỏ neo ẩn để khung tự động kéo theo đúng tỉ lệ ảnh thực tế của slide hiện tại, không còn bị cắt xén */}
-            {slides.length > 0 && (
-                <img 
-                    src={getImageUrl(slides[current]?.image)} 
-                    className="w-full h-auto invisible block" 
-                    alt="anchor" 
-                />
-            )}
-
+        <div className="relative w-full aspect-[4/3] md:aspect-[21/9] overflow-hidden bg-slate-900 group">
             {/* Slides */}
             {slides.map((slide, index) => (
                 <div
