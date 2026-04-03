@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
 export interface ChatMessage {
-    role: 'user' | 'model';
+    role: 'user' | 'model' | 'system' | 'staff' | string;
     content: string;
 }
 
@@ -71,15 +71,23 @@ Bạn BẮT BUỘC PHẢI LUÔN LUÔN PHẢN HỒI BẰNG JSON hợp lệ với 
 
 Lưu ý quan trọng cho thuộc tính "handoff":
 - Chỉ đặt giá trị là "true" NẾU VÀ CHỈ NẾU khách hàng có ý định hoặc yêu cầu rất RÕ RÀNG muốn nói chuyện với nhân viên thực (như "tôi muốn gặp nhân viên", "gọi người thật", "gọi tổng đài").
+- VỚI YÊU CẦU GẶP NHÂN VIÊN: Bạn KHÔNG BAO GIỜ ĐƯỢC TỪ CHỐI (không được nói "tôi không thể chuyển"); bạn CHỈ CẦN báo "handoff": true và "reply" là một thông báo lịch sự ("Tôi sẽ kết nối bạn với nhân viên...").
 - Tuyệt đối đặt "false" nếu khách chỉ chào hỏi ("hi", "chào", "hello"), nhắn ký tự (".", "vâng", "ok", "sao"), hoặc đang được bạn trực tiếp tư vấn thông thường.`;
 
         // Chuẩn bị messages theo format OpenAI (Groq tương thích)
+        const mappedHistory = history
+            .filter(msg => msg.role !== 'system') // Xóa tin nhắn hệ thống để AI không bị nhiễu
+            .map(msg => {
+                // Coi tin nhắn của staff như là của đại diện cửa hàng (assistant)
+                if (msg.role === 'model' || msg.role === 'staff') {
+                    return { role: 'assistant', content: msg.content };
+                }
+                return { role: 'user', content: msg.content };
+            });
+
         const messages = [
             { role: 'system', content: systemPrompt },
-            ...history.map(msg => ({
-                role: msg.role === 'model' ? 'assistant' : 'user',
-                content: msg.content
-            })),
+            ...mappedHistory,
             { role: 'user', content: message }
         ];
 
