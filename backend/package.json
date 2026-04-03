@@ -41,6 +41,9 @@
         "rxjs": "^7.8.1",
         "sepay-pg-node": "^1.0.0",
         "socket.io": "^4.7.5",
+        "@nestjs/platform-socket.io": "^10.0.0",
+        "@nestjs/websockets": "^10.0.0",
+        "node-telegram-bot-api": "^0.66.0",
         "uuid": "^13.0.0"
     },
     "devDependencies": {
@@ -53,6 +56,7 @@
         "@types/node": "^20.3.1",
         "@types/passport-jwt": "^4.0.1",
         "@types/passport-local": "^1.0.38",
+        "@types/node-telegram-bot-api": "^0.64.7",
         "@types/supertest": "^6.0.0",
         "@typescript-eslint/eslint-plugin": "^6.0.0",
         "@typescript-eslint/parser": "^6.0.0",

@@ -1,10 +1,11 @@
 "use client";
 import { API_URL } from "@/config";
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown } from "lucide-react";
+import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown, HeadphonesIcon } from "lucide-react";
+import { io, Socket } from "socket.io-client";
 
 interface Message {
-  role: "user" | "model";
+  role: "user" | "model" | "staff" | "system";
   content: string;
 }
 
@@ -19,8 +20,44 @@ export default function ChatBot() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [sessionId, setSessionId] = useState("");
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Khởi tạo Socket và Session ID
+  useEffect(() => {
+    let currentSessionId = localStorage.getItem("novas_chat_session");
+    if (!currentSessionId) {
+      currentSessionId = "session_" + Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+      localStorage.setItem("novas_chat_session", currentSessionId);
+    }
+    setSessionId(currentSessionId);
+
+    const newSocket = io(`${API_URL}/chat`, {
+      transports: ['websocket'],
+      reconnectionAttempts: 5,
+    });
+
+    newSocket.on("connect", () => {
+      console.log("Chat Socket connected:", newSocket.id);
+    });
+
+    newSocket.on("receiveMessage", (msg: Message) => {
+      setMessages((prev) => [...prev, msg]);
+      setIsLoading(false);
+      
+      // Nếu không mở chat thì hiển thị badge tin nhắn mới
+      setHasNewMessage(true);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,6 +71,11 @@ export default function ChatBot() {
     }
   }, [isOpen, messages]);
 
+  // Scroll when new message arrives even if open
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
   const formatMessage = (text: string) => {
     return text
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
@@ -41,46 +83,24 @@ export default function ChatBot() {
       .replace(/\n/g, "<br/>");
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessage = (text: string = input) => {
+    if (!text.trim() || isLoading || !socket) return;
 
-    const userMessage: Message = { role: "user", content: input.trim() };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    if (text !== "[SYSTEM:REQUEST_HANDOFF]") {
+      const userMessage: Message = { role: "user", content: text.trim() };
+      setMessages((prev) => [...prev, userMessage]);
+    }
+    
     setInput("");
     setIsLoading(true);
 
-    try {
-      // Gửi lịch sử hội thoại (bỏ tin nhắn chào hỏi đầu tiên của bot)
-      const history = newMessages.slice(1, -1);
+    const history = messages.filter(m => m.role === 'user' || m.role === 'model').slice(1, -1);
 
-      const res = await fetch(`${API_URL}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMessage.content,
-          history,
-        }),
-      });
-
-      if (!res.ok) throw new Error("API error");
-
-      const data = await res.json();
-      const botMessage: Message = { role: "model", content: data.reply };
-      setMessages((prev) => [...prev, botMessage]);
-
-      if (!isOpen) setHasNewMessage(true);
-    } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "model",
-          content: "Xin lỗi, tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau hoặc liên hệ hotline để được hỗ trợ nhé! 🙏",
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
+    socket.emit("sendMessage", {
+      sessionId,
+      message: text.trim(),
+      history,
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -92,7 +112,6 @@ export default function ChatBot() {
 
   const quickQuestions = [
     "Sản phẩm bán chạy nhất?",
-    "Thiết bị nhà bếp cao cấp?",
     "Bồn cầu thông minh giá bao nhiêu?",
   ];
 
@@ -126,6 +145,7 @@ export default function ChatBot() {
               <button
                 onClick={() => setIsOpen(false)}
                 className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                aria-label="Đóng"
               >
                 <ChevronDown className="w-4 h-4 text-white" />
               </button>
@@ -133,32 +153,44 @@ export default function ChatBot() {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-gray-50">
-              {messages.map((msg, i) => (
-                <div key={i} className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-                  {/* Avatar */}
-                  <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 ${
-                    msg.role === "user"
-                      ? "bg-slate-700"
-                      : "bg-gradient-to-br from-blue-500 to-indigo-600"
-                  }`}>
-                    {msg.role === "user"
-                      ? <User className="w-3.5 h-3.5 text-white" />
-                      : <Bot className="w-3.5 h-3.5 text-white" />
-                    }
-                  </div>
+              {messages.map((msg, i) => {
+                if (msg.role === "system") {
+                  return (
+                    <div key={i} className="flex justify-center my-2">
+                      <p className="text-xs text-gray-500 italic bg-gray-200/50 px-3 py-1 rounded-full">{msg.content}</p>
+                    </div>
+                  );
+                }
 
-                  {/* Bubble */}
-                  <div className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
-                    msg.role === "user"
-                      ? "bg-slate-800 text-white rounded-tr-sm"
-                      : "bg-white text-gray-800 rounded-tl-sm border border-gray-100"
-                  }`}>
-                    <p
-                      dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
-                    />
+                return (
+                  <div key={i} className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                    {/* Avatar */}
+                    <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 ${
+                      msg.role === "user"
+                        ? "bg-slate-700"
+                        : msg.role === "staff" 
+                          ? "bg-gradient-to-br from-green-500 to-emerald-600"
+                          : "bg-gradient-to-br from-blue-500 to-indigo-600"
+                    }`}>
+                      {msg.role === "user" ? <User className="w-3.5 h-3.5 text-white" /> :
+                       msg.role === "staff" ? <HeadphonesIcon className="w-3.5 h-3.5 text-white" /> :
+                       <Bot className="w-3.5 h-3.5 text-white" />}
+                    </div>
+
+                    {/* Bubble */}
+                    <div className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
+                      msg.role === "user"
+                        ? "bg-slate-800 text-white rounded-tr-sm"
+                        : msg.role === "staff"
+                          ? "bg-emerald-50 text-emerald-900 border border-emerald-100 rounded-tl-sm"
+                          : "bg-white text-gray-800 rounded-tl-sm border border-gray-100"
+                    }`}>
+                      {msg.role === "staff" && <p className="text-[10px] font-bold text-emerald-600 mb-0.5 uppercase tracking-wider">Nhân viên CSKH</p>}
+                      <p dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }} />
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {/* Loading indicator */}
               {isLoading && (
@@ -178,7 +210,7 @@ export default function ChatBot() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick questions (chỉ hiện khi mới mở) */}
+            {/* Quick questions */}
             {messages.length === 1 && (
               <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex gap-2 overflow-x-auto no-scrollbar">
                 {quickQuestions.map((q, i) => (
@@ -190,6 +222,12 @@ export default function ChatBot() {
                     {q}
                   </button>
                 ))}
+                <button
+                    onClick={() => sendMessage("[SYSTEM:REQUEST_HANDOFF]")}
+                    className="flex-shrink-0 text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full px-3 py-1.5 hover:bg-emerald-100 font-medium transition-colors whitespace-nowrap flex items-center gap-1"
+                  >
+                    <HeadphonesIcon className="w-3 h-3" /> Chat với nhân viên
+                </button>
               </div>
             )}
 
@@ -202,12 +240,12 @@ export default function ChatBot() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Nhập câu hỏi..."
+                  placeholder="Nhập câu trả lời..."
                   className="flex-1 bg-transparent text-sm text-gray-800 outline-none placeholder-gray-400"
                   disabled={isLoading}
                 />
                 <button
-                  onClick={sendMessage}
+                  onClick={() => sendMessage()}
                   disabled={!input.trim() || isLoading}
                   className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0"
                 >
@@ -218,7 +256,6 @@ export default function ChatBot() {
                   )}
                 </button>
               </div>
-              <p className="text-center text-transparent text-[10px] mt-1.5 select-none"> </p>
             </div>
           </div>
         </div>
