@@ -191,11 +191,11 @@ export default function AdminLiveChat() {
                 const isUnread = latestMsg && readItems[session.id] !== latestMsg.id && latestMsg.role !== 'staff';
                 const isSelected = selectedSessionId === session.id;
 
-                let cardBgClass = "bg-slate-50 hover:bg-slate-100 border-l-[3px] border-transparent"; // Đã xem (Read)
+                let cardBgClass = "bg-slate-50 hover:bg-slate-100"; // Đã xem (Read)
                 if (isSelected) {
-                    cardBgClass = "bg-slate-100 border-l-[3px] border-[#21246b]"; // Đang Focus
+                    cardBgClass = "bg-slate-100"; // Đang Focus
                 } else if (isUnread) {
-                    cardBgClass = "bg-white border-l-[3px] border-transparent shadow-sm relative"; // Chưa xem (Unread)
+                    cardBgClass = "bg-white shadow-sm relative"; // Chưa xem (Unread)
                 }
 
                 return (
@@ -203,6 +203,7 @@ export default function AdminLiveChat() {
                     key={session.id}
                     onClick={() => handleSelectSession(session.id, latestMsg?.id)}
                     className={`p-4 cursor-pointer transition-colors ${cardBgClass}`}
+                    style={{ borderLeft: isSelected ? '4px solid #21246b' : '4px solid transparent' }}
                   >
                     <div className="flex justify-between items-start mb-1">
                       <h3 className={`text-sm truncate ${isUnread ? "font-bold text-slate-900" : "font-medium text-slate-700"}`}>
