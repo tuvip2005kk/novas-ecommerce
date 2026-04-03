@@ -118,10 +118,10 @@ export default function ChatBot() {
   return (
     <>
       {/* Nút bong bóng chat nổi */}
-      <div className="fixed bottom-20 right-5 z-50 flex flex-col items-end gap-2">
+      <div className={`fixed bottom-20 right-5 flex flex-col items-end gap-2 ${isOpen ? 'z-40' : 'z-40 pointer-events-none'}`}>
         {/* Widget chat */}
         <div
-          className={`transition-all duration-500 ease-in-out origin-bottom-right ${
+          className={`pointer-events-auto transition-all duration-500 ease-in-out origin-bottom-right ${
             isOpen
               ? "opacity-100 scale-100 translate-y-0"
               : "opacity-0 scale-95 translate-y-4 pointer-events-none"
@@ -260,10 +260,10 @@ export default function ChatBot() {
           </div>
         </div>
 
-        {/* Nút mở/đóng chat */}
+        {/* Nút mở/đóng chat - luôn clickable */}
         <button
           onClick={() => setIsOpen((prev) => !prev)}
-          className="relative w-14 h-14 bg-gradient-to-br from-slate-800 to-slate-700 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200"
+          className="pointer-events-auto relative w-14 h-14 bg-gradient-to-br from-slate-800 to-slate-700 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200"
           aria-label="Mở chat tư vấn"
         >
           <div className={`transition-all duration-300 absolute ${isOpen ? "opacity-100 rotate-0" : "opacity-0 rotate-90"}`}>
