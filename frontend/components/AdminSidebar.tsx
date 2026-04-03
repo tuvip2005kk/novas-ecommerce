@@ -21,7 +21,6 @@ import {
     Star,
     Image,
     FileText,
-    FileText,
     MessageCircle,
 } from "lucide-react";
 
