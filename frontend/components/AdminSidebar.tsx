@@ -21,6 +21,8 @@ import {
     Star,
     Image,
     FileText,
+    FileText,
+    MessageCircle,
 } from "lucide-react";
 
 const mainItems = [
@@ -32,6 +34,7 @@ const designSubItems = [
 ];
 
 const otherItems = [
+    { href: '/admin/live-chat', icon: MessageCircle, label: 'Live Chat' },
     { href: '/admin/categories', icon: FolderTree, label: 'Danh mục' },
     { href: '/admin/products', icon: Package, label: 'Sản phẩm' },
     { href: '/admin/orders', icon: ShoppingCart, label: 'Đơn hàng' },
