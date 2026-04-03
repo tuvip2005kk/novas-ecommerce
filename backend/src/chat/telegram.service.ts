@@ -25,6 +25,15 @@ export class TelegramService implements OnModuleInit {
             this.bot = new TelegramBot(token, { polling: true });
             this.logger.log('Telegram Bot đã khởi động');
 
+            this.bot.on('polling_error', (error: any) => {
+                this.logger.error(`Lỗi Polling Telegram (Có thể do chạy 2 máy tính cùng lúc): ${error.message}`);
+                // Dừng polling tạm thời nếu lỗi conflict để tránh treo CPU
+                if (error.code === 'ETELEGRAM' && error.message.includes('409')) {
+                    this.bot.stopPolling();
+                    this.logger.warn('Tạm ngưng Telegram Bot do lỗi 409 Conflict!');
+                }
+            });
+
             this.setupListeners();
         } catch (error) {
             this.logger.error('Lỗi khi khởi tạo Telegram Bot', error);
