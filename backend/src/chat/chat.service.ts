@@ -51,9 +51,9 @@ ${productList}
     }
 
     async chat(message: string, history: ChatMessage[]): Promise<string> {
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
-            throw new Error('GEMINI_API_KEY chưa được cấu hình');
+            throw new Error('GROQ_API_KEY chưa được cấu hình');
         }
 
         const productContext = await this.getProductContext();
@@ -73,52 +73,40 @@ ${productContext}
 
 Khi đề xuất sản phẩm, hãy đề cập tên sản phẩm và giá. Trả lời ngắn gọn, súc tích (tối đa 150 từ mỗi câu trả lời).`;
 
-        // Chuẩn bị lịch sử hội thoại cho Gemini API
-        const contents = [
-            // System message dưới dạng tin nhắn đầu tiên của model
-            {
-                role: 'user',
-                parts: [{ text: systemPrompt }]
-            },
-            {
-                role: 'model',
-                parts: [{ text: 'Xin chào! Tôi là trợ lý tư vấn của NOVAS. Tôi sẵn sàng giúp bạn tìm kiếm sản phẩm phù hợp. Bạn cần tư vấn gì ạ?' }]
-            },
+        // Chuẩn bị messages theo format OpenAI (Groq tương thích)
+        const messages = [
+            { role: 'system', content: systemPrompt },
             // Lịch sử hội thoại
             ...history.map(msg => ({
-                role: msg.role,
-                parts: [{ text: msg.content }]
+                role: msg.role === 'model' ? 'assistant' : 'user',
+                content: msg.content
             })),
             // Tin nhắn hiện tại
-            {
-                role: 'user',
-                parts: [{ text: message }]
-            }
+            { role: 'user', content: message }
         ];
 
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents,
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 512,
-                    }
-                })
-            }
-        );
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'llama-3.3-70b-versatile',
+                messages,
+                temperature: 0.7,
+                max_tokens: 512,
+            })
+        });
 
         if (!response.ok) {
             const errorBody = await response.text();
-            console.error(`Gemini API error ${response.status}:`, errorBody);
-            throw new Error(`Gemini API error: ${response.status} - ${errorBody}`);
+            console.error(`Groq API error ${response.status}:`, errorBody);
+            throw new Error(`Groq API error: ${response.status} - ${errorBody}`);
         }
 
         const data = await response.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const text = data?.choices?.[0]?.message?.content;
 
         if (!text) {
             throw new Error('Không nhận được phản hồi từ AI');
