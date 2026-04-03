@@ -25,13 +25,21 @@ interface ChatSession {
 export default function AdminLiveChat() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const selectedSessionIdRef = useRef<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [readItems, setReadItems] = useState<Record<string, number>>({});
 
   useEffect(() => {
+    // Load read status from local storage
+    const stored = localStorage.getItem('novas_admin_read_status');
+    if (stored) {
+      try { setReadItems(JSON.parse(stored)); } catch {}
+    }
+
     fetchSessions();
 
     const newSocket = io(`${API_URL}/chat`, {
@@ -47,11 +55,18 @@ export default function AdminLiveChat() {
       const { sessionId, message } = data;
       
       // Nếu đang mở khung chat của khách này, thêm tin nhắn vào màn hình
-      if (sessionId === selectedSessionId) {
+      if (sessionId === selectedSessionIdRef.current) {
         setMessages((prev) => [...prev, message as ChatMessage]);
+        
+        // Đánh dấu đã đọc ngay lập tức vì Admin đang xem
+        setReadItems(prev => {
+          const next = { ...prev, [sessionId]: message.id };
+          localStorage.setItem('novas_admin_read_status', JSON.stringify(next));
+          return next;
+        });
       }
       
-      // Cập nhật lại danh sách session (để đẩy tin nhắn mới nhất lên đầu)
+      // Cập nhật lại danh sách session
       fetchSessions();
     });
 
@@ -60,7 +75,7 @@ export default function AdminLiveChat() {
     return () => {
       newSocket.disconnect();
     };
-  }, [selectedSessionId]);
+  }, []); // Run only once to prevent infinite socket reconnects
 
   const fetchSessions = async () => {
     try {
@@ -88,10 +103,20 @@ export default function AdminLiveChat() {
     }
   };
 
-  const handleSelectSession = (sessionId: string) => {
+  const markAsRead = (sessionId: string, latestMsgId: number) => {
+    setReadItems(prev => {
+      const next = { ...prev, [sessionId]: latestMsgId };
+      localStorage.setItem('novas_admin_read_status', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleSelectSession = (sessionId: string, latestMsgId?: number) => {
     setSelectedSessionId(sessionId);
+    selectedSessionIdRef.current = sessionId;
     setMessages([]);
     fetchMessages(sessionId);
+    if (latestMsgId) markAsRead(sessionId, latestMsgId);
   };
 
   const handleSendMessage = () => {
@@ -102,9 +127,6 @@ export default function AdminLiveChat() {
       message: input.trim(),
     });
 
-    // Bỏ qua update state trực tiếp ở đây vì event 'adminReceiveMessage' sẽ 
-    // tự động dội lại từ phía Server giúp đồng bộ sang mọi cửa sổ Admin khác.
-    
     setInput("");
   };
 
@@ -151,39 +173,49 @@ export default function AdminLiveChat() {
             <div className="divide-y divide-slate-100">
               {sessions.map((session) => {
                 const latestMsg = session.messages?.[0];
+                const isUnread = latestMsg && latestMsg.role === 'user' && readItems[session.id] !== latestMsg.id;
+                const isSelected = selectedSessionId === session.id;
+
+                let cardBgClass = "bg-slate-50 hover:bg-slate-100"; // Đã xem (Read)
+                if (isSelected) {
+                    cardBgClass = "bg-slate-100 border-l-4 border-[#21246b]"; // Đang Focus
+                } else if (isUnread) {
+                    cardBgClass = "bg-white border-l-4 border-transparent shadow-sm relative"; // Chưa xem (Unread)
+                } else {
+                    cardBgClass += " border-l-4 border-transparent opacity-80 cursor-pointer";
+                }
+
                 return (
                   <div
                     key={session.id}
-                    onClick={() => handleSelectSession(session.id)}
-                    className={`p-4 cursor-pointer hover:bg-slate-100 transition-colors ${
-                      selectedSessionId === session.id ? "bg-slate-100 border-l-4 border-[#21246b]" : "border-l-4 border-transparent"
-                    }`}
+                    onClick={() => handleSelectSession(session.id, latestMsg?.id)}
+                    className={`p-4 cursor-pointer transition-colors ${cardBgClass}`}
                   >
                     <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-semibold text-sm text-slate-800 truncate">
+                      <h3 className={`text-sm truncate ${isUnread ? "font-bold text-slate-900" : "font-medium text-slate-700"}`}>
                         ID: {session.id.substring(0, 8)}...
                       </h3>
                       {latestMsg && (
-                        <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2">
+                        <span className={`text-[10px] whitespace-nowrap ml-2 ${isUnread ? "text-[#21246b] font-medium" : "text-slate-400"}`}>
                           {getTimeAgo(latestMsg.createdAt)}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        session.status === 'HANDOFF' ? 'bg-red-100 text-red-700' : 
-                        session.status === 'RESOLVED' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {session.status === 'HANDOFF' ? 'CẦN HỖ TRỢ' : session.status}
-                      </span>
+                    {/* Bỏ tag CẦN HỖ TRỢ, thay vào đó tập trung vào UX Read/Unread */}
+                    <div className="flex justify-between items-center mt-1">
+                      {latestMsg && (
+                        <p className={`text-xs truncate flex-1 ${isUnread ? "text-slate-800 font-medium" : "text-slate-500"}`}>
+                          {latestMsg.role === 'staff' ? 'Bạn: ' : 
+                           latestMsg.role === 'model' ? 'AI: ' : 'Khách: '}
+                          {latestMsg.content.substring(0, 40)}
+                        </p>
+                      )}
+                      
+                      {/* Chấm bi màu xanh đặc trưng (chưa đọc) */}
+                      {isUnread && !isSelected && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#21246b] ml-3 flex-shrink-0"></div>
+                      )}
                     </div>
-                    {latestMsg && (
-                      <p className="text-xs text-slate-500 truncate mt-1">
-                        {latestMsg.role === 'staff' ? 'Bạn: ' : 
-                         latestMsg.role === 'model' ? 'AI: ' : 'Khách: '}
-                        {latestMsg.content.substring(0, 40)}
-                      </p>
-                    )}
                   </div>
                 );
               })}
