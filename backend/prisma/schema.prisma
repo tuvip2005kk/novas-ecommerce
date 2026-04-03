@@ -164,3 +164,21 @@ model SiteSetting {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model ChatSession {
+  id        String        @id @default(uuid())
+  status    String        @default("AI") // AI, HANDOFF, RESOLVED
+  userId    Int?
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model ChatMessage {
+  id        Int          @id @default(autoincrement())
+  session   ChatSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId String
+  role      String       // user, model, staff, system
+  content   String       @db.Text
+  createdAt DateTime     @default(now())
+}

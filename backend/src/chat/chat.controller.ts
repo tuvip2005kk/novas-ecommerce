@@ -1,5 +1,6 @@
-import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus, Get, Param } from '@nestjs/common';
 import { ChatService, ChatMessage } from './chat.service';
+import { PrismaService } from '../prisma.service';
 
 class ChatDto {
     message: string;
@@ -8,7 +9,10 @@ class ChatDto {
 
 @Controller('chat')
 export class ChatController {
-    constructor(private readonly chatService: ChatService) {}
+    constructor(
+        private readonly chatService: ChatService,
+        private readonly prisma: PrismaService
+    ) {}
 
     @Post()
     async chat(@Body() body: ChatDto) {
@@ -28,5 +32,28 @@ export class ChatController {
                 HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    @Get('admin/sessions')
+    async getAdminSessions() {
+        if (!this.prisma) return [];
+        return this.prisma.chatSession.findMany({
+            orderBy: { updatedAt: 'desc' },
+            include: {
+                messages: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1
+                }
+            }
+        });
+    }
+
+    @Get('admin/sessions/:id/messages')
+    async getAdminSessionMessages(@Param('id') id: string) {
+        if (!this.prisma) return [];
+        return this.prisma.chatMessage.findMany({
+            where: { sessionId: id },
+            orderBy: { createdAt: 'asc' }
+        });
     }
 }

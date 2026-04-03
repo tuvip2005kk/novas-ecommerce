@@ -58,7 +58,7 @@ export class TelegramService implements OnModuleInit {
         });
     }
 
-    private handleAdminReply(msg: TelegramBot.Message) {
+    private async handleAdminReply(msg: TelegramBot.Message) {
         const adminChatId = process.env.TELEGRAM_CHAT_ID;
         
         // Khớp pattern để lấy Session ID: tìm chuỗi bắt đầu bằng session_
@@ -72,6 +72,11 @@ export class TelegramService implements OnModuleInit {
             this.logger.log(`Nhận được tin nhắn từ Admin cho session: ${sessionId}. Nội dung: ${responseText}`);
 
             if (this.chatGateway) {
+                // Lưu tin nhắn vào DB
+                if (this.chatGateway['saveMessage']) {
+                    await this.chatGateway.saveMessage(sessionId, 'staff', responseText);
+                }
+
                 // Đẩy tin nhắn qua WebSockets về web cho khách
                 this.chatGateway.sendToClient(sessionId, {
                     role: 'staff',

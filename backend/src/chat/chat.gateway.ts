@@ -12,6 +12,7 @@ import { Server, Socket } from 'socket.io';
 import { ChatService, ChatMessage } from './chat.service';
 import { TelegramService } from './telegram.service';
 import { Logger } from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
 
 @WebSocketGateway({
     cors: {
@@ -30,7 +31,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     constructor(
         private readonly chatService: ChatService,
-        private readonly telegramService: TelegramService
+        private readonly telegramService: TelegramService,
+        private readonly prisma: PrismaService
     ) {}
 
     afterInit(server: Server) {
@@ -46,6 +48,27 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.logger.log(`Client disconnected: ${client.id}`);
     }
 
+    // Đảm bảo session tồn tại trong DB, nếu chưa có thì tạo mới
+    private async ensureSessionExists(sessionId: string) {
+        const session = await this.prisma.chatSession.findUnique({
+            where: { id: sessionId }
+        });
+        if (!session) {
+            await this.prisma.chatSession.create({
+                data: { id: sessionId, status: 'AI' }
+            });
+        }
+        return session;
+    }
+
+    // Lưu tin nhắn vào DB
+    async saveMessage(sessionId: string, role: string, content: string) {
+        await this.ensureSessionExists(sessionId);
+        await this.prisma.chatMessage.create({
+            data: { sessionId, role, content }
+        });
+    }
+
     @SubscribeMessage('sendMessage')
     async handleMessage(
         @ConnectedSocket() client: Socket,
@@ -58,14 +81,21 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
         const isHandedOff = this.handoffSessions.get(sessionId) || false;
 
+        // Lưu tin nhắn người dùng
+        if (message !== '[SYSTEM:REQUEST_HANDOFF]') {
+            await this.saveMessage(sessionId, 'user', message);
+        }
+
         // Xử lý cờ handoff cứng từ frontend (nếu người dùng bấm nút yêu cầu nhân viên)
         if (message === '[SYSTEM:REQUEST_HANDOFF]') {
             this.handoffSessions.set(sessionId, true);
+            await this.prisma.chatSession.update({ where: { id: sessionId }, data: { status: 'HANDOFF' } });
+
             await this.telegramService.sendMessageToAdmin(sessionId, "Khách vừa bấm nút YÊU CẦU GẶP NHÂN VIÊN.", true);
-            this.sendToClient(sessionId, {
-                role: 'system',
-                content: 'Hệ thống đang chuyển kết nối đến nhân viên hỗ trợ. Bạn vui lòng đợi giây lát nhé! 😊'
-            });
+            
+            const sysMsg = 'Hệ thống đang chuyển kết nối đến nhân viên hỗ trợ. Bạn vui lòng đợi giây lát nhé! 😊';
+            await this.saveMessage(sessionId, 'system', sysMsg);
+            this.sendToClient(sessionId, { role: 'system', content: sysMsg });
             return;
         }
 
@@ -82,31 +112,32 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             // Kiểm tra xem AI có trả về cờ Handoff không
             if (aiResponse.includes('[ACTION:HANDOFF]')) {
                 this.handoffSessions.set(sessionId, true);
+                await this.prisma.chatSession.update({ where: { id: sessionId }, data: { status: 'HANDOFF' } });
                 
                 // Lọc bỏ chuỗi [ACTION:HANDOFF] ra khỏi câu trả lời
                 const cleanResponse = aiResponse.replace('[ACTION:HANDOFF]', '').trim();
                 
                 if (cleanResponse) {
+                    await this.saveMessage(sessionId, 'model', cleanResponse);
                     this.sendToClient(sessionId, { role: 'model', content: cleanResponse });
                 }
 
-                this.sendToClient(sessionId, {
-                    role: 'system',
-                    content: 'Hệ thống đang chuyển kết nối đến nhân viên hỗ trợ. Bạn vui lòng đợi giây lát nhé! 😊'
-                });
+                const sysMsg = 'Hệ thống đang chuyển kết nối đến nhân viên hỗ trợ. Bạn vui lòng đợi giây lát nhé! 😊';
+                await this.saveMessage(sessionId, 'system', sysMsg);
+                this.sendToClient(sessionId, { role: 'system', content: sysMsg });
 
                 // Gửi thông báo đến Telegram
                 await this.telegramService.sendMessageToAdmin(sessionId, message, true);
             } else {
                 // Phản hồi bình thường
+                await this.saveMessage(sessionId, 'model', aiResponse);
                 this.sendToClient(sessionId, { role: 'model', content: aiResponse });
             }
         } catch (error) {
             this.logger.error('Lỗi khi gọi AI:', error);
-            this.sendToClient(sessionId, {
-                role: 'system',
-                content: 'Xin lỗi, AI đang gặp sự cố kỹ thuật. Bạn có muốn kết nối với nhân viên tư vấn không?'
-            });
+            const sysMsg = 'Xin lỗi, AI đang gặp sự cố kỹ thuật. Bạn có muốn kết nối với nhân viên tư vấn không?';
+            await this.saveMessage(sessionId, 'system', sysMsg);
+            this.sendToClient(sessionId, { role: 'system', content: sysMsg });
         }
     }
 
