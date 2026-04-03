@@ -210,9 +210,15 @@ export default function ChatBot() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick questions */}
+            {/* Quick questions (chỉ hiện khi mới mở) */}
             {messages.length === 1 && (
               <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex gap-2 overflow-x-auto no-scrollbar">
+                <button
+                    onClick={() => sendMessage("[SYSTEM:REQUEST_HANDOFF]")}
+                    className="flex-shrink-0 text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full px-3 py-1.5 hover:bg-emerald-100 font-medium transition-colors whitespace-nowrap flex items-center gap-1"
+                  >
+                    <HeadphonesIcon className="w-3 h-3" /> Gặp nhân viên
+                </button>
                 {quickQuestions.map((q, i) => (
                   <button
                     key={i}
@@ -222,12 +228,6 @@ export default function ChatBot() {
                     {q}
                   </button>
                 ))}
-                <button
-                    onClick={() => sendMessage("[SYSTEM:REQUEST_HANDOFF]")}
-                    className="flex-shrink-0 text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full px-3 py-1.5 hover:bg-emerald-100 font-medium transition-colors whitespace-nowrap flex items-center gap-1"
-                  >
-                    <HeadphonesIcon className="w-3 h-3" /> Chat với nhân viên
-                </button>
               </div>
             )}
 
