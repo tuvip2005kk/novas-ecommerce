@@ -114,7 +114,7 @@ export function BannerCarousel({ initialBanners }: BannerCarouselProps = {}) {
 
                     {/* Content */}
                     <div className="absolute inset-x-0 bottom-0 top-0 flex items-center justify-center text-center p-4">
-                        <div className={`max-w-3xl space-y-6 transition-all duration-1000 delay-300 ${index === current ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+                        <div className={`max-w-3xl space-y-6 transition-all duration-700 transform ${index === current ? "opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0" : "opacity-0 translate-y-10"
                             }`}>
                             <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight drop-shadow-xl">
                                 {slide.title}
@@ -122,7 +122,7 @@ export function BannerCarousel({ initialBanners }: BannerCarouselProps = {}) {
                             <p className="text-lg md:text-xl text-white/90 max-w-xl mx-auto">
                                 {slide.description}
                             </p>
-                            <div className="opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
+                            <div>
                                 <Link href={slide.link || "/products"}>
                                     <Button size="lg" className="bg-white text-slate-900 hover:bg-white/90 text-sm md:text-base mb-2">
                                         {slide.cta || "Khám Phá"}
