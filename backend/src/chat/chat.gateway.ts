@@ -111,6 +111,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     sendToClient(sessionId: string, message: { role: string; content: string }) {
+        this.logger.log(`Gửi tin nhắn (role: ${message.role}) tới phòng: ${sessionId}`);
         this.server.to(sessionId).emit('receiveMessage', message);
     }
 }

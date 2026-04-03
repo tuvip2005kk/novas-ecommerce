@@ -61,12 +61,17 @@ export class TelegramService implements OnModuleInit {
             const sessionId = sessionMatch[1].trim();
             const responseText = msg.text;
 
+            this.logger.log(`Nhận được tin nhắn từ Admin cho session: ${sessionId}. Nội dung: ${responseText}`);
+
             if (this.chatGateway) {
                 // Đẩy tin nhắn qua WebSockets về web cho khách
                 this.chatGateway.sendToClient(sessionId, {
                     role: 'staff',
                     content: responseText
                 });
+                this.logger.log(`Đã đẩy tin nhắn tới khách hàng (phòng: ${sessionId})`);
+            } else {
+                this.logger.error('ChatGateway chưa được inject vào TelegramService!');
             }
         }
     }
