@@ -6,7 +6,7 @@ class ChatDto {
     history?: ChatMessage[];
 }
 
-@Controller('api/chat')
+@Controller('chat')
 export class ChatController {
     constructor(private readonly chatService: ChatService) {}
 
