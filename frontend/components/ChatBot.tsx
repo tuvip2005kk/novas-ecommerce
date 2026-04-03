@@ -99,7 +99,7 @@ export default function ChatBot() {
   return (
     <>
       {/* Nút bong bóng chat nổi */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+      <div className="fixed bottom-40 right-5 z-50 flex flex-col items-end gap-2">
         {/* Widget chat */}
         <div
           className={`transition-all duration-500 ease-in-out origin-bottom-right ${
