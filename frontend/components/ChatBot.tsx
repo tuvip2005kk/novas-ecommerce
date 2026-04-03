@@ -218,7 +218,7 @@ export default function ChatBot() {
                   )}
                 </button>
               </div>
-              <p className="text-center text-gray-400 text-[10px] mt-1.5">Powered by Gemini AI</p>
+              <p className="text-center text-gray-400 text-[10px] mt-1.5">Powered by Groq AI</p>
             </div>
           </div>
         </div>
