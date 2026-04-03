@@ -130,6 +130,15 @@ export default function AdminLiveChat() {
     setInput("");
   };
 
+  const handleEndChat = () => {
+    if (!socket || !selectedSessionId) return;
+
+    if (window.confirm("Kết thúc phiên hỗ trợ và chuyển khách hàng lại cho AI?")) {
+        socket.emit("adminEndChat", selectedSessionId);
+        // Có thể update local UI sớm hoặc đợi AdminReceiveMessage dội lại, ở đây ta đợi fetchSessions dội lại là tốt nhất.
+    }
+  };
+
   // Tự động cuộn xuống tin nhắn cuối
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -150,6 +159,8 @@ export default function AdminLiveChat() {
       return "";
     }
   };
+
+  const selectedSessionData = sessions.find(s => s.id === selectedSessionId);
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-slate-200 h-[calc(100vh-100px)] flex overflow-hidden">
@@ -236,11 +247,21 @@ export default function AdminLiveChat() {
             {/* Chat Header */}
             <div className="p-4 border-b border-slate-200 bg-white flex justify-between items-center shadow-sm z-10">
               <div>
-                <h2 className="font-bold text-slate-800">
-                  Khách hàng: {selectedSessionId.substring(0, 8)}...
-                </h2>
-                <p className="text-xs text-slate-500">ID đầy đủ: {selectedSessionId}</p>
+                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                  <UserIcon className="w-5 h-5 text-[#21246b]" />
+                  Khách hàng: {selectedSessionId.substring(0, 12)}...
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">ID đầy đủ: {selectedSessionId}</p>
               </div>
+              
+              {selectedSessionData?.status === 'HANDOFF' && (
+                <button
+                  onClick={handleEndChat}
+                  className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md text-sm font-medium transition-colors border border-red-200"
+                >
+                  Kết thúc
+                </button>
+              )}
             </div>
 
             {/* Messages Area */}
