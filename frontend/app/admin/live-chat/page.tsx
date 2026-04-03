@@ -64,7 +64,7 @@ export default function AdminLiveChat() {
 
   const fetchSessions = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/admin/chat/sessions`);
+      const res = await fetch(`${API_URL}/api/chat/admin/sessions`);
       if (res.ok) {
         const data = await res.json();
         setSessions(data);
@@ -78,7 +78,7 @@ export default function AdminLiveChat() {
 
   const fetchMessages = async (sessionId: string) => {
     try {
-      const res = await fetch(`${API_URL}/api/admin/chat/sessions/${sessionId}/messages`);
+      const res = await fetch(`${API_URL}/api/chat/admin/sessions/${sessionId}/messages`);
       if (res.ok) {
         const data = await res.json();
         setMessages(data);
