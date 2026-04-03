@@ -61,10 +61,9 @@ export class TelegramService implements OnModuleInit {
     private handleAdminReply(msg: TelegramBot.Message) {
         const adminChatId = process.env.TELEGRAM_CHAT_ID;
         
-        // Khớp pattern để lấy Session ID từ tin nhắn hệ thống gốc
-        // Pattern: "🔴 CẦN HỖ TRỢ\nSession: [id]\nKhách hàng: [message]"
+        // Khớp pattern để lấy Session ID: tìm chuỗi bắt đầu bằng session_
         const repliedText = msg.reply_to_message.text;
-        const sessionMatch = repliedText.match(/Session:\s+(.+)/);
+        const sessionMatch = repliedText.match(/(session_[a-zA-Z0-9]+)/);
         
         if (sessionMatch && sessionMatch[1]) {
             const sessionId = sessionMatch[1].trim();
@@ -94,12 +93,12 @@ export class TelegramService implements OnModuleInit {
             return;
         }
 
-        let textToSend = '';
-        if (isInitialHandoff) {
-            textToSend = `🔴 YÊU CẦU HỖ TRỢ NHÂN VIÊN\nSession: ${sessionId}\nKhách hàng: ${message}\n\n(Hãy Reply tin nhắn này để chat với khách)`;
-        } else {
-            textToSend = `🟢 Khách hàng đang nhắn:\nSession: ${sessionId}\nNội dung: ${message}\n\n(Hãy Reply tin nhắn này để dáp lại khách)`;
-        }
+        // Tạo màu sắc cố định dựa trên sessionId để nhận diện nhanh khách hàng
+        const colors = ['🔴', '🔵', '🟢', '🟡', '🟣', '🟠', '🟤', '⚫', '⚪'];
+        const charSum = sessionId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+        const colorEmoji = colors[charSum % colors.length];
+
+        const textToSend = `${colorEmoji} ${sessionId}\n${message}`;
 
         try {
             await this.bot.sendMessage(adminChatId, textToSend);
