@@ -42,6 +42,7 @@ export default function ChatBot() {
 
     newSocket.on("connect", () => {
       console.log("Chat Socket connected:", newSocket.id);
+      newSocket.emit("joinSession", currentSessionId);
     });
 
     newSocket.on("receiveMessage", (msg: Message) => {

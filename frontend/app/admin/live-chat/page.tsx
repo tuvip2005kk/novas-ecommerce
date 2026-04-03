@@ -102,18 +102,8 @@ export default function AdminLiveChat() {
       message: input.trim(),
     });
 
-    // Tin nhắn sẽ được cập nhật khi server broadcast `adminReceiveMessage`, 
-    // nhưng để cho nhanh thì push vào state luôn:
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        sessionId: selectedSessionId,
-        role: "staff",
-        content: input.trim(),
-        createdAt: new Date().toISOString(),
-      },
-    ]);
+    // Bỏ qua update state trực tiếp ở đây vì event 'adminReceiveMessage' sẽ 
+    // tự động dội lại từ phía Server giúp đồng bộ sang mọi cửa sổ Admin khác.
     
     setInput("");
   };

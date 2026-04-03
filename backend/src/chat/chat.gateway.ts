@@ -69,6 +69,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         });
     }
 
+    @SubscribeMessage('joinSession')
+    async handleJoinSession(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() sessionId: string
+    ) {
+        if (sessionId) {
+            client.join(sessionId);
+            this.logger.log(`Client ${client.id} joined session room: ${sessionId}`);
+        }
+    }
+
     @SubscribeMessage('sendMessage')
     async handleMessage(
         @ConnectedSocket() client: Socket,
@@ -81,9 +92,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
         const isHandedOff = this.handoffSessions.get(sessionId) || false;
 
-        // Lưu tin nhắn người dùng
+        // Lưu tin nhắn người dùng và broadcast tới Admin
         if (message !== '[SYSTEM:REQUEST_HANDOFF]') {
             await this.saveMessage(sessionId, 'user', message);
+            // Gửi ngay cho Admin Dashboard biết để realtime
+            this.server.to('admin_dashboard').emit('adminReceiveMessage', { 
+                sessionId, 
+                message: { role: 'user', content: message } 
+            });
         }
 
         // Xử lý cờ handoff cứng từ frontend (nếu người dùng bấm nút yêu cầu nhân viên)
@@ -141,8 +157,34 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
     }
 
+    @SubscribeMessage('adminJoin')
+    async handleAdminJoin(@ConnectedSocket() client: Socket) {
+        client.join('admin_dashboard');
+        this.logger.log(`Admin ${client.id} joined dashboard`);
+    }
+
+    @SubscribeMessage('adminSendMessage')
+    async handleAdminSendMessage(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: { sessionId: string; message: string }
+    ) {
+        const { sessionId, message } = payload;
+        
+        // Save to DB
+        await this.saveMessage(sessionId, 'staff', message);
+
+        // Send to the specific user's room
+        this.sendToClient(sessionId, { role: 'staff', content: message });
+        
+        // Broadcast back to admin dashboard so other admins see it too
+        // Actually, sendToClient already emits 'adminReceiveMessage' to 'admin_dashboard'!
+    }
+
     sendToClient(sessionId: string, message: { role: string; content: string }) {
         this.logger.log(`Gửi tin nhắn (role: ${message.role}) tới phòng: ${sessionId}`);
         this.server.to(sessionId).emit('receiveMessage', message);
+        
+        // Cập nhật cho Admin Dashboard biết có tin nhắn mới trong session này
+        this.server.to('admin_dashboard').emit('adminReceiveMessage', { sessionId, message });
     }
 }
