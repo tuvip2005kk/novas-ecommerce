@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { API_URL } from "@/config";
 import io, { Socket } from "socket.io-client";
-import { Loader2, Send, User, HeadphonesIcon, Bot } from "lucide-react";
+import { Loader2, Send, User, HeadphonesIcon, Bot, CornerUpLeft } from "lucide-react";
 
 interface ChatMessage {
   id: number;
@@ -133,10 +133,7 @@ export default function AdminLiveChat() {
   const handleEndChat = () => {
     if (!socket || !selectedSessionId) return;
 
-    if (window.confirm("Kết thúc phiên hỗ trợ và chuyển khách hàng lại cho AI?")) {
-        socket.emit("adminEndChat", selectedSessionId);
-        // Có thể update local UI sớm hoặc đợi AdminReceiveMessage dội lại, ở đây ta đợi fetchSessions dội lại là tốt nhất.
-    }
+    socket.emit("adminEndChat", selectedSessionId);
   };
 
   // Tự động cuộn xuống tin nhắn cuối
@@ -255,15 +252,6 @@ export default function AdminLiveChat() {
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">ID đầy đủ: {selectedSessionId}</p>
               </div>
-              
-              {selectedSessionData?.status === 'HANDOFF' && (
-                <button
-                  onClick={handleEndChat}
-                  className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md text-sm font-medium transition-colors border border-red-200"
-                >
-                  Kết thúc
-                </button>
-              )}
             </div>
 
             {/* Messages Area */}
@@ -311,6 +299,17 @@ export default function AdminLiveChat() {
 
             {/* Input Area */}
             <div className="p-4 bg-white border-t border-slate-200">
+              {selectedSessionData?.status === 'HANDOFF' && (
+                <div className="mb-2">
+                  <button 
+                    onClick={handleEndChat} 
+                    className="flex items-center text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
+                  >
+                    <CornerUpLeft className="w-4 h-4 mr-1.5" />
+                    Kết thúc phiên chat
+                  </button>
+                </div>
+              )}
               <div className="flex gap-2">
                 <input
                   type="text"
