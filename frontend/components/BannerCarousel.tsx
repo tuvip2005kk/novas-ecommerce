@@ -122,11 +122,13 @@ export function BannerCarousel({ initialBanners }: BannerCarouselProps = {}) {
                             <p className="text-lg md:text-xl text-white/90 max-w-xl mx-auto">
                                 {slide.description}
                             </p>
-                            <Link href={slide.link || "/products"}>
-                                <Button size="lg" className="bg-white text-slate-900 hover:bg-white/90 text-sm md:text-base">
-                                    {slide.cta || "Khám Phá"}
-                                </Button>
-                            </Link>
+                            <div className="opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
+                                <Link href={slide.link || "/products"}>
+                                    <Button size="lg" className="bg-white text-slate-900 hover:bg-white/90 text-sm md:text-base mb-2">
+                                        {slide.cta || "Khám Phá"}
+                                    </Button>
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>

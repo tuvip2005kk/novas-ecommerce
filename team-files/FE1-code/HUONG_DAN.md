@@ -70,7 +70,7 @@ copy "postcss.config.js" "frontend/"
 ### Bước 4: Add, commit và push
 ```bash
 git add -A
-git commit -m "ngay 1"
+git commit -m "ncggdg"
 git push origin main
 ```
 

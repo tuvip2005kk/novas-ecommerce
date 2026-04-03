@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "image": "https://res.cloudinary.com/danzj0tr5/image/upload/v1772692917/novas-ecommerce/1772692916502-Thu-ruc-ro-1900x800-1.jpg.jpg",
+    "title": "   ",
+    "description": "    ",
+    "link": "",
+    "cta": "Xem Chi Tiết",
+    "pageType": "homepage",
+    "categorySlug": null,
+    "sortOrder": 1,
+    "isActive": true,
+    "createdAt": "2026-03-04T08:19:12.942Z",
+    "updatedAt": "2026-03-05T06:41:59.667Z"
+  }
+]
