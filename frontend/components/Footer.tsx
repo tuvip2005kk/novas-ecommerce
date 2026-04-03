@@ -158,31 +158,17 @@ export default function Footer() {
                 </div>
             </div>
 
-            {/* Fixed Buttons */}
-            <div className="fixed right-4 bottom-4 flex flex-col gap-3 z-50">
-                <a
-                    href="https://m.me/61577455030584"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-                >
-                    <img src="https://enic.vn/wp-content/uploads/2024/07/mememe.png" alt="Messenger" className="w-7 h-7" />
-                </a>
-                <a
-                    href="tel:18008149"
-                    className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform animate-pulse"
-                >
-                    <Phone className="w-6 h-6" />
-                </a>
-                {showBackTop && (
+            {/* Back to Top Button */}
+            {showBackTop && (
+                <div className="fixed right-4 bottom-4 z-40">
                     <button
                         onClick={scrollToTop}
                         className="w-12 h-12 bg-[#21246b] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
                     >
                         <ChevronUp className="w-6 h-6" />
                     </button>
-                )}
-            </div>
+                </div>
+            )}
         </footer>
     );
 }
