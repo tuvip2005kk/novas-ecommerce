@@ -184,7 +184,8 @@ export default function AdminLiveChat() {
             <div className="divide-y divide-slate-100">
               {sessions.map((session) => {
                 const latestMsg = session.messages?.[0];
-                const isUnread = latestMsg && latestMsg.role === 'user' && readItems[session.id] !== latestMsg.id;
+                // Tính là chưa đọc nếu có tin nhắn mới nhất, khác với id đã lưu, VÀ tin đó không phải do chính Admin (staff) gửi.
+                const isUnread = latestMsg && readItems[session.id] !== latestMsg.id && latestMsg.role !== 'staff';
                 const isSelected = selectedSessionId === session.id;
 
                 let cardBgClass = "bg-slate-50 hover:bg-slate-100"; // Đã xem (Read)
@@ -217,7 +218,8 @@ export default function AdminLiveChat() {
                       {latestMsg && (
                         <p className={`text-xs truncate flex-1 ${isUnread ? "text-slate-800 font-medium" : "text-slate-500"}`}>
                           {latestMsg.role === 'staff' ? 'Bạn: ' : 
-                           latestMsg.role === 'model' ? 'AI: ' : 'Khách: '}
+                           latestMsg.role === 'model' ? 'AI: ' : 
+                           latestMsg.role === 'system' ? 'Hệ thống: ' : 'Khách: '}
                           {latestMsg.content.substring(0, 40)}
                         </p>
                       )}
@@ -248,7 +250,7 @@ export default function AdminLiveChat() {
             <div className="p-4 border-b border-slate-200 bg-white flex justify-between items-center shadow-sm z-10">
               <div>
                 <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                  <UserIcon className="w-5 h-5 text-[#21246b]" />
+                  <User className="w-5 h-5 text-[#21246b]" />
                   Khách hàng: {selectedSessionId.substring(0, 12)}...
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">ID đầy đủ: {selectedSessionId}</p>
