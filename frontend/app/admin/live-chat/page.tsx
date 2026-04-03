@@ -134,6 +134,12 @@ export default function AdminLiveChat() {
     if (!socket || !selectedSessionId) return;
 
     socket.emit("adminEndChat", selectedSessionId);
+    
+    // Chờ server xử lý xong rồi fecth lại tin nhắn để thấy thông báo "Kết thúc"
+    setTimeout(() => {
+      fetchMessages(selectedSessionId);
+      fetchSessions();
+    }, 500);
   };
 
   // Tự động cuộn xuống tin nhắn cuối
@@ -185,13 +191,11 @@ export default function AdminLiveChat() {
                 const isUnread = latestMsg && readItems[session.id] !== latestMsg.id && latestMsg.role !== 'staff';
                 const isSelected = selectedSessionId === session.id;
 
-                let cardBgClass = "bg-slate-50 hover:bg-slate-100"; // Đã xem (Read)
+                let cardBgClass = "bg-slate-50 hover:bg-slate-100 border-l-[3px] border-transparent"; // Đã xem (Read)
                 if (isSelected) {
-                    cardBgClass = "bg-slate-100 border-l-4 border-[#21246b]"; // Đang Focus
+                    cardBgClass = "bg-slate-100 border-l-[3px] border-[#21246b]"; // Đang Focus
                 } else if (isUnread) {
-                    cardBgClass = "bg-white border-l-4 border-transparent shadow-sm relative"; // Chưa xem (Unread)
-                } else {
-                    cardBgClass += " border-l-4 border-transparent opacity-80 cursor-pointer";
+                    cardBgClass = "bg-white border-l-[3px] border-transparent shadow-sm relative"; // Chưa xem (Unread)
                 }
 
                 return (
