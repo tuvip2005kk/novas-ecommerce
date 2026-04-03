@@ -93,7 +93,16 @@ export function BannerCarousel({ initialBanners }: BannerCarouselProps = {}) {
     };
 
     return (
-        <div className="relative w-full aspect-[4/3] md:aspect-[21/9] overflow-hidden bg-slate-900 group">
+        <div className="relative w-full overflow-hidden bg-slate-900 group">
+            {/* Ảnh mỏ neo ẩn để khung tự động kéo theo đúng tỉ lệ ảnh thực tế của slide hiện tại, không còn bị cắt xén */}
+            {slides.length > 0 && (
+                <img 
+                    src={getImageUrl(slides[current]?.image)} 
+                    className="w-full h-auto invisible block" 
+                    alt="anchor" 
+                />
+            )}
+
             {/* Slides */}
             {slides.map((slide, index) => (
                 <div
@@ -103,7 +112,7 @@ export function BannerCarousel({ initialBanners }: BannerCarouselProps = {}) {
                 >
                     {/* Background Image */}
                     <div
-                        className="absolute inset-0 bg-cover bg-top transition-transform duration-[10000ms] ease-linear"
+                        className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] ease-linear"
                         style={{
                             backgroundImage: `url(${getImageUrl(slide.image)})`,
                             transform: index === current ? "scale(1.05)" : "scale(1)"
