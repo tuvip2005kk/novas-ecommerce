@@ -162,7 +162,7 @@ function CheckoutContent() {
                             <div className="flex items-center gap-3">
                                 <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
                                 <span className="text-slate-700">Mã <strong className="font-mono text-[#21246b]">{couponCode}</strong> đã áp dụng</span>
-                                <span className="ml-auto text-green-600 font-semibold">-{new Intl.NumberFormat('vi-VN').format(discountAmount)}đ</span>
+                                <span className="ml-auto text-red-600 font-semibold">-{new Intl.NumberFormat('vi-VN').format(discountAmount)}đ</span>
                                 <button onClick={removeCoupon} className="text-slate-400 hover:text-red-500 text-sm ml-2">Xóa</button>
                             </div>
                         ) : (
@@ -231,7 +231,7 @@ function CheckoutContent() {
                                 </div>
 
                                 {discountAmount > 0 && (
-                                    <div className="flex justify-between text-sm py-3 border-b border-slate-300 text-green-600">
+                                    <div className="flex justify-between text-sm py-3 border-b border-slate-300 text-red-600">
                                         <span className="flex items-center gap-1">
                                             <Tag className="w-3.5 h-3.5" />
                                             Giảm giá ({couponCode})

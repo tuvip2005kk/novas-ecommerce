@@ -271,7 +271,10 @@ export default function SlugPage() {
 
     // Render Product Detail Page
     if (pageType === 'product' && product) {
-        const reviewCount = product.reviews?.length || 8;
+        const reviewCount = product.reviews?.length || 0;
+        const avgRating = reviewCount > 0
+            ? (product.reviews || []).reduce((acc, r) => acc + r.rating, 0) / reviewCount
+            : 0;
 
         // Use real images from database, fallback to main image if empty
         const extraImages = Array.isArray(product.images) ? product.images : [];
@@ -431,25 +434,23 @@ export default function SlugPage() {
                                     {product.name}
                                 </h1>
 
-                                {/* Rating */}
+                                {/* Rating - chỉ hiện nếu có đánh giá */}
+                                {reviewCount > 0 && (
                                 <div className="flex items-center gap-2 mb-4">
                                     <div className="flex">
                                         {[...Array(5)].map((_, i) => (
-                                            <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                                            <Star key={i} className={`w-5 h-5 ${i < Math.round(avgRating) ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} />
                                         ))}
                                     </div>
                                     <span className="text-sm text-slate-500">({reviewCount} đánh giá)</span>
                                 </div>
+                                )}
 
-                                {/* Price */}
+                                {/* Price - không có giảm giá fix cứng */}
                                 <div className="flex items-center gap-3 mb-6">
-                                    <span className="text-sm text-slate-400 line-through">
-                                        {new Intl.NumberFormat('vi-VN').format(product.price * 1.3)} đ
-                                    </span>
                                     <span className="text-xl font-bold text-[#21246b]">
                                         {new Intl.NumberFormat('vi-VN').format(product.price)} đ
                                     </span>
-                                    <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">-30%</span>
                                 </div>
 
                                 <div className="mb-6">
@@ -545,7 +546,7 @@ export default function SlugPage() {
                                     {[5, 4, 3, 2, 1].map((star) => {
                                         const count = product.reviews?.filter(r => r.rating === star).length || 0;
                                         const total = product.reviews?.length || 0;
-                                        const percent = total > 0 ? (count / total) * 100 : (star === 5 ? 100 : 0); // Fake 100% for 5 stars if no reviews to look good implies quality
+                                        const percent = total > 0 ? (count / total) * 100 : 0;
 
                                         return (
                                             <div key={star} className="flex items-center gap-3 text-sm">
@@ -597,7 +598,7 @@ export default function SlugPage() {
                                                     <button className="flex items-center gap-1 hover:text-blue-600">
                                                         👍 Thích
                                                     </button>
-                                                    <span>{new Date(review.createdAt).toLocaleDateString('vi-VN')}</span>
+                                                    <span>{new Date(review.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -648,18 +649,9 @@ function ProductCard({ product, categorySlug }: { product: Product; categorySlug
                     {product.name}
                 </h4>
 
-                <div className="flex items-center gap-1 mb-3">
-                    {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                    ))}
-                </div>
-
                 <div className="flex items-center gap-2 mb-3">
                     <span className="text-[#21246b] font-bold text-xl">
                         {new Intl.NumberFormat('vi-VN').format(product.price)}đ
-                    </span>
-                    <span className="text-sm text-slate-400 line-through">
-                        {new Intl.NumberFormat('vi-VN').format(product.price * 1.3)}đ
                     </span>
                 </div>
 

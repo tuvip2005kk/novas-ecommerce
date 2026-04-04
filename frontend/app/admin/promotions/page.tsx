@@ -202,10 +202,16 @@ export default function AdminSales() {
                                     <label className="text-sm font-medium">Ngày hết hạn</label>
                                     <input
                                         type="date"
+                                        lang="vi-VN"
                                         value={form.expiresAt}
                                         onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
                                         className="w-full mt-1 px-4 py-2 border rounded-lg"
                                     />
+                                    {form.expiresAt && (
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            Ngày chọn: {new Date(form.expiresAt + 'T00:00:00').toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                        </p>
+                                    )}
                                 </div>
                                 <Button type="submit" className="w-full bg-[#21246b] hover:bg-[#1a1d55]" disabled={saving}>
                                     {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
