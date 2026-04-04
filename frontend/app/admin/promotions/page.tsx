@@ -33,10 +33,7 @@ export default function AdminSales() {
         minOrder: '',
         maxDiscount: '',
         usageLimit: '100',
-        expiresAt: '',
-        dateDay: '',
-        dateMonth: '',
-        dateYear: ''
+        expiresAt: ''
     });
 
     useEffect(() => { fetchSales(); }, [token]);
@@ -73,13 +70,18 @@ export default function AdminSales() {
                     minOrder: parseFloat(form.minOrder) || 0,
                     maxDiscount: form.maxDiscount ? parseFloat(form.maxDiscount) : null,
                     usageLimit: parseInt(form.usageLimit),
-                    expiresAt: (form.dateDay && form.dateMonth && form.dateYear)
-                        ? new Date(`${form.dateYear}-${form.dateMonth.padStart(2,'0')}-${form.dateDay.padStart(2,'0')}T00:00:00`).toISOString()
-                        : null
+                    expiresAt: (() => {
+                        if (!form.expiresAt) return null;
+                        const parts = form.expiresAt.split('/');
+                        if (parts.length === 3) {
+                            return new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}T00:00:00`).toISOString();
+                        }
+                        return null;
+                    })()
                 })
             });
             setShowModal(false);
-            setForm({ code: '', discount: '', type: 'PERCENT', minOrder: '', maxDiscount: '', usageLimit: '100', expiresAt: '', dateDay: '', dateMonth: '', dateYear: '' });
+            setForm({ code: '', discount: '', type: 'PERCENT', minOrder: '', maxDiscount: '', usageLimit: '100', expiresAt: '' });
             fetchSales();
         } finally {
             setSaving(false);
@@ -204,40 +206,14 @@ export default function AdminSales() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium">Ngày hết hạn</label>
-                                    <div className="flex gap-2 mt-1">
-                                        <input
-                                            type="number"
-                                            placeholder="DD"
-                                            min={1} max={31}
-                                            value={form.dateDay}
-                                            onChange={(e) => setForm({ ...form, dateDay: e.target.value })}
-                                            className="w-16 px-2 py-2 border rounded-lg text-center"
-                                        />
-                                        <span className="self-center text-slate-400">/</span>
-                                        <input
-                                            type="number"
-                                            placeholder="MM"
-                                            min={1} max={12}
-                                            value={form.dateMonth}
-                                            onChange={(e) => setForm({ ...form, dateMonth: e.target.value })}
-                                            className="w-16 px-2 py-2 border rounded-lg text-center"
-                                        />
-                                        <span className="self-center text-slate-400">/</span>
-                                        <input
-                                            type="number"
-                                            placeholder="YYYY"
-                                            min={2024} max={2099}
-                                            value={form.dateYear}
-                                            onChange={(e) => setForm({ ...form, dateYear: e.target.value })}
-                                            className="flex-1 px-2 py-2 border rounded-lg text-center"
-                                        />
-                                    </div>
-                                    {form.dateDay && form.dateMonth && form.dateYear && (
-                                        <p className="text-xs text-slate-400 mt-1">
-                                            Hết hạn: {form.dateDay.padStart(2,'0')}/{form.dateMonth.padStart(2,'0')}/{form.dateYear}
-                                        </p>
-                                    )}
+                                    <label className="text-sm font-medium">Ngày hết hạn (Tuỳ chọn)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="dd/mm/yyyy"
+                                        value={form.expiresAt}
+                                        onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
+                                        className="w-full mt-1 px-4 py-2 border rounded-lg"
+                                    />
                                 </div>
                                 <Button type="submit" className="w-full bg-[#21246b] hover:bg-[#1a1d55]" disabled={saving}>
                                     {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
