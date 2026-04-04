@@ -125,8 +125,8 @@ export default function ChatBot() {
   return (
     <>
       {/* Nút bong bóng chat nổi */}
-      <div className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 flex flex-col items-end gap-2 z-30`}>
-        {/* Widget chat */}
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 flex flex-col items-end gap-2 z-30 pointer-events-none">
+        {/* Widget chat - chỉ bắt click khi đang mở */}
         <div
           className={`pointer-events-auto transition-all duration-500 ease-in-out origin-bottom-right ${
             isOpen
