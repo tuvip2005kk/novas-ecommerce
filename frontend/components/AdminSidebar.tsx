@@ -37,6 +37,7 @@ const otherItems = [
     { href: '/admin/categories', icon: FolderTree, label: 'Danh mục' },
     { href: '/admin/products', icon: Package, label: 'Sản phẩm' },
     { href: '/admin/orders', icon: ShoppingCart, label: 'Đơn hàng' },
+    { href: '/admin/promotions', icon: Tag, label: 'Khuyến mãi' },
     { href: '/admin/users', icon: Users, label: 'Người dùng' },
     { href: '/admin/reviews', icon: Star, label: 'Đánh giá' },
 ];
