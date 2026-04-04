@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { PaymentQR } from "@/components/PaymentQR";
-import { ArrowLeft, CheckCircle2, CreditCard, Loader2, Smartphone, Tag } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Tag } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
@@ -26,10 +26,12 @@ function CheckoutContent() {
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [order, setOrder] = useState<any>(null);
-    const [discountCode, setDiscountCode] = useState("");
-    const [discount, setDiscount] = useState(0);
+    const [couponCode, setCouponCode] = useState("");
+    const [couponInput, setCouponInput] = useState("");
+    const [couponLoading, setCouponLoading] = useState(false);
+    const [couponError, setCouponError] = useState("");
+    const [discountAmount, setDiscountAmount] = useState(0);
 
-    // Redirect unauthenticated users to login
     useEffect(() => {
         if (!isLoading && !user) {
             router.replace('/login');
@@ -44,37 +46,54 @@ function CheckoutContent() {
         }
     }, [productId, isCartMode]);
 
-    // Show spinner while auth is loading or user is not yet confirmed
     if (isLoading || !user) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#21246b]"></div>
             </div>
         );
     }
 
-    const applyDiscount = () => {
-        if (discountCode.toUpperCase() === "GIAM10") {
-            setDiscount(10);
-        } else if (discountCode.toUpperCase() === "GIAM20") {
-            setDiscount(20);
-        } else {
-            alert("Mã giảm giá không hợp lệ!");
-            setDiscount(0);
+    const subtotal = isCartMode ? cartTotal : (product?.price || 0) * quantity;
+    const total = Math.max(0, subtotal - discountAmount);
+
+    const applyCoupon = async () => {
+        if (!couponInput.trim()) return;
+        setCouponLoading(true);
+        setCouponError("");
+        try {
+            const res = await fetch(`${API_URL}/api/sales/apply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: couponInput.trim(), orderTotal: subtotal }),
+            });
+            const data = await res.json();
+            if (data.valid) {
+                setCouponCode(couponInput.trim().toUpperCase());
+                setDiscountAmount(data.sale.discountAmount);
+            } else {
+                setCouponError(data.error || "Mã giảm giá không hợp lệ");
+                setCouponCode("");
+                setDiscountAmount(0);
+            }
+        } catch {
+            setCouponError("Lỗi kết nối. Vui lòng thử lại.");
+        } finally {
+            setCouponLoading(false);
         }
     };
 
-    // Calculate totals based on mode
-    const subtotal = isCartMode ? cartTotal : (product?.price || 0) * quantity;
-    const discountAmount = subtotal * discount / 100;
-    const total = subtotal - discountAmount;
+    const removeCoupon = () => {
+        setCouponCode("");
+        setCouponInput("");
+        setDiscountAmount(0);
+        setCouponError("");
+    };
 
     const handleCreateOrder = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-
         try {
-            // Build items array based on mode
             const orderItems = isCartMode
                 ? cartItems.map(item => ({ productId: item.id, quantity: item.quantity }))
                 : [{ productId: parseInt(productId as string), quantity }];
@@ -89,17 +108,13 @@ function CheckoutContent() {
                     customerAddress: (e.target as any).address.value,
                     note: (e.target as any).note.value,
                     userId: user?.id || null,
-                    saleCode: discountCode || null,
+                    saleCode: couponCode || null,
                     discount: discountAmount,
                 }),
             });
             const data = await res.json();
             setOrder(data);
-
-            // Clear cart if in cart mode
-            if (isCartMode) {
-                clearCart();
-            }
+            if (isCartMode) clearCart();
         } catch (err) {
             console.error(err);
         } finally {
@@ -108,7 +123,6 @@ function CheckoutContent() {
     };
 
     if (order) {
-        // Payment Step - Using PaymentQR Component
         return (
             <>
                 <Header />
@@ -116,11 +130,8 @@ function CheckoutContent() {
                     <div className="container mx-auto px-4 max-w-lg">
                         <PaymentQR
                             orderId={order.id}
-                            onPaymentSuccess={() => {
-                                // Có thể redirect hoặc hiển thị thông báo
-                            }}
+                            onPaymentSuccess={() => {}}
                         />
-
                         <div className="mt-6 flex gap-4">
                             <Link href="/" className="flex-1">
                                 <Button variant="outline" className="w-full">Về trang chủ</Button>
@@ -145,17 +156,34 @@ function CheckoutContent() {
                         <ArrowLeft className="mr-2 h-4 w-4" /> Tiếp tục mua sắm
                     </Link>
 
-                    {/* Discount Code Banner */}
-                    <div className="mb-6 p-4 bg-white rounded-lg border flex items-center gap-4">
-                        <span className="text-slate-600">Bạn có mã giảm giá?</span>
-                        <input
-                            value={discountCode}
-                            onChange={(e) => setDiscountCode(e.target.value)}
-                            placeholder="Nhập mã giảm giá"
-                            className="flex-1 h-10 px-4 border text-sm"
-                        />
-                        <Button onClick={applyDiscount} variant="outline">Áp dụng</Button>
-                        {discount > 0 && <span className="text-green-600 font-medium">-{discount}%</span>}
+                    {/* Coupon Input */}
+                    <div className="mb-6 p-4 bg-white rounded-lg border">
+                        {couponCode ? (
+                            <div className="flex items-center gap-3">
+                                <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                                <span className="text-slate-700">Mã <strong className="font-mono text-[#21246b]">{couponCode}</strong> đã áp dụng</span>
+                                <span className="ml-auto text-green-600 font-semibold">-{new Intl.NumberFormat('vi-VN').format(discountAmount)}đ</span>
+                                <button onClick={removeCoupon} className="text-slate-400 hover:text-red-500 text-sm ml-2">Xóa</button>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                                <Tag className="w-5 h-5 text-slate-400 flex-shrink-0 hidden sm:block" />
+                                <span className="text-slate-600 text-sm whitespace-nowrap">Bạn có mã giảm giá?</span>
+                                <div className="flex gap-2 flex-1 w-full">
+                                    <input
+                                        value={couponInput}
+                                        onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(""); }}
+                                        onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
+                                        placeholder="Nhập mã giảm giá"
+                                        className="flex-1 h-10 px-4 border text-sm rounded"
+                                    />
+                                    <Button onClick={applyCoupon} variant="outline" disabled={couponLoading} className="whitespace-nowrap">
+                                        {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Áp dụng'}
+                                    </Button>
+                                </div>
+                                {couponError && <p className="text-red-500 text-sm w-full sm:pl-10">{couponError}</p>}
+                            </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -187,24 +215,34 @@ function CheckoutContent() {
                                     cartItems.map(item => (
                                         <div key={item.id} className="flex justify-between text-sm pb-2">
                                             <span className="flex-1 pr-4">{item.name} <span className="text-[#21246b]">× {item.quantity}</span></span>
-                                            <span className="font-medium">{new Intl.NumberFormat('vi-VN').format(item.price * item.quantity)} đ</span>
+                                            <span className="font-medium">{new Intl.NumberFormat('vi-VN').format(item.price * item.quantity)}đ</span>
                                         </div>
                                     ))
                                 ) : product && (
                                     <div className="flex justify-between text-sm pb-4 border-b border-slate-300">
                                         <span className="flex-1 pr-4">{product.name} <span className="text-[#21246b]">× {quantity}</span></span>
-                                        <span className="font-medium">{new Intl.NumberFormat('vi-VN').format(subtotal)} đ</span>
+                                        <span className="font-medium">{new Intl.NumberFormat('vi-VN').format(subtotal)}đ</span>
                                     </div>
                                 )}
 
                                 <div className="flex justify-between text-sm py-3 border-b border-slate-300">
                                     <span>Tạm tính</span>
-                                    <span>{new Intl.NumberFormat('vi-VN').format(subtotal)} đ</span>
+                                    <span>{new Intl.NumberFormat('vi-VN').format(subtotal)}đ</span>
                                 </div>
+
+                                {discountAmount > 0 && (
+                                    <div className="flex justify-between text-sm py-3 border-b border-slate-300 text-green-600">
+                                        <span className="flex items-center gap-1">
+                                            <Tag className="w-3.5 h-3.5" />
+                                            Giảm giá ({couponCode})
+                                        </span>
+                                        <span className="font-semibold">-{new Intl.NumberFormat('vi-VN').format(discountAmount)}đ</span>
+                                    </div>
+                                )}
 
                                 <div className="flex justify-between font-bold py-3 border-b border-slate-300">
                                     <span>Tổng cộng</span>
-                                    <span className="text-[#21246b]">{new Intl.NumberFormat('vi-VN').format(total)} đ</span>
+                                    <span className="text-[#21246b]">{new Intl.NumberFormat('vi-VN').format(total)}đ</span>
                                 </div>
 
                                 <div className="py-4 text-sm">
@@ -233,7 +271,7 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
     return (
-        <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#21246b]"></div></div>}>
             <CheckoutContent />
         </Suspense>
     );

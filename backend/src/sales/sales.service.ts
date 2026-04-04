@@ -58,7 +58,7 @@ export class SalesService {
         }
 
         if (orderTotal < sale.minOrder) {
-            return { valid: false, error: `Đơn hàng tối thiểu ${sale.minOrder}$ để sử dụng mã này` };
+            return { valid: false, error: `Đơn hàng tối thiểu ${new Intl.NumberFormat('vi-VN').format(sale.minOrder)}đ để sử dụng mã này` };
         }
 
         let discountAmount = 0;

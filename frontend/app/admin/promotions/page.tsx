@@ -150,7 +150,7 @@ export default function AdminSales() {
                                             className="w-full mt-1 px-4 py-2 border rounded-lg"
                                         >
                                             <option value="PERCENT">Phần trăm (%)</option>
-                                            <option value="FIXED">Số tiền cố định ($)</option>
+                                            <option value="FIXED">Số tiền cố định (đ)</option>
                                         </select>
                                     </div>
                                 </div>
@@ -166,7 +166,7 @@ export default function AdminSales() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium">Giảm tối đa ($)</label>
+                                        <label className="text-sm font-medium">Giảm tối đa (đ)</label>
                                         <input
                                             type="number"
                                             value={form.maxDiscount}
@@ -178,7 +178,7 @@ export default function AdminSales() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-sm font-medium">Đơn tối thiểu ($)</label>
+                                        <label className="text-sm font-medium">Đơn tối thiểu (đ)</label>
                                         <input
                                             type="number"
                                             value={form.minOrder}
@@ -244,13 +244,15 @@ export default function AdminSales() {
                                         </td>
                                         <td className="py-4">
                                             <span className="flex items-center gap-1">
-                                                {s.type === 'PERCENT' ? <Percent className="h-4 w-4" /> : '$'}
-                                                {s.discount}{s.type === 'PERCENT' ? '%' : ''}
+                                                {s.type === 'PERCENT' ? <Percent className="h-4 w-4" /> : null}
+                                                {s.type === 'PERCENT'
+                                                  ? `${s.discount}%`
+                                                  : `${new Intl.NumberFormat('vi-VN').format(s.discount)}đ`}
                                             </span>
-                                            {s.maxDiscount && <span className="text-xs text-slate-500 font-normal">Tối đa ${s.maxDiscount}</span>}
+                                            {s.maxDiscount && <span className="text-xs text-slate-500 font-normal">Tối đa {new Intl.NumberFormat('vi-VN').format(s.maxDiscount)}đ</span>}
                                         </td>
                                         <td className="py-4 text-sm text-slate-500 font-normal">
-                                            {s.minOrder > 0 && <p>Đơn tối thiểu: ${s.minOrder}</p>}
+                                            {s.minOrder > 0 && <p>Đơn tối thiểu: {new Intl.NumberFormat('vi-VN').format(s.minOrder)}đ</p>}
                                             {s.expiresAt && <p>Hết hạn: {new Date(s.expiresAt).toLocaleDateString('vi-VN')}</p>}
                                         </td>
                                         <td className="py-4">{s.usedCount}/{s.usageLimit}</td>

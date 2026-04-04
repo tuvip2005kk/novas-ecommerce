@@ -1,24 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { SalesService } from '../sales/sales.service';
 
 @Injectable()
 export class OrdersService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private salesService: SalesService,
+    ) { }
 
     async create(createOrderDto: CreateOrderDto) {
-        const { items, customerName, customerPhone, customerAddress, note, userId } = createOrderDto;
+        const { items, customerName, customerPhone, customerAddress, note, userId, saleCode, discount } = createOrderDto;
 
-        // Calculate total price
-        let total = 0;
+        // Tính tổng giá trước giảm
+        let subtotal = 0;
         for (const item of items) {
             const product = await this.prisma.product.findUnique({ where: { id: item.productId } });
             if (product) {
-                total += product.price * item.quantity;
+                subtotal += product.price * item.quantity;
             }
         }
 
-        // Create Order with userId
+        // Tính tổng sau giảm giá
+        const discountAmount = discount || 0;
+        const total = Math.max(0, subtotal - discountAmount);
+
+        // Tạo đơn hàng
         const order = await this.prisma.order.create({
             data: {
                 total,
@@ -39,12 +47,21 @@ export class OrdersService {
             include: { items: true },
         });
 
-        // Update Payment Content
+        // Cập nhật paymentContent
         const paymentContent = `DH${order.id}`;
         await this.prisma.order.update({
             where: { id: order.id },
             data: { paymentContent }
         });
+
+        // Tăng usedCount nếu có mã giảm giá
+        if (saleCode) {
+            try {
+                await this.salesService.incrementUsage(saleCode);
+            } catch (e) {
+                console.warn(`[OrdersService] Could not increment usage for code ${saleCode}:`, e.message);
+            }
+        }
 
         return { ...order, paymentContent };
     }
@@ -67,10 +84,8 @@ export class OrdersService {
     }
 
     async updateStatus(id: number, status: string) {
-        // Các trạng thái hoàn thành
         const COMPLETED_STATUSES = ['Đã giao thành công', 'Đã giao', 'Hoàn thành'];
 
-        // Get current order to check previous status
         const currentOrder = await this.prisma.order.findUnique({
             where: { id },
             include: { items: true }
@@ -80,15 +95,12 @@ export class OrdersService {
             throw new Error('Order not found');
         }
 
-        // Update order status
         const order = await this.prisma.order.update({
             where: { id },
             data: { status },
             include: { items: true }
         });
 
-        // Nếu chuyển sang trạng thái hoàn thành và trước đó chưa hoàn thành
-        // → Cộng soldCount cho từng sản phẩm
         if (COMPLETED_STATUSES.includes(status) && !COMPLETED_STATUSES.includes(currentOrder.status)) {
             for (const item of order.items) {
                 await this.prisma.product.update({
@@ -96,7 +108,6 @@ export class OrdersService {
                     data: { soldCount: { increment: item.quantity } }
                 });
             }
-            console.log(`[OrdersService] Order #${id} completed. soldCount incremented for ${order.items.length} products.`);
         }
 
         return order;

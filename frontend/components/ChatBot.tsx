@@ -125,7 +125,7 @@ export default function ChatBot() {
   return (
     <>
       {/* Nút bong bóng chat nổi */}
-      <div className={`fixed bottom-20 right-5 flex flex-col items-end gap-2 ${isOpen ? 'z-40' : 'z-40 pointer-events-none'}`}>
+      <div className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 flex flex-col items-end gap-2 z-30`}>
         {/* Widget chat */}
         <div
           className={`pointer-events-auto transition-all duration-500 ease-in-out origin-bottom-right ${
@@ -134,7 +134,7 @@ export default function ChatBot() {
               : "opacity-0 scale-95 translate-y-4 pointer-events-none"
           }`}
         >
-          <div className="w-[360px] h-[520px] bg-white rounded-sm shadow-2xl flex flex-col overflow-hidden border border-gray-100">
+          <div className="w-[min(360px,_calc(100vw-2rem))] h-[520px] bg-white rounded-sm shadow-2xl flex flex-col overflow-hidden border border-gray-100">
             {/* Header */}
             <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">

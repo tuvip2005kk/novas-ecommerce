@@ -31,6 +31,14 @@ export class CreateOrderDto {
     @IsString()
     note?: string;
 
+    @IsOptional()
+    @IsString()
+    saleCode?: string;
+
+    @IsOptional()
+    @IsNumber()
+    discount?: number;
+
     @IsNotEmpty()
     @IsArray()
     items: OrderItemDto[];
