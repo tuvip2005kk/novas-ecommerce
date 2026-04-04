@@ -126,15 +126,10 @@ export default function ChatBot() {
     <>
       {/* Nút bong bóng chat nổi */}
       <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 flex flex-col items-end gap-2 z-30 pointer-events-none">
-        {/* Widget chat - chỉ bắt click khi đang mở */}
-        <div
-          className={`pointer-events-auto transition-all duration-500 ease-in-out origin-bottom-right ${
-            isOpen
-              ? "opacity-100 scale-100 translate-y-0"
-              : "opacity-0 scale-95 translate-y-4 pointer-events-none"
-          }`}
-        >
-          <div className="w-[min(360px,_calc(100vw-2rem))] h-[520px] bg-white rounded-sm shadow-2xl flex flex-col overflow-hidden border border-gray-100">
+        {/* Widget chat - chỉ render + bắt click khi đang mở */}
+        {isOpen && (
+          <div className="pointer-events-auto animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="w-[min(360px,_calc(100vw-2rem))] h-[520px] bg-white rounded-sm shadow-2xl flex flex-col overflow-hidden border border-gray-100">
             {/* Header */}
             <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -266,6 +261,7 @@ export default function ChatBot() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Nút mở/đóng chat - luôn clickable */}
         <button
