@@ -33,7 +33,10 @@ export default function AdminSales() {
         minOrder: '',
         maxDiscount: '',
         usageLimit: '100',
-        expiresAt: ''
+        expiresAt: '',
+        dateDay: '',
+        dateMonth: '',
+        dateYear: ''
     });
 
     useEffect(() => { fetchSales(); }, [token]);
@@ -70,11 +73,13 @@ export default function AdminSales() {
                     minOrder: parseFloat(form.minOrder) || 0,
                     maxDiscount: form.maxDiscount ? parseFloat(form.maxDiscount) : null,
                     usageLimit: parseInt(form.usageLimit),
-                    expiresAt: form.expiresAt || null
+                    expiresAt: (form.dateDay && form.dateMonth && form.dateYear)
+                        ? new Date(`${form.dateYear}-${form.dateMonth.padStart(2,'0')}-${form.dateDay.padStart(2,'0')}T00:00:00`).toISOString()
+                        : null
                 })
             });
             setShowModal(false);
-            setForm({ code: '', discount: '', type: 'PERCENT', minOrder: '', maxDiscount: '', usageLimit: '100', expiresAt: '' });
+            setForm({ code: '', discount: '', type: 'PERCENT', minOrder: '', maxDiscount: '', usageLimit: '100', expiresAt: '', dateDay: '', dateMonth: '', dateYear: '' });
             fetchSales();
         } finally {
             setSaving(false);
@@ -200,16 +205,37 @@ export default function AdminSales() {
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium">Ngày hết hạn</label>
-                                    <input
-                                        type="date"
-                                        lang="vi-VN"
-                                        value={form.expiresAt}
-                                        onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
-                                        className="w-full mt-1 px-4 py-2 border rounded-lg"
-                                    />
-                                    {form.expiresAt && (
-                                        <p className="text-xs text-slate-500 mt-1">
-                                            Ngày chọn: {new Date(form.expiresAt + 'T00:00:00').toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                    <div className="flex gap-2 mt-1">
+                                        <input
+                                            type="number"
+                                            placeholder="DD"
+                                            min={1} max={31}
+                                            value={form.dateDay}
+                                            onChange={(e) => setForm({ ...form, dateDay: e.target.value })}
+                                            className="w-16 px-2 py-2 border rounded-lg text-center"
+                                        />
+                                        <span className="self-center text-slate-400">/</span>
+                                        <input
+                                            type="number"
+                                            placeholder="MM"
+                                            min={1} max={12}
+                                            value={form.dateMonth}
+                                            onChange={(e) => setForm({ ...form, dateMonth: e.target.value })}
+                                            className="w-16 px-2 py-2 border rounded-lg text-center"
+                                        />
+                                        <span className="self-center text-slate-400">/</span>
+                                        <input
+                                            type="number"
+                                            placeholder="YYYY"
+                                            min={2024} max={2099}
+                                            value={form.dateYear}
+                                            onChange={(e) => setForm({ ...form, dateYear: e.target.value })}
+                                            className="flex-1 px-2 py-2 border rounded-lg text-center"
+                                        />
+                                    </div>
+                                    {form.dateDay && form.dateMonth && form.dateYear && (
+                                        <p className="text-xs text-slate-400 mt-1">
+                                            Hết hạn: {form.dateDay.padStart(2,'0')}/{form.dateMonth.padStart(2,'0')}/{form.dateYear}
                                         </p>
                                     )}
                                 </div>
