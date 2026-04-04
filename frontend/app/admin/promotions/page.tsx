@@ -259,7 +259,7 @@ export default function AdminSales() {
                                         <td className="py-4">
                                             <button
                                                 onClick={() => toggleActive(s.id, s.isActive)}
-                                                className={`px-3 py-1 rounded-full text-xs font-medium ${s.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}
+                                                className={`text-sm font-medium ${s.isActive ? 'text-green-600' : 'text-slate-400'}`}
                                             >
                                                 {s.isActive ? 'Hoạt động' : 'Tắt'}
                                             </button>

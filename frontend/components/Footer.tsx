@@ -160,12 +160,12 @@ export default function Footer() {
 
             {/* Back to Top Button */}
             {showBackTop && (
-                <div className="fixed right-4 bottom-4 z-40">
+                <div className="fixed right-4 bottom-20 z-40">
                     <button
                         onClick={scrollToTop}
                         className="w-12 h-12 bg-[#21246b] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
                     >
-                        <ChevronUp className="w-6 h-6" />
+                        <ChevronUp className="w-6 h-6 text-white" />
                     </button>
                 </div>
             )}
