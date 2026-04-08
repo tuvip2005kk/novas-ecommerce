@@ -1,6 +1,7 @@
 import { Controller, Post, Body, HttpException, HttpStatus, Get, Param } from '@nestjs/common';
 import { ChatService, ChatMessage } from './chat.service';
 import { PrismaService } from '../prisma.service';
+import { TelegramService } from './telegram.service';
 
 class ChatDto {
     message: string;
@@ -11,7 +12,8 @@ class ChatDto {
 export class ChatController {
     constructor(
         private readonly chatService: ChatService,
-        private readonly prisma: PrismaService
+        private readonly prisma: PrismaService,
+        private readonly telegramService: TelegramService
     ) {}
 
     @Post()
@@ -55,5 +57,12 @@ export class ChatController {
             where: { sessionId: id },
             orderBy: { createdAt: 'asc' }
         });
+    }
+
+    // Telegram webhook endpoint - nhận updates từ Telegram khi ở production (Render)
+    @Post('telegram-webhook')
+    async telegramWebhook(@Body() body: any) {
+        this.telegramService.processWebhookUpdate(body);
+        return { ok: true };
     }
 }
