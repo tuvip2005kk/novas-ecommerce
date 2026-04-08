@@ -69,7 +69,15 @@ export function SearchPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                 );
 
                 console.log('Search results', { products: pData, subcats: filteredSubcats });
-                setProducts(pData.products || pData || []);
+                const rawProducts = pData.products || pData || [];
+                // Client-side filter as fallback for Vietnamese text/encoding edge cases
+                const q = debouncedQuery.toLowerCase();
+                const clientFiltered = rawProducts.filter((p: any) =>
+                    p.name?.toLowerCase().includes(q) ||
+                    p.slug?.toLowerCase().includes(q) ||
+                    p.description?.toLowerCase().includes(q)
+                );
+                setProducts(clientFiltered.length > 0 ? clientFiltered : rawProducts);
                 setSubcats(filteredSubcats);
             } catch (error) {
                 console.error("Search error:", error);
@@ -172,7 +180,7 @@ export function SearchPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                                 {products.map((product) => (
                                     <Link
                                         key={product.id}
-                                        href={`/${product.category?.slug || 'products'}/${product.slug || product.id}`}
+                                        href={`/${product.subcategory?.category?.slug || product.category?.slug || 'san-pham'}/${product.slug || product.id}`}
                                         onClick={onClose}
                                         className="flex items-center gap-4 p-2 hover:bg-slate-50 transition-colors"
                                     >

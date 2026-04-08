@@ -13,6 +13,7 @@ export class ProductsService {
             where.OR = [
                 { name: { contains: search } },
                 { description: { contains: search } },
+                { slug: { contains: search } },
             ];
         }
 
