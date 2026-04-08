@@ -14,7 +14,7 @@ export class TelegramService implements OnModuleInit {
         this.chatGateway = gateway;
     }
 
-    async onModuleInit() {
+    onModuleInit() {
         const token = process.env.TELEGRAM_BOT_TOKEN;
         if (!token) {
             this.logger.warn('TELEGRAM_BOT_TOKEN không được cấu hình. Bỏ qua Telegram Bot.');
@@ -22,45 +22,21 @@ export class TelegramService implements OnModuleInit {
         }
 
         try {
-            // Dùng webhook trong production (Render.com), polling ở local dev
-            const backendUrl = process.env.BACKEND_URL; // e.g. https://novas-ecommerce.onrender.com
-            const isProduction = !!backendUrl;
+            this.bot = new TelegramBot(token, { polling: true });
+            this.logger.log('Telegram Bot đã khởi động');
 
-            if (isProduction) {
-                // Webhook mode: Telegram push update về server, không cần poll
-                // Không cần truyền polling option → tắt polling
-                this.bot = new TelegramBot(token, { polling: false });
-
-                const webhookUrl = `${backendUrl}/api/chat/telegram-webhook`;
-                await this.bot.setWebHook(webhookUrl);
-                this.logger.log(`Telegram Bot đã đặt webhook: ${webhookUrl}`);
-            } else {
-                // Local dev: dùng polling (chỉ chạy 1 máy tại 1 thời điểm)
-                // Xóa webhook cũ trước khi poll để tránh conflict
-                this.bot = new TelegramBot(token, { polling: false });
-                await this.bot.deleteWebHook();
-                this.bot = new TelegramBot(token, { polling: true });
-                this.logger.log('Telegram Bot đã khởi động (polling mode - local dev)');
-
-                this.bot.on('polling_error', (error: any) => {
-                    this.logger.error(`Lỗi Polling Telegram: ${error.message}`);
-                    if (error.code === 'ETELEGRAM' && error.message.includes('409')) {
-                        this.bot.stopPolling();
-                        this.logger.warn('Dừng polling do 409 Conflict - có thể đang chạy production song song!');
-                    }
-                });
-            }
+            this.bot.on('polling_error', (error: any) => {
+                this.logger.error(`Lỗi Polling Telegram (Có thể do chạy 2 máy tính cùng lúc): ${error.message}`);
+                // Dừng polling tạm thời nếu lỗi conflict để tránh treo CPU
+                if (error.code === 'ETELEGRAM' && error.message.includes('409')) {
+                    this.bot.stopPolling();
+                    this.logger.warn('Tạm ngưng Telegram Bot do lỗi 409 Conflict!');
+                }
+            });
 
             this.setupListeners();
         } catch (error) {
             this.logger.error('Lỗi khi khởi tạo Telegram Bot', error);
-        }
-    }
-
-    // Gọi hàm này từ controller khi nhận webhook update từ Telegram
-    processWebhookUpdate(update: any) {
-        if (this.bot) {
-            this.bot.processUpdate(update);
         }
     }
 
@@ -83,10 +59,12 @@ export class TelegramService implements OnModuleInit {
     }
 
     private async handleAdminReply(msg: TelegramBot.Message) {
+        const adminChatId = process.env.TELEGRAM_CHAT_ID;
+        
         // Khớp pattern để lấy Session ID: tìm chuỗi bắt đầu bằng session_
         const repliedText = msg.reply_to_message.text;
         const sessionMatch = repliedText.match(/(session_[a-zA-Z0-9]+)/);
-
+        
         if (sessionMatch && sessionMatch[1]) {
             const sessionId = sessionMatch[1].trim();
             const responseText = msg.text;
@@ -94,10 +72,12 @@ export class TelegramService implements OnModuleInit {
             this.logger.log(`Nhận được tin nhắn từ Admin cho session: ${sessionId}. Nội dung: ${responseText}`);
 
             if (this.chatGateway) {
+                // Lưu tin nhắn vào DB
                 if (this.chatGateway['saveMessage']) {
                     await this.chatGateway.saveMessage(sessionId, 'staff', responseText);
                 }
 
+                // Đẩy tin nhắn qua WebSockets về web cho khách
                 this.chatGateway.sendToClient(sessionId, {
                     role: 'staff',
                     content: responseText
@@ -118,6 +98,7 @@ export class TelegramService implements OnModuleInit {
             return;
         }
 
+        // Tạo màu sắc cố định dựa trên sessionId để nhận diện nhanh khách hàng
         const colors = ['🔴', '🔵', '🟢', '🟡', '🟣', '🟠', '🟤', '⚫', '⚪'];
         const charSum = sessionId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
         const colorEmoji = colors[charSum % colors.length];
