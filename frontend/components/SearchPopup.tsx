@@ -71,11 +71,13 @@ export function SearchPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                 console.log('Search results', { products: pData, subcats: filteredSubcats });
                 const rawProducts = pData.products || pData || [];
                 // Client-side filter as fallback for Vietnamese text/encoding edge cases
-                const q = debouncedQuery.toLowerCase();
+                const words = debouncedQuery.toLowerCase().trim().split(/\s+/);
                 const clientFiltered = rawProducts.filter((p: any) =>
-                    p.name?.toLowerCase().includes(q) ||
-                    p.slug?.toLowerCase().includes(q) ||
-                    p.description?.toLowerCase().includes(q)
+                    words.every(w =>
+                        p.name?.toLowerCase().includes(w) ||
+                        p.slug?.toLowerCase().includes(w) ||
+                        p.description?.toLowerCase().includes(w)
+                    )
                 );
                 setProducts(clientFiltered.length > 0 ? clientFiltered : rawProducts);
                 setSubcats(filteredSubcats);

@@ -10,11 +10,14 @@ export class ProductsService {
         const where: any = {};
 
         if (search) {
-            where.OR = [
-                { name: { contains: search } },
-                { description: { contains: search } },
-                { slug: { contains: search } },
-            ];
+            const words = search.trim().split(/\s+/);
+            where.AND = words.map(word => ({
+                OR: [
+                    { name: { contains: word } },
+                    { description: { contains: word } },
+                    { slug: { contains: word } },
+                ]
+            }));
         }
 
         if (subcategoryId) {
