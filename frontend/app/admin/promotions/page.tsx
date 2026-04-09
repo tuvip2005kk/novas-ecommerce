@@ -282,8 +282,10 @@ export default function AdminSales() {
                 </div>
             )}
 
-            <Card>
-                <CardContent className="pt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="lg:col-span-7 xl:col-span-8">
+                    <Card>
+                        <CardContent className="pt-6">
                     {sales.length === 0 ? (
                         <div className="text-center py-12 text-slate-500 font-normal">
                             <Tag className="h-12 w-12 mx-auto mb-4 text-slate-300" />
@@ -340,12 +342,13 @@ export default function AdminSales() {
                         </table>
                     )}
                 </CardContent>
-            </Card>
+                    </Card>
+                </div>
 
-            {/* Bulk Discounts Section */}
-            <div className="pt-6">
-                <Card className="max-w-2xl shadow-sm border-[#21246b]/20 border-t-4 border-t-[#21246b]">
-                    <CardHeader>
+                {/* Bulk Discounts Section */}
+                <div className="lg:col-span-5 xl:col-span-4">
+                    <Card className="shadow-sm border-[#21246b]/20 border-t-4 border-t-[#21246b]">
+                        <CardHeader>
                         <CardTitle className="text-[#21246b]">Giảm Giá Hàng Loạt (Bulk Discount)</CardTitle>
                         <p className="text-sm text-slate-500">
                             Công cụ cập nhật giá tự động cho toàn bộ sản phẩm thuộc danh mục.
@@ -422,6 +425,7 @@ export default function AdminSales() {
                         </div>
                     </CardContent>
                 </Card>
+                </div>
             </div>
             
             <ToastContainer toasts={toasts} onClose={removeToast} />
