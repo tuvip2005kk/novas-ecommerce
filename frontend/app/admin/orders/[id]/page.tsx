@@ -121,9 +121,13 @@ export default function OrderDetailPage() {
                                         <p className={`font-medium ${order.status === "Đã thanh toán" || order.status === "Đã giao" ? "text-green-700" : "text-yellow-700"}`}>
                                             {order.status === "Đã thanh toán" || order.status === "Đã giao" ? "✓ Đã thanh toán" : "⏳ Chờ thanh toán"}
                                         </p>
-                                        <p className="text-sm text-slate-500 mt-1">Nội dung CK: {order.paymentContent || `DH${order.id}`}</p>
+                                        <p className="text-sm text-slate-500 mt-1">
+                                            {order.note?.includes('[Thanh toán khi nhận hàng]') 
+                                                ? "Phương thức: Thanh toán khi nhận hàng (COD)" 
+                                                : `Nội dung CK: ${order.paymentContent || `DH${order.id}`}`}
+                                        </p>
                                     </div>
-                                    {order.status === "Chờ thanh toán" && (
+                                    {order.status === "Chờ thanh toán" && !order.note?.includes('[Thanh toán khi nhận hàng]') && (
                                         <img
                                             src={`https://qr.sepay.vn/img?acc=0348868647&bank=MBBank&amount=${Math.round(order.total)}&des=${order.paymentContent || `DH${order.id}`}`}
                                             alt="QR Code"
