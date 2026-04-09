@@ -45,7 +45,7 @@ export default function AdminSales() {
     const [subcategories, setSubcategories] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [bulkLoading, setBulkLoading] = useState(false);
-    
+
     const { toasts, showToast, removeToast } = useToast();
 
     useEffect(() => {
@@ -172,8 +172,7 @@ export default function AdminSales() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">Khuyến mãi (Sales)</h1>
-                    <p className="text-slate-500 font-normal">Quản lý mã giảm giá - Dữ liệu thật từ database</p>
+                    <h1 className="text-3xl font-bold text-slate-900">Khuyến mãi</h1>
                 </div>
                 <Button className="bg-[#21246b] hover:bg-[#1a1d55]" onClick={() => setShowModal(true)}>
                     <Plus className="h-4 w-4 mr-2" /> Thêm mã giảm giá
@@ -286,62 +285,62 @@ export default function AdminSales() {
                 <div className="lg:col-span-7 xl:col-span-8">
                     <Card>
                         <CardContent className="pt-6">
-                    {sales.length === 0 ? (
-                        <div className="text-center py-12 text-slate-500 font-normal">
-                            <Tag className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                            <p>Chưa có mã giảm giá nào</p>
-                        </div>
-                    ) : (
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b text-left text-sm text-slate-500 font-normal">
-                                    <th className="pb-3">Mã code</th>
-                                    <th className="pb-3">Giảm giá</th>
-                                    <th className="pb-3">Điều kiện</th>
-                                    <th className="pb-3">Sử dụng</th>
-                                    <th className="pb-3">Trạng thái</th>
-                                    <th className="pb-3">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {sales.map(s => (
-                                    <tr key={s.id} className="border-b hover:bg-slate-50">
-                                        <td className="py-4">
-                                            <span className="font-mono font-bold text-[#21246b] bg-[#21246b]/10 px-2 py-1 rounded">{s.code}</span>
-                                        </td>
-                                        <td className="py-4">
-                                            <span className="flex items-center gap-1">
-                                                {s.type === 'PERCENT' ? <Percent className="h-4 w-4" /> : null}
-                                                {s.type === 'PERCENT'
-                                                  ? `${s.discount}%`
-                                                  : `${new Intl.NumberFormat('vi-VN').format(s.discount)}đ`}
-                                            </span>
-                                            {s.maxDiscount && <span className="text-xs text-slate-500 font-normal">Tối đa {new Intl.NumberFormat('vi-VN').format(s.maxDiscount)}đ</span>}
-                                        </td>
-                                        <td className="py-4 text-sm text-slate-500 font-normal">
-                                            {s.minOrder > 0 && <p>Đơn tối thiểu: {new Intl.NumberFormat('vi-VN').format(s.minOrder)}đ</p>}
-                                            {s.expiresAt && <p>Hết hạn: {new Date(s.expiresAt).toLocaleDateString('vi-VN')}</p>}
-                                        </td>
-                                        <td className="py-4">{s.usedCount}/{s.usageLimit}</td>
-                                        <td className="py-4">
-                                            <button
-                                                onClick={() => toggleActive(s.id, s.isActive)}
-                                                className={`text-sm font-medium ${s.isActive ? 'text-green-600' : 'text-slate-400'}`}
-                                            >
-                                                {s.isActive ? 'Hoạt động' : 'Tắt'}
-                                            </button>
-                                        </td>
-                                        <td className="py-4">
-                                            <Button variant="outline" size="icon" className="text-red-600" onClick={() => deleteSale(s.id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-                </CardContent>
+                            {sales.length === 0 ? (
+                                <div className="text-center py-12 text-slate-500 font-normal">
+                                    <Tag className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                                    <p>Chưa có mã giảm giá nào</p>
+                                </div>
+                            ) : (
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b text-left text-sm text-slate-500 font-normal">
+                                            <th className="pb-3">Mã code</th>
+                                            <th className="pb-3">Giảm giá</th>
+                                            <th className="pb-3">Điều kiện</th>
+                                            <th className="pb-3">Sử dụng</th>
+                                            <th className="pb-3">Trạng thái</th>
+                                            <th className="pb-3">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {sales.map(s => (
+                                            <tr key={s.id} className="border-b hover:bg-slate-50">
+                                                <td className="py-4">
+                                                    <span className="font-mono font-bold text-[#21246b] bg-[#21246b]/10 px-2 py-1 rounded">{s.code}</span>
+                                                </td>
+                                                <td className="py-4">
+                                                    <span className="flex items-center gap-1">
+                                                        {s.type === 'PERCENT' ? <Percent className="h-4 w-4" /> : null}
+                                                        {s.type === 'PERCENT'
+                                                            ? `${s.discount}%`
+                                                            : `${new Intl.NumberFormat('vi-VN').format(s.discount)}đ`}
+                                                    </span>
+                                                    {s.maxDiscount && <span className="text-xs text-slate-500 font-normal">Tối đa {new Intl.NumberFormat('vi-VN').format(s.maxDiscount)}đ</span>}
+                                                </td>
+                                                <td className="py-4 text-sm text-slate-500 font-normal">
+                                                    {s.minOrder > 0 && <p>Đơn tối thiểu: {new Intl.NumberFormat('vi-VN').format(s.minOrder)}đ</p>}
+                                                    {s.expiresAt && <p>Hết hạn: {new Date(s.expiresAt).toLocaleDateString('vi-VN')}</p>}
+                                                </td>
+                                                <td className="py-4">{s.usedCount}/{s.usageLimit}</td>
+                                                <td className="py-4">
+                                                    <button
+                                                        onClick={() => toggleActive(s.id, s.isActive)}
+                                                        className={`text-sm font-medium ${s.isActive ? 'text-green-600' : 'text-slate-400'}`}
+                                                    >
+                                                        {s.isActive ? 'Hoạt động' : 'Tắt'}
+                                                    </button>
+                                                </td>
+                                                <td className="py-4">
+                                                    <Button variant="outline" size="icon" className="text-red-600" onClick={() => deleteSale(s.id)}>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </CardContent>
                     </Card>
                 </div>
 
@@ -349,85 +348,84 @@ export default function AdminSales() {
                 <div className="lg:col-span-5 xl:col-span-4">
                     <Card className="shadow-sm border-[#21246b]/20 border-t-4 border-t-[#21246b]">
                         <CardHeader>
-                        <CardTitle className="text-[#21246b]">Giảm Giá Hàng Loạt (Bulk Discount)</CardTitle>
-                        <p className="text-sm text-slate-500">
-                            Công cụ cập nhật giá tự động cho toàn bộ sản phẩm thuộc danh mục.
-                            Giá gốc sẽ bị gạch ngang và huy hiệu % tự động hiện ra!
-                        </p>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Áp dụng cho:</label>
-                                <select 
-                                    className="w-full p-2 border rounded focus:ring-2 focus:ring-[#21246b]"
-                                    value={bulkTargetType}
-                                    onChange={(e) => {
-                                        setBulkTargetType(e.target.value);
-                                        setBulkTargetId('');
-                                    }}
-                                >
-                                    <option value="category">Danh mục chính</option>
-                                    <option value="subcategory">Danh mục con</option>
-                                    <option value="product">Một Sản phẩm cụ thể</option>
-                                </select>
-                            </div>
-
-                            {bulkTargetType !== 'all' && (
+                            <CardTitle className="text-[#21246b]">Giảm Giá Tổng Thể</CardTitle>
+                            <p className="text-sm text-slate-500">
+                                Giảm danh mục hoặc toàn bộ sản phẩm
+                            </p>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Chọn đối tượng:</label>
-                                    <select 
+                                    <label className="block text-sm font-medium mb-1">Áp dụng cho:</label>
+                                    <select
                                         className="w-full p-2 border rounded focus:ring-2 focus:ring-[#21246b]"
-                                        value={bulkTargetId}
-                                        onChange={(e) => setBulkTargetId(e.target.value)}
-                                        required
+                                        value={bulkTargetType}
+                                        onChange={(e) => {
+                                            setBulkTargetType(e.target.value);
+                                            setBulkTargetId('');
+                                        }}
                                     >
-                                        <option value="">-- Chọn --</option>
-                                        {bulkTargetType === 'category' && categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                        {bulkTargetType === 'subcategory' && subcategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                        {bulkTargetType === 'product' && products.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        <option value="category">Danh mục chính</option>
+                                        <option value="subcategory">Danh mục phụ</option>
+                                        <option value="product">Sản phẩm</option>
                                     </select>
                                 </div>
-                            )}
 
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Phần trăm giảm giá (%):</label>
-                                <input 
-                                    type="number"
-                                    min="1"
-                                    max="99"
-                                    value={bulkDiscountPercent}
-                                    onChange={(e) => setBulkDiscountPercent(e.target.value)}
-                                    className="w-full p-2 border rounded focus:ring-2 focus:ring-[#21246b]"
-                                    required
-                                />
-                            </div>
+                                {bulkTargetType !== 'all' && (
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Chọn đối tượng:</label>
+                                        <select
+                                            className="w-full p-2 border rounded focus:ring-2 focus:ring-[#21246b]"
+                                            value={bulkTargetId}
+                                            onChange={(e) => setBulkTargetId(e.target.value)}
+                                            required
+                                        >
+                                            <option value="">-- Chọn --</option>
+                                            {bulkTargetType === 'category' && categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            {bulkTargetType === 'subcategory' && subcategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            {bulkTargetType === 'product' && products.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
 
-                            <div className="flex gap-4 pt-4 border-t border-slate-100">
-                                <Button 
-                                    onClick={(e) => handleBulkSubmit(e, 'apply')}
-                                    disabled={bulkLoading || (!bulkTargetId && bulkTargetType !== 'all')}
-                                    className="flex-1 bg-[#21246b] hover:bg-[#1a1d55] text-white"
-                                >
-                                    {bulkLoading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
-                                    ÁP DỤNG GIẢM GIÁ
-                                </Button>
-                                <Button 
-                                    onClick={(e) => handleBulkSubmit(e, 'remove')}
-                                    disabled={bulkLoading || (!bulkTargetId && bulkTargetType !== 'all')}
-                                    variant="outline"
-                                    className="flex-1 text-slate-700 hover:bg-red-50 hover:text-red-600 border-slate-300"
-                                >
-                                    {bulkLoading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
-                                    GỠ BỎ ÁP DỤNG
-                                </Button>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Phần trăm giảm giá (%):</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="99"
+                                        value={bulkDiscountPercent}
+                                        onChange={(e) => setBulkDiscountPercent(e.target.value)}
+                                        className="w-full p-2 border rounded focus:ring-2 focus:ring-[#21246b]"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="flex gap-4 pt-4 border-t border-slate-100">
+                                    <Button
+                                        onClick={(e) => handleBulkSubmit(e, 'apply')}
+                                        disabled={bulkLoading || (!bulkTargetId && bulkTargetType !== 'all')}
+                                        className="flex-1 bg-[#21246b] hover:bg-[#1a1d55] text-white"
+                                    >
+                                        {bulkLoading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
+                                        ÁP DỤNG GIẢM GIÁ
+                                    </Button>
+                                    <Button
+                                        onClick={(e) => handleBulkSubmit(e, 'remove')}
+                                        disabled={bulkLoading || (!bulkTargetId && bulkTargetType !== 'all')}
+                                        variant="outline"
+                                        className="flex-1 text-slate-700 hover:bg-red-50 hover:text-red-600 border-slate-300"
+                                    >
+                                        {bulkLoading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
+                                        GỠ BỎ ÁP DỤNG
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
-            
+
             <ToastContainer toasts={toasts} onClose={removeToast} />
         </div>
     );
