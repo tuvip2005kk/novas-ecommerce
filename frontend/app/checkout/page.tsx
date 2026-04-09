@@ -47,6 +47,7 @@ function CheckoutContent() {
     const [customerPhone, setCustomerPhone] = useState("");
     const [customerAddress, setCustomerAddress] = useState("");
     const [customerNote, setCustomerNote] = useState("");
+    const [paymentMethod, setPaymentMethod] = useState("COD"); // 'COD' or 'ONLINE'
 
     useEffect(() => {
         if (!isLoading && !user) {
@@ -144,6 +145,8 @@ function CheckoutContent() {
                 ? cartItems.map(item => ({ productId: item.id, quantity: item.quantity }))
                 : [{ productId: parseInt(productId as string), quantity }];
 
+            const finalNote = `[${paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng' : 'Thanh toán Online'}] ${customerNote}`;
+
             const res = await fetch(`${API_URL}/api/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -152,7 +155,7 @@ function CheckoutContent() {
                     customerName,
                     customerPhone,
                     customerAddress,
-                    note: customerNote,
+                    note: finalNote,
                     userId: user?.id || null,
                     saleCode: couponCode || null,
                     discount: discountAmount,
@@ -174,10 +177,23 @@ function CheckoutContent() {
                 <Header />
                 <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800 pt-24 pb-12">
                     <div className="container mx-auto px-4 max-w-lg">
-                        <PaymentQR
-                            orderId={order.id}
-                            onPaymentSuccess={() => {}}
-                        />
+                        {paymentMethod === 'ONLINE' ? (
+                            <PaymentQR
+                                orderId={order.id}
+                                onPaymentSuccess={() => {}}
+                            />
+                        ) : (
+                            <div className="bg-white p-8 rounded-xl shadow-xl text-center border-t-4 border-[#21246b]">
+                                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <CheckCircle2 className="w-10 h-10 text-green-600" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-[#21246b] mb-2">Đặt hàng thành công!</h2>
+                                <p className="text-slate-600 mb-6">
+                                    Mã đơn hàng của bạn là <strong>#{order.id}</strong>.<br/><br/>
+                                    Nhân viên sẽ gọi điện xác nhận đơn hàng của bạn qua số điện thoại <strong>{customerPhone}</strong> sớm nhất.
+                                </p>
+                            </div>
+                        )}
                         <div className="mt-6 flex gap-4">
                             <Link href="/" className="flex-1">
                                 <Button variant="outline" className="w-full">Về trang chủ</Button>
@@ -317,15 +333,49 @@ function CheckoutContent() {
                                     <span className="text-[#21246b]">{new Intl.NumberFormat('vi-VN').format(total)}đ</span>
                                 </div>
 
-                                <div className="py-4 text-sm">
-                                    <p className="font-medium text-[#21246b]">Thanh toán khi nhận hàng (COD)</p>
-                                    <p className="text-slate-500">Nhận hàng - Kiểm tra - Thanh toán</p>
+                                <div className="py-4 text-sm space-y-4">
+                                    <div>
+                                        <label className="flex items-start gap-3 cursor-pointer">
+                                            <input 
+                                                type="radio" 
+                                                name="paymentMethod" 
+                                                value="COD" 
+                                                checked={paymentMethod === 'COD'}
+                                                onChange={() => setPaymentMethod('COD')}
+                                                className="w-4 h-4 mt-0.5 text-[#21246b] border-slate-300 focus:ring-[#21246b]"
+                                            />
+                                            <div>
+                                                <p className="font-medium text-[#21246b]">Thanh toán khi nhận hàng (COD)</p>
+                                                <p className="text-slate-500 text-xs mt-0.5">Nhận hàng - Kiểm tra - Thanh toán</p>
+                                            </div>
+                                        </label>
+                                        {paymentMethod === 'COD' && (
+                                            <div className="mt-3 ml-7 p-3 bg-blue-50 border border-blue-100 rounded text-blue-800 text-xs leading-relaxed">
+                                                * <strong>Lưu ý:</strong> Quý khách vui lòng điền đúng và đầy đủ thông tin, sau đó để ý điện thoại nhân viên sẽ gọi xác nhận.
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <input 
+                                            type="radio" 
+                                            name="paymentMethod" 
+                                            value="ONLINE" 
+                                            checked={paymentMethod === 'ONLINE'}
+                                            onChange={() => setPaymentMethod('ONLINE')}
+                                            className="w-4 h-4 mt-0.5 text-[#21246b] border-slate-300 focus:ring-[#21246b]"
+                                        />
+                                        <div>
+                                            <p className="font-medium text-[#21246b]">Thanh toán chuyển khoản trực tuyến</p>
+                                            <p className="text-slate-500 text-xs mt-0.5">Chuyển khoản qua quét mã QR (Momo, VNPay, Ngân hàng)</p>
+                                        </div>
+                                    </label>
                                 </div>
 
                                 <Button
                                     type="submit"
                                     form="checkout-form"
-                                    className="w-full h-12 text-lg bg-[#21246b] hover:bg-blue-800"
+                                    className="w-full h-12 text-lg bg-[#21246b] hover:bg-blue-800 mt-2"
                                     disabled={loading}
                                 >
                                     {loading ? <Loader2 className="animate-spin mr-2" /> : null}
