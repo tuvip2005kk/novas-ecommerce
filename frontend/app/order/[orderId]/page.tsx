@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Loader2, ArrowLeft, Package, Truck, Home, RotateCcw, Clock } from "lucide-react";
 import Link from "next/link";
 import { API_URL } from "@/config";
+import { PaymentQR } from "@/components/PaymentQR";
 
 interface OrderItem {
     id: number;
@@ -109,29 +110,93 @@ function OrderContent({ orderId }: { orderId: string }) {
                     <div className="flex items-center justify-between">
                         {ORDER_STATUSES.slice(0, 5).map((status, index) => {
                             const Icon = status.icon;
-                            const isActive = order.status === status.key;
-                            const isPast = currentStatusIndex >= index;
+                            let isActive = order.status === status.key;
+                            let isPast = currentStatusIndex >= index;
+                            
+                            // Nếu đơn hàng đã hủy thì reset màu
+                            if (order.status === "Đã hủy" || order.status === "Hoàn hàng") {
+                                isActive = false;
+                                isPast = false;
+                            }
+
                             return (
-                                <div key={status.key} className="flex flex-col items-center">
+                                <div key={status.key} className="flex flex-col items-center relative z-10 w-1/5">
                                     <div
-                                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                                        className="w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-sm"
                                         style={{
-                                            backgroundColor: isActive || isPast ? '#21246b' : '#e5e7eb',
-                                            color: isActive || isPast ? 'white' : '#6b7280'
+                                            backgroundColor: isActive || isPast ? '#21246b' : '#f3f4f6',
+                                            color: isActive || isPast ? 'white' : '#9ca3af'
                                         }}
                                     >
                                         <Icon className="h-5 w-5" />
                                     </div>
-                                    <p className="text-xs mt-2 text-center" style={{ color: isActive ? '#21246b' : undefined }}>
+                                    <p className="text-xs mt-2 text-center font-medium" style={{ color: isActive ? '#21246b' : undefined }}>
                                         {status.label}
                                     </p>
                                 </div>
                             );
                         })}
                     </div>
+                    
                     {order.status === "Hoàn hàng" && (
-                        <div className="mt-4 p-3 bg-red-50 text-red-600 rounded text-center">
-                            Đơn hàng đã được hoàn trả
+                        <div className="mt-6 p-4 bg-red-50 text-red-600 rounded text-center font-medium border border-red-100 flex items-center justify-center gap-2">
+                            <RotateCcw className="w-5 h-5" /> Đơn hàng đã được hoàn trả
+                        </div>
+                    )}
+                    {order.status === "Đã hủy" && (
+                        <div className="mt-6 p-4 bg-gray-100 text-gray-600 rounded text-center font-medium border border-gray-200 flex items-center justify-center gap-2">
+                            <XCircle className="w-5 h-5" /> Đơn hàng đã bị hủy
+                        </div>
+                    )}
+
+                    {order.status === "Chờ thanh toán" && (
+                        <div className="mt-6 pt-6 border-t flex flex-col items-center">
+                            {order.note?.includes('[Thanh toán Online]') ? (
+                                <div className="text-center w-full">
+                                    <p className="text-sm text-slate-600 mb-4">Bạn chưa hoàn tất thanh toán trực tuyến cho đơn hàng này.</p>
+                                    <PaymentQR orderId={order.id} onPaymentSuccess={() => { window.location.href = `/order/${order.paymentContent}?payment=success` }} />
+                                    <Button 
+                                        variant="outline"
+                                        className="mt-4 text-red-600 border-red-200 hover:bg-red-50"
+                                        onClick={async () => {
+                                            if (confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) {
+                                                setLoading(true);
+                                                await fetch(`${API_URL}/api/orders/${order.id}/status`, {
+                                                    method: "PATCH",
+                                                    headers: { "Content-Type": "application/json" },
+                                                    body: JSON.stringify({ status: "Đã hủy" })
+                                                });
+                                                window.location.reload();
+                                            }
+                                        }}
+                                    >
+                                        <XCircle className="w-4 h-4 mr-2" /> Hủy bỏ đơn hàng này
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="text-center w-full">
+                                    <div className="p-4 bg-blue-50 text-[#21246b] rounded mb-4">
+                                        Đơn hàng đang chờ nhân viên gọi điện xác nhận. Bạn sẽ thanh toán khi nhận được hàng.
+                                    </div>
+                                    <Button 
+                                        variant="outline"
+                                        className="text-red-600 border-red-200 hover:bg-red-50"
+                                        onClick={async () => {
+                                            if (confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) {
+                                                setLoading(true);
+                                                await fetch(`${API_URL}/api/orders/${order.id}/status`, {
+                                                    method: "PATCH",
+                                                    headers: { "Content-Type": "application/json" },
+                                                    body: JSON.stringify({ status: "Đã hủy" })
+                                                });
+                                                window.location.reload();
+                                            }
+                                        }}
+                                    >
+                                        <XCircle className="w-4 h-4 mr-2" /> Hủy bỏ đơn hàng
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
