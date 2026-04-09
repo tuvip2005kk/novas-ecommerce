@@ -6,11 +6,27 @@ import { UserMenu } from "./UserMenu";
 import { SearchPopup } from "./SearchPopup";
 import { useAuth } from "@/context/AuthContext";
 import { LayoutDashboard, Heart, Search, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function Header() {
     const { user } = useAuth();
     const [searchOpen, setSearchOpen] = useState(false);
+    const [categories, setCategories] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://novas-ecommerce.onrender.com'}/api/categories`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setCategories(data);
+                }
+            } catch (error) {
+                console.error("Failed to load categories:", error);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     return (
         <>
@@ -33,21 +49,15 @@ export function Header() {
                                 </span>
 
                                 <div className="absolute top-full left-0 w-56 bg-white shadow-xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform translate-y-2 group-hover:translate-y-0">
-                                    <Link href="/bon-cau" className="block px-4 py-3 text-base text-[#21246b] hover:bg-[#21246b] hover:text-white transition-colors normal-case font-semibold">
-                                        Bồn cầu
-                                    </Link>
-                                    <Link href="/lavabo" className="block px-4 py-3 text-base text-[#21246b] hover:bg-[#21246b] hover:text-white transition-colors normal-case font-semibold">
-                                        Chậu Lavabo
-                                    </Link>
-                                    <Link href="/voi-sen" className="block px-4 py-3 text-base text-[#21246b] hover:bg-[#21246b] hover:text-white transition-colors normal-case font-semibold">
-                                        Vòi Sen
-                                    </Link>
-                                    <Link href="/bon-tam" className="block px-4 py-3 text-base text-[#21246b] hover:bg-[#21246b] hover:text-white transition-colors normal-case font-semibold">
-                                        Bồn Tắm
-                                    </Link>
-                                    <Link href="/phu-kien" className="block px-4 py-3 text-base text-[#21246b] hover:bg-[#21246b] hover:text-white transition-colors normal-case font-semibold">
-                                        Phụ Kiện
-                                    </Link>
+                                    {categories.length > 0 ? (
+                                        categories.map((c: any) => (
+                                            <Link key={c.id} href={`/${c.slug}`} className="block px-4 py-3 text-base text-[#21246b] hover:bg-[#21246b] hover:text-white transition-colors normal-case font-semibold">
+                                                {c.name}
+                                            </Link>
+                                        ))
+                                    ) : (
+                                        <div className="px-4 py-3 text-sm text-gray-500">Đang tải...</div>
+                                    )}
                                 </div>
                             </div>
 
