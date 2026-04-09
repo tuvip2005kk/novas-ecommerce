@@ -46,6 +46,28 @@ function CheckoutContent() {
         }
     }, [productId, isCartMode]);
 
+    const subtotal = isCartMode ? cartTotal : (product?.price || 0) * quantity;
+    const total = Math.max(0, subtotal - discountAmount);
+
+    useEffect(() => {
+        const urlCoupon = searchParams.get("coupon");
+        if (urlCoupon && subtotal > 0 && !couponCode) {
+            setCouponInput(urlCoupon);
+            fetch(`${API_URL}/api/sales/apply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: urlCoupon, orderTotal: subtotal }),
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.valid) {
+                    setCouponCode(urlCoupon.toUpperCase());
+                    setDiscountAmount(data.sale.discountAmount);
+                }
+            });
+        }
+    }, [searchParams, subtotal, couponCode]);
+
     if (isLoading || !user) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -53,9 +75,6 @@ function CheckoutContent() {
             </div>
         );
     }
-
-    const subtotal = isCartMode ? cartTotal : (product?.price || 0) * quantity;
-    const total = Math.max(0, subtotal - discountAmount);
 
     const applyCoupon = async () => {
         if (!couponInput.trim()) return;

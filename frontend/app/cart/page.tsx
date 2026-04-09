@@ -15,17 +15,33 @@ export default function CartPage() {
     const [discount, setDiscount] = useState(0);
     const [discountPercent, setDiscountPercent] = useState(0);
 
-    const applyDiscount = () => {
-        if (saleCode.toUpperCase() === 'GIAM10') {
-            setDiscountPercent(10);
-            setDiscount(totalPrice * 0.1);
-        } else if (saleCode.toUpperCase() === 'GIAM20') {
-            setDiscountPercent(20);
-            setDiscount(totalPrice * 0.2);
-        } else {
-            alert('Mã giảm giá không hợp lệ!');
-            setDiscount(0);
-            setDiscountPercent(0);
+    const [isApplying, setIsApplying] = useState(false);
+
+    const applyDiscount = async () => {
+        if (!saleCode.trim()) return;
+        setIsApplying(true);
+        try {
+            const res = await fetch(`${API_URL}/api/sales/apply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: saleCode.trim(), orderTotal: totalPrice }),
+            });
+            const data = await res.json();
+            if (data.valid) {
+                // Determine percent from API data if possible, else calculate back
+                const discountVal = data.sale.discountAmount;
+                const percent = Math.round((discountVal / totalPrice) * 100);
+                setDiscount(discountVal);
+                setDiscountPercent(percent);
+            } else {
+                alert(data.error || 'Mã giảm giá không hợp lệ!');
+                setDiscount(0);
+                setDiscountPercent(0);
+            }
+        } catch (error) {
+            alert('Lỗi kết nối khi áp dụng mã giảm giá.');
+        } finally {
+            setIsApplying(false);
         }
     };
 
@@ -146,7 +162,7 @@ export default function CartPage() {
                                 </div>
 
                                 {/* Checkout Button */}
-                                <Link href="/checkout?mode=cart" className="block w-full mt-3">
+                                <Link href={`/checkout?mode=cart${discount > 0 && saleCode ? `&coupon=${saleCode.trim()}` : ''}`} className="block w-full mt-3">
                                     <button className="w-full py-2 bg-[#21246b] text-white text-sm font-bold uppercase hover:bg-blue-800">
                                         ĐẶT HÀNG
                                     </button>
@@ -162,14 +178,16 @@ export default function CartPage() {
                                         type="text"
                                         value={saleCode}
                                         onChange={(e) => setSaleCode(e.target.value)}
+                                        disabled={isApplying}
                                         placeholder="Nhập mã giảm giá"
-                                        className="w-full px-3 py-1.5 border text-sm mb-2"
+                                        className="w-full px-3 py-1.5 border text-sm mb-2 disabled:bg-slate-100"
                                     />
                                     <button
                                         onClick={applyDiscount}
-                                        className="w-full py-1.5 border border-[#21246b] text-[#21246b] text-sm font-medium hover:bg-[#21246b] hover:text-white transition-colors"
+                                        disabled={isApplying}
+                                        className="w-full py-1.5 border border-[#21246b] text-[#21246b] text-sm font-medium hover:bg-[#21246b] hover:text-white transition-colors disabled:opacity-50"
                                     >
-                                        Áp dụng
+                                        {isApplying ? 'Đang kiểm tra...' : 'Áp dụng'}
                                     </button>
                                 </div>
                             </div>
