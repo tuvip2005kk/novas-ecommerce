@@ -127,7 +127,7 @@ export class ProductsService {
         } 
 
         const products = await this.prisma.product.findMany({ where });
-        const updatePromises = [];
+        const updatePromises: Promise<any>[] = [];
 
         if (action === 'apply') {
             for (const p of products) {
