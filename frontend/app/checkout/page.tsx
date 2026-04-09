@@ -350,7 +350,7 @@ function CheckoutContent() {
                                             </div>
                                         </label>
                                         {paymentMethod === 'COD' && (
-                                            <div className="mt-3 ml-7 p-3 bg-blue-50 border border-blue-100 rounded text-blue-800 text-xs leading-relaxed">
+                                            <div className="mt-3 ml-7 p-3 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-xs leading-relaxed">
                                                 * <strong>Lưu ý:</strong> Quý khách vui lòng điền đúng và đầy đủ thông tin, sau đó để ý điện thoại nhân viên sẽ gọi xác nhận.
                                             </div>
                                         )}
