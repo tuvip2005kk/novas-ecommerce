@@ -12,6 +12,8 @@ model User {
   email     String     @unique
   password  String
   name      String?
+  phone     String?
+  address   String?    @db.Text
   role      String     @default("USER")
   orders    Order[]
   likes     Like[]

@@ -43,9 +43,19 @@ function CheckoutContent() {
     const [couponError, setCouponError] = useState("");
     const [discountAmount, setDiscountAmount] = useState(0);
 
+    const [customerName, setCustomerName] = useState("");
+    const [customerPhone, setCustomerPhone] = useState("");
+    const [customerAddress, setCustomerAddress] = useState("");
+    const [customerNote, setCustomerNote] = useState("");
+
     useEffect(() => {
         if (!isLoading && !user) {
             router.replace('/login');
+        } else if (user) {
+            // Pre-fill form if user has saved information
+            if (user.name) setCustomerName(user.name);
+            if (user.phone) setCustomerPhone(user.phone);
+            if (user.address) setCustomerAddress(user.address);
         }
     }, [user, isLoading, router]);
 
@@ -133,10 +143,10 @@ function CheckoutContent() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     items: orderItems,
-                    customerName: (e.target as any).name.value,
-                    customerPhone: (e.target as any).phone.value,
-                    customerAddress: (e.target as any).address.value,
-                    note: (e.target as any).note.value,
+                    customerName,
+                    customerPhone,
+                    customerAddress,
+                    note: customerNote,
                     userId: user?.id || null,
                     saleCode: couponCode || null,
                     discount: discountAmount,
@@ -221,12 +231,38 @@ function CheckoutContent() {
                         <div className="lg:col-span-3">
                             <h2 className="text-lg font-bold text-[#21246b] uppercase mb-4">Thông tin mua hàng</h2>
                             <form onSubmit={handleCreateOrder} id="checkout-form" className="space-y-4">
-                                <input name="name" required placeholder="Họ tên của bạn" className="w-full h-12 px-4 border border-slate-300" />
-                                <input name="phone" required placeholder="Số điện thoại của bạn" className="w-full h-12 px-4 border border-slate-300" />
-                                <input name="address" required placeholder="Số nhà, tên đường" className="w-full h-12 px-4 border border-slate-300" />
+                                <input 
+                                    name="name" 
+                                    value={customerName}
+                                    onChange={(e) => setCustomerName(e.target.value)}
+                                    required 
+                                    placeholder="Họ tên của bạn" 
+                                    className="w-full h-12 px-4 border border-slate-300" 
+                                />
+                                <input 
+                                    name="phone" 
+                                    value={customerPhone}
+                                    onChange={(e) => setCustomerPhone(e.target.value)}
+                                    required 
+                                    placeholder="Số điện thoại của bạn" 
+                                    className="w-full h-12 px-4 border border-slate-300" 
+                                />
+                                <input 
+                                    name="address" 
+                                    value={customerAddress}
+                                    onChange={(e) => setCustomerAddress(e.target.value)}
+                                    required 
+                                    placeholder="Số nhà, tên đường" 
+                                    className="w-full h-12 px-4 border border-slate-300" 
+                                />
                                 <div className="pt-4">
                                     <h4 className="font-bold text-[#21246b] mb-2">GHI CHÚ ĐƠN HÀNG</h4>
-                                    <textarea name="note" className="w-full h-32 px-4 py-3 border border-slate-300 resize-none" />
+                                    <textarea 
+                                        name="note" 
+                                        value={customerNote}
+                                        onChange={(e) => setCustomerNote(e.target.value)}
+                                        className="w-full h-32 px-4 py-3 border border-slate-300 resize-none" 
+                                    />
                                 </div>
                             </form>
                         </div>

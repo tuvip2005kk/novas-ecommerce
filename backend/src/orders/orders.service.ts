@@ -47,6 +47,18 @@ export class OrdersService {
             include: { items: true },
         });
 
+        // Nếu có userId, cập nhật thông tin người dùng để lần sau tự điền
+        if (userId) {
+            await this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    name: customerName,
+                    phone: customerPhone,
+                    address: customerAddress
+                }
+            }).catch(err => console.warn(`[OrdersService] Could not update user profile: ${err.message}`));
+        }
+
         // Cập nhật paymentContent
         const paymentContent = `DH${order.id}`;
         await this.prisma.order.update({
