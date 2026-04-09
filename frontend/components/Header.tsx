@@ -39,7 +39,7 @@ export function Header() {
                         </Link>
 
                         <div className="hidden md:flex items-center space-x-6 text-sm font-bold text-white uppercase">
-                            <Link href="/intro" className="hover:text-yellow-300 transition-colors">Giới thiệu</Link>
+                            <Link href="/gioi-thieu" className="hover:text-yellow-300 transition-colors">Giới thiệu</Link>
 
                             {/* Mega Menu */}
                             <div className="relative group h-16 flex items-center">
