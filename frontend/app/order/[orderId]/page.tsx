@@ -175,7 +175,7 @@ function OrderContent({ orderId }: { orderId: string }) {
                                 </div>
                             ) : (
                                 <div className="text-center w-full">
-                                    <div className="p-4 bg-blue-50 text-[#21246b] rounded mb-4">
+                                    <div className="p-4 bg-gray-100 text-gray-700 rounded mb-4 font-medium border border-gray-200">
                                         Đơn hàng đang chờ nhân viên gọi điện xác nhận. Bạn sẽ thanh toán khi nhận được hàng.
                                     </div>
                                     <Button 
