@@ -19,7 +19,7 @@ function CheckoutContent() {
     const quantityParam = searchParams.get("quantity");
     const quantity = parseInt(quantityParam || "1");
     const isCartMode = searchParams.get("mode") === "cart";
-    const { user, isLoading } = useAuth();
+    const { user, isLoading, updateUserLocally } = useAuth();
     const { items: allCartItems, totalPrice: allCartTotal, clearCart } = useCart();
     const router = useRouter();
 
@@ -133,6 +133,12 @@ function CheckoutContent() {
     const handleCreateOrder = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        
+        // Lưu lại ngay ở Local để quay ra vẫn có
+        if (user) {
+            updateUserLocally({ name: customerName, phone: customerPhone, address: customerAddress });
+        }
+
         try {
             const orderItems = isCartMode
                 ? cartItems.map(item => ({ productId: item.id, quantity: item.quantity }))
