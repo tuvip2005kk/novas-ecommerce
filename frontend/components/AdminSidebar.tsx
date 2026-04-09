@@ -38,6 +38,7 @@ const otherItems = [
     { href: '/admin/products', icon: Package, label: 'Sản phẩm' },
     { href: '/admin/orders', icon: ShoppingCart, label: 'Đơn hàng' },
     { href: '/admin/promotions', icon: Tag, label: 'Khuyến mãi' },
+    { href: '/admin/discounts', icon: Tag, label: 'Giảm giá tổng' },
     { href: '/admin/users', icon: Users, label: 'Người dùng' },
     { href: '/admin/reviews', icon: Star, label: 'Đánh giá' },
 ];

@@ -113,4 +113,56 @@ export class ProductsService {
             where: { id },
         });
     }
+
+    async applyBulkDiscount(params: { targetType: string, targetId?: number, discountPercent: number, action: 'apply' | 'remove' }) {
+        const { targetType, targetId, discountPercent, action } = params;
+        
+        let where: any = {};
+        if (targetType === 'product' && targetId) {
+            where.id = targetId;
+        } else if (targetType === 'subcategory' && targetId) {
+            where.subcategoryId = targetId;
+        } else if (targetType === 'category' && targetId) {
+            where.subcategory = { categoryId: targetId };
+        } 
+
+        const products = await this.prisma.product.findMany({ where });
+        const updatePromises = [];
+
+        if (action === 'apply') {
+            for (const p of products) {
+                const original = p.originalPrice || p.price;
+                const newPrice = Math.round(original * (1 - discountPercent / 100));
+                updatePromises.push(
+                    this.prisma.product.update({
+                        where: { id: p.id },
+                        data: {
+                            originalPrice: original,
+                            price: newPrice
+                        }
+                    })
+                );
+            }
+            await Promise.all(updatePromises);
+            return { message: `Đã áp dụng giảm giá ${discountPercent}% cho ${updatePromises.length} sản phẩm.` };
+        } else if (action === 'remove') {
+            for (const p of products) {
+                if (p.originalPrice) {
+                    updatePromises.push(
+                        this.prisma.product.update({
+                            where: { id: p.id },
+                            data: {
+                                price: p.originalPrice,
+                                originalPrice: null
+                            }
+                        })
+                    );
+                }
+            }
+            await Promise.all(updatePromises);
+            return { message: `Đã gỡ giảm giá cho ${updatePromises.length} sản phẩm.` };
+        }
+        
+        throw new Error('Hành động không hợp lệ');
+    }
 }

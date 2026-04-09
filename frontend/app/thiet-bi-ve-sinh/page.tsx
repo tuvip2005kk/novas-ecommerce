@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { API_URL } from '@/config';
 
 import { useEffect, useState } from "react";
@@ -16,6 +16,7 @@ interface Product {
     image: string;
     slug: string;
     soldCount: number;
+    originalPrice?: number;
 }
 
 interface Subcategory {
@@ -231,12 +232,19 @@ function ProductCard({ product, categorySlug }: { product: Product; categorySlug
                         Novas
                     </span>
                 </div>
-                <div className="absolute top-3 right-3 z-10">
+                <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
                     <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex flex-col items-center justify-center text-white text-center shadow-lg border-2 border-amber-300">
                         <span className="text-[7px] font-bold">MIỄN PHÍ</span>
                         <span className="text-[8px] font-bold">LẮP ĐẶT</span>
                     </div>
                 </div>
+                {product.originalPrice && product.originalPrice > product.price && (
+                    <div className="absolute bottom-3 left-3 z-10">
+                        <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded shadow-lg">
+                            -{Math.round(100 - (product.price / product.originalPrice) * 100)}%
+                        </span>
+                    </div>
+                )}
                 <img
                     src={product.image ? (product.image.startsWith('http') ? product.image : `${API_URL}${product.image.startsWith('/') ? '' : '/'}${product.image}`) : '/images/placeholder.png'}
                     alt={product.name}
@@ -263,9 +271,11 @@ function ProductCard({ product, categorySlug }: { product: Product; categorySlug
                     <span className="text-[#21246b] font-bold text-xl">
                         {new Intl.NumberFormat('vi-VN').format(product.price)}đ
                     </span>
-                    <span className="text-sm text-slate-400 line-through">
-                        {new Intl.NumberFormat('vi-VN').format(product.price * 1.3)}đ
-                    </span>
+                    {product.originalPrice && product.originalPrice > product.price && (
+                        <span className="text-sm text-slate-400 line-through">
+                            {new Intl.NumberFormat('vi-VN').format(product.originalPrice)}đ
+                        </span>
+                    )}
                 </div>
 
                 {/* Buttons - Compact */}
