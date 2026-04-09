@@ -20,8 +20,19 @@ function CheckoutContent() {
     const quantity = parseInt(quantityParam || "1");
     const isCartMode = searchParams.get("mode") === "cart";
     const { user, isLoading } = useAuth();
-    const { items: cartItems, totalPrice: cartTotal, clearCart } = useCart();
+    const { items: allCartItems, totalPrice: allCartTotal, clearCart } = useCart();
     const router = useRouter();
+
+    const selectedIdsParam = searchParams.get("ids");
+    const selectedIds = selectedIdsParam ? selectedIdsParam.split(',').map(id => parseInt(id)) : [];
+
+    const cartItems = isCartMode && selectedIds.length > 0 
+        ? allCartItems.filter(item => selectedIds.includes(item.id))
+        : allCartItems;
+    
+    const cartTotal = isCartMode && selectedIds.length > 0
+        ? cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+        : allCartTotal;
 
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(false);
