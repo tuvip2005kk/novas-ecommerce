@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { Plus, Trash2, Loader2, X, Tag, Percent } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useToast, ToastContainer } from "@/components/Toast";
 
 interface Sale {
     id: number;
@@ -36,7 +37,30 @@ export default function AdminSales() {
         expiresAt: ''
     });
 
-    useEffect(() => { fetchSales(); }, [token]);
+    // Bulk Discount State
+    const [bulkTargetType, setBulkTargetType] = useState('category');
+    const [bulkTargetId, setBulkTargetId] = useState('');
+    const [bulkDiscountPercent, setBulkDiscountPercent] = useState('10');
+    const [categories, setCategories] = useState<any[]>([]);
+    const [subcategories, setSubcategories] = useState<any[]>([]);
+    const [products, setProducts] = useState<any[]>([]);
+    const [bulkLoading, setBulkLoading] = useState(false);
+    
+    const { toasts, showToast, removeToast } = useToast();
+
+    useEffect(() => {
+        fetchSales();
+        // Fetch lookup lists
+        Promise.all([
+            fetch(`${API_URL}/api/categories`).then(res => res.json()),
+            fetch(`${API_URL}/api/subcategories`).then(res => res.json()),
+            fetch(`${API_URL}/api/products`).then(res => res.json()),
+        ]).then(([cats, subs, prods]) => {
+            setCategories(cats);
+            setSubcategories(subs);
+            setProducts(prods);
+        }).catch(err => console.error("Failed to load options", err));
+    }, [token]);
 
     const fetchSales = async () => {
         if (!token) return;
@@ -85,6 +109,39 @@ export default function AdminSales() {
             fetchSales();
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleBulkSubmit = async (e: React.FormEvent, action: 'apply' | 'remove') => {
+        e.preventDefault();
+        setBulkLoading(true);
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/api/products/bulk-discount`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    targetType: bulkTargetType,
+                    targetId: bulkTargetType === 'all' ? undefined : parseInt(bulkTargetId),
+                    discountPercent: parseInt(bulkDiscountPercent),
+                    action
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || 'Lỗi áp dụng giảm giá', 'error');
+            }
+        } catch (error: any) {
+            showToast(error.message || 'Có lỗi xảy ra', 'error');
+        } finally {
+            setBulkLoading(false);
         }
     };
 
@@ -284,7 +341,90 @@ export default function AdminSales() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Bulk Discounts Section */}
+            <div className="pt-6">
+                <Card className="max-w-2xl shadow-sm border-[#21246b]/20 border-t-4 border-t-[#21246b]">
+                    <CardHeader>
+                        <CardTitle className="text-[#21246b]">Giảm Giá Hàng Loạt (Bulk Discount)</CardTitle>
+                        <p className="text-sm text-slate-500">
+                            Công cụ cập nhật giá tự động cho toàn bộ sản phẩm thuộc danh mục.
+                            Giá gốc sẽ bị gạch ngang và huy hiệu % tự động hiện ra!
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Áp dụng cho:</label>
+                                <select 
+                                    className="w-full p-2 border rounded focus:ring-2 focus:ring-[#21246b]"
+                                    value={bulkTargetType}
+                                    onChange={(e) => {
+                                        setBulkTargetType(e.target.value);
+                                        setBulkTargetId('');
+                                    }}
+                                >
+                                    <option value="category">Danh mục chính</option>
+                                    <option value="subcategory">Danh mục con</option>
+                                    <option value="product">Một Sản phẩm cụ thể</option>
+                                </select>
+                            </div>
+
+                            {bulkTargetType !== 'all' && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Chọn đối tượng:</label>
+                                    <select 
+                                        className="w-full p-2 border rounded focus:ring-2 focus:ring-[#21246b]"
+                                        value={bulkTargetId}
+                                        onChange={(e) => setBulkTargetId(e.target.value)}
+                                        required
+                                    >
+                                        <option value="">-- Chọn --</option>
+                                        {bulkTargetType === 'category' && categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        {bulkTargetType === 'subcategory' && subcategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        {bulkTargetType === 'product' && products.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Phần trăm giảm giá (%):</label>
+                                <input 
+                                    type="number"
+                                    min="1"
+                                    max="99"
+                                    value={bulkDiscountPercent}
+                                    onChange={(e) => setBulkDiscountPercent(e.target.value)}
+                                    className="w-full p-2 border rounded focus:ring-2 focus:ring-[#21246b]"
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex gap-4 pt-4 border-t border-slate-100">
+                                <Button 
+                                    onClick={(e) => handleBulkSubmit(e, 'apply')}
+                                    disabled={bulkLoading || (!bulkTargetId && bulkTargetType !== 'all')}
+                                    className="flex-1 bg-[#21246b] hover:bg-[#1a1d55] text-white"
+                                >
+                                    {bulkLoading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
+                                    ÁP DỤNG GIẢM GIÁ
+                                </Button>
+                                <Button 
+                                    onClick={(e) => handleBulkSubmit(e, 'remove')}
+                                    disabled={bulkLoading || (!bulkTargetId && bulkTargetType !== 'all')}
+                                    variant="outline"
+                                    className="flex-1 text-slate-700 hover:bg-red-50 hover:text-red-600 border-slate-300"
+                                >
+                                    {bulkLoading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
+                                    GỠ BỎ ÁP DỤNG
+                                </Button>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+            
+            <ToastContainer toasts={toasts} onClose={removeToast} />
         </div>
     );
 }
-
