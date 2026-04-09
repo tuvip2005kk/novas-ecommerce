@@ -149,7 +149,7 @@ export default function CartPage() {
                                         <span className="font-medium">{new Intl.NumberFormat('vi-VN').format(totalPrice)}đ</span>
                                     </div>
                                     {discount > 0 && (
-                                        <div className="flex justify-between text-green-600">
+                                        <div className="flex justify-between text-red-600 font-medium">
                                             <span>Giảm giá ({discountPercent}%)</span>
                                             <span>-{new Intl.NumberFormat('vi-VN').format(discount)}đ</span>
                                         </div>
