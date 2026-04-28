@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { API_URL } from '@/config';
 import React, { useEffect, useState, useRef } from "react";
-import { Loader2, Plus, Trash2, Download, Upload, BarChart as BarChartIcon } from "lucide-react";
+import { Loader2, Plus, Trash2, Download, Upload, BarChart as LucideBarChart } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import * as ExcelJS from 'exceljs';
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-const APP_VERSION = "1.3";
+const APP_VERSION = "1.4";
 
 interface Order { id: number; total: number; status: string; createdAt: string; }
 interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
@@ -693,7 +695,7 @@ export default function AdminDashboard() {
                         
                         <div className="border border-slate-200 bg-white p-4 rounded flex flex-col justify-center items-center text-center">
                             <div className="p-6 bg-slate-50 rounded-full mb-4">
-                                <BarChartIcon className="w-10 h-10 text-slate-400" />
+                                <LucideBarChart className="w-10 h-10 text-slate-400" />
                             </div>
                             <h3 className="font-medium text-slate-900 mb-1">Phân tích chuyên sâu</h3>
                             <p className="text-sm text-slate-500 max-w-xs">
