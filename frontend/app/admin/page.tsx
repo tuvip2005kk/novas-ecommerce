@@ -485,32 +485,56 @@ export default function AdminDashboard() {
             const wb2 = new ExcelJS.Workbook();
             const arrayBuffer = await file.arrayBuffer();
             await wb2.xlsx.load(arrayBuffer);
-            const ws = wb2.worksheets[0];
-            if (!ws) { alert('Không đọc được sheet.'); return; }
+            
+            // Tìm sheet "Chi Tiet Chi Phi" trước, nếu không thấy thì lấy sheet đầu tiên
+            let ws = wb2.getWorksheet('Chi Tiet Chi Phi') || wb2.worksheets[0];
+            
+            if (!ws) { alert('Không đọc được dữ liệu từ file.'); return; }
+            
             const formatted: any[] = [];
             ws.eachRow((row, rowNumber) => {
-                // Intelligent search for data rows: skip if STT is not a number or if it's the header
-                const stt = row.getCell(1).value;
-                if (typeof stt !== 'number' && rowNumber < 10) return; 
+                // Bỏ qua các dòng tiêu đề ở trên (thường là < 6 dòng đầu trong file xuất chuyên nghiệp)
+                if (rowNumber < 5) return;
                 
+                const sttValue = row.getCell(1).value;
+                const stt = typeof sttValue === 'object' ? (sttValue as any)?.result : sttValue;
+                
+                // Nếu cột A không có số thứ tự thì bỏ qua
+                if (isNaN(Number(stt)) || stt === null || stt === '') return;
+
                 const title = String(row.getCell(3).value || '').trim();
                 const amountRaw = row.getCell(6).value;
-                const amount = typeof amountRaw === 'number' ? amountRaw : parseFloat(String(amountRaw || '0').replace(/[^0-9.-]/g, ''));
+                
+                // Xử lý số tiền (chấp nhận cả số và chuỗi định dạng)
+                let amount = 0;
+                if (typeof amountRaw === 'number') {
+                    amount = amountRaw;
+                } else if (typeof amountRaw === 'object' && amountRaw !== null) {
+                    amount = Number((amountRaw as any).result || 0);
+                } else {
+                    amount = parseFloat(String(amountRaw || '0').replace(/[^0-9.-]/g, ''));
+                }
                 
                 if (!title || isNaN(amount) || amount <= 0) return;
                 
+                const typeRaw = String(row.getCell(5).value || '').toUpperCase();
                 formatted.push({
                     title,
                     amount,
-                    type: String(row.getCell(5).value || 'OTHER').toUpperCase().includes('NHẬP') ? 'IMPORT' : 
-                          String(row.getCell(5).value || 'OTHER').toUpperCase().includes('LƯƠNG') ? 'SALARY' :
-                          String(row.getCell(5).value || 'OTHER').toUpperCase().includes('MARKETING') ? 'MARKETING' :
-                          String(row.getCell(5).value || 'OTHER').toUpperCase().includes('MẶT BẰNG') ? 'RENT' : 'OTHER',
+                    type: typeRaw.includes('NHẬP') ? 'IMPORT' : 
+                          typeRaw.includes('LƯƠNG') ? 'SALARY' :
+                          typeRaw.includes('MARKETING') ? 'MARKETING' :
+                          typeRaw.includes('MẶT BẰNG') ? 'RENT' : 'OTHER',
                     date: new Date().toISOString(),
                     description: String(row.getCell(4).value || ''),
                 });
             });
-            if (formatted.length === 0) { alert('Không tìm thấy dữ liệu hợp lệ trong file.'); return; }
+
+            if (formatted.length === 0) { 
+                alert('Không tìm thấy dữ liệu hợp lệ. Lưu ý: Dữ liệu phải nằm trong Sheet "Chi Tiet Chi Phi" và bắt đầu từ dòng 6.'); 
+                return; 
+            }
+            
             const res = await fetch(`${API_URL}/api/expenses/bulk`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
