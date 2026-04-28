@@ -11,7 +11,7 @@ const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6
 function fmt(n: number) {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 }
-const APP_VERSION = "3.0";
+const APP_VERSION = "3.1";
 
 const PAID_STATUSES = ['PAID', 'COMPLETED', 'SHIPPED', 'Đã thanh toán', 'Đang chuẩn bị', 'Đang giao hàng', 'Đang giao', 'Đã giao thành công', 'Đã giao', 'Hoàn thành'];
 const PENDING_STATUSES = ['PENDING', 'PROCESSING', 'Chờ thanh toán'];
@@ -597,6 +597,16 @@ export default function AdminDashboard() {
         );
     }
 
+    return <AdminUI 
+        activeTab={activeTab} setActiveTab={setActiveTab} 
+        stats={stats} revenueData={revenueData} statusData={statusData}
+        topProducts={topProducts} expenses={expenses} expLoading={expLoading}
+        handleExport={() => {}} handleImport={() => {}} handleAddExpense={() => {}}
+        handleDeleteExpense={() => {}}
+    />;
+}
+
+function AdminUI({ activeTab, setActiveTab, stats, revenueData, statusData, topProducts, expenses, expLoading, handleExport, handleImport, handleAddExpense, handleDeleteExpense }: any) {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
