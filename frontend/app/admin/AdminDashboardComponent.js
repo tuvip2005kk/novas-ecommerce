@@ -211,7 +211,7 @@ export default function AdminDashboard() {
 
     const totalFilteredExpenses = filteredExpenses.reduce((s, e) => s + e.amount, 0);
 
-    const handleDeleteExpense = async (id: number) => {
+    const handleDeleteExpense = async (id) => {
         if (!confirm('Xóa khoản chi này?')) return;
         try {
             await fetch(API_URL + '/api/expenses/' + id, { method: 'DELETE', headers: getAuthHeaders() });
@@ -238,9 +238,9 @@ export default function AdminDashboard() {
         const GREEN = 'FF16A34A', RED = 'FFDC2626', BLUE = 'FF1D4ED8';
         const DARK = 'FF1E293B', ORANGE = 'FFEA580C';
 
-        const t: any = { style: 'thin' };
-        const m: any = { style: 'medium' };
-        const h: any = { style: 'hair' };
+        const t = { style: 'thin' };
+        const m = { style: 'medium' };
+        const h = { style: 'hair' };
         const bT = { top: t, bottom: t, left: t, right: t };
         const bM = { top: m, bottom: m, left: m, right: m };
         const bH = { top: h, bottom: h, left: h, right: h };
@@ -397,9 +397,9 @@ export default function AdminDashboard() {
         });
         s3.getRow(4).height = 24;
 
-        const grouped: Record<string, { count: number; amount: number }> = {};
-        dataToExport.forEach((exp: any) => {
-            const label = EXPENSE_TYPES.find((t: any) => t.value === exp.type)?.label || exp.type;
+        const grouped = {};
+        dataToExport.forEach((exp) => {
+            const label = EXPENSE_TYPES.find((t) => t.value === exp.type)?.label || exp.type;
             if (!grouped[label]) grouped[label] = { count: 0, amount: 0 };
             grouped[label].count++; grouped[label].amount += exp.amount;
         });
@@ -424,8 +424,8 @@ export default function AdminDashboard() {
             const last3 = 4 + sortedTypes.length;
             const tr3 = s3.getRow(last3 + 1); tr3.height = 24;
             const totalCount = sortedTypes.reduce((a, [, v]) => a + v.count, 0);
-            [['TỔNG CỘNG', WHITE, NAVY, 'center'] as any, [totalCount, WHITE, NAVY, 'center'], [totalByType, WHITE, NAVY, 'right'], ['100%', WHITE, NAVY, 'center'], ['—', WHITE, NAVY, 'center']].forEach(([v, fg, bg, align], ci) => {
-                const c = tr3.getCell(ci + 1); c.value = v; c.font = fn(true, 11, fg); c.fill = fl(bg); c.border = bM; c.alignment = { horizontal: align as any, vertical: 'middle' };
+            [['TỔNG CỘNG', WHITE, NAVY, 'center'], [totalCount, WHITE, NAVY, 'center'], [totalByType, WHITE, NAVY, 'right'], ['100%', WHITE, NAVY, 'center'], ['—', WHITE, NAVY, 'center']].forEach(([v, fg, bg, align], ci) => {
+                const c = tr3.getCell(ci + 1); c.value = v; c.font = fn(true, 11, fg); c.fill = fl(bg); c.border = bM; c.alignment = { horizontal: align, vertical: 'middle' };
             });
             tr3.getCell(3).numFmt = '#,##0';
         }
@@ -481,7 +481,7 @@ export default function AdminDashboard() {
                 const bg = ri % 2 === 0 ? WHITE : STRIPE;
                 const r = s4.getRow(curRow); r.height = 20;
                 const lc = r.getCell(1); lc.value = label; lc.font = fn(true, 10, 'FF1E293B'); lc.fill = fl(bg); lc.border = bT; lc.alignment = { vertical: 'middle' };
-                const vc = r.getCell(2); vc.value = val as any; vc.font = fn(true, 10, color); vc.fill = fl(bg); vc.border = bT; vc.alignment = { horizontal: 'right', vertical: 'middle' };
+                const vc = r.getCell(2); vc.value = val; vc.font = fn(true, 10, color); vc.fill = fl(bg); vc.border = bT; vc.alignment = { horizontal: 'right', vertical: 'middle' };
                 if (typeof val === 'number' && unit === 'VNĐ') vc.numFmt = '#,##0';
                 if (unit === '%') vc.numFmt = '0.0"%"';
                 const uc = r.getCell(3); uc.value = unit; uc.font = fn(false, 9, 'FF334155'); uc.fill = fl(bg); uc.border = bT; uc.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -521,7 +521,7 @@ export default function AdminDashboard() {
                 if (rowNumber < 5) return;
                 
                 const sttValue = row.getCell(1).value;
-                const stt = typeof sttValue === 'object' ? (sttValue as any)?.result : sttValue;
+                const stt = typeof sttValue === 'object' ? sttValue?.result : sttValue;
                 if (isNaN(Number(stt)) || stt === null || stt === '') return;
 
                 const title = String(row.getCell(3).value || '').trim();
@@ -529,7 +529,7 @@ export default function AdminDashboard() {
                 
                 let amount = 0;
                 if (typeof amountRaw === 'number') amount = amountRaw;
-                else if (typeof amountRaw === 'object' && amountRaw !== null) amount = Number((amountRaw as any).result || 0);
+                else if (typeof amountRaw === 'object' && amountRaw !== null) amount = Number(amountRaw.result || 0);
                 else amount = parseFloat(String(amountRaw || '0').replace(/[^0-9.-]/g, ''));
                 
                 if (!title || isNaN(amount) || amount <= 0) return;
@@ -575,7 +575,7 @@ export default function AdminDashboard() {
                 const err = await res.json().catch(() => ({}));
                 alert('Lỗi import: ' + (err.message || 'Lỗi server'));
             }
-        } catch (err: any) { alert('Lỗi đọc file Excel: ' + (err.message || 'Lỗi định dạng')); }
+        } catch (err) { alert('Lỗi đọc file Excel: ' + (err.message || 'Lỗi định dạng')); }
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
