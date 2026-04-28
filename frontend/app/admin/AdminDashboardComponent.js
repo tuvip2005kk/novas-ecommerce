@@ -897,8 +897,8 @@ export default function AdminDashboard() {
                 costPrice,
                 stock,
                 sold,
-                stock * price,
-                stock * costPrice,
+                { formula: 'G' + (6 + idx) + '*E' + (6 + idx), result: stock * price },
+                { formula: 'G' + (6 + idx) + '*F' + (6 + idx), result: stock * costPrice },
                 product.subcategory?.category?.name || '',
                 product.subcategory?.name || '',
                 product.subcategoryId || '',
@@ -1081,9 +1081,15 @@ export default function AdminDashboard() {
                 const nextStock = row.stock !== null ? Math.max(0, Math.floor(row.stock)) : current ? Math.max(0, Math.floor(toNumber(current.stock))) : 0;
                 const currentStock = current ? Math.max(0, Math.floor(toNumber(current.stock))) : 0;
                 const stockDelta = Math.max(0, nextStock - currentStock);
-                const isFirstCostForExistingStock = Boolean(current) && row.costPrice !== null && currentCostPrice <= 0 && nextCostPrice > 0 && stockDelta === 0 && nextStock > 0;
-                const importExpenseQuantity = stockDelta > 0 ? stockDelta : isFirstCostForExistingStock ? nextStock : 0;
-                const autoImportExpenseAmount = importExpenseQuantity > 0 && nextCostPrice > 0 ? importExpenseQuantity * nextCostPrice : 0;
+                const hasImportedCostPrice = row.costPrice !== null && nextCostPrice > 0;
+                const addedStockCost = stockDelta > 0 && nextCostPrice > 0 ? stockDelta * nextCostPrice : 0;
+                const existingStockCostAdjustment = current && hasImportedCostPrice && nextCostPrice > currentCostPrice
+                    ? currentStock * (nextCostPrice - currentCostPrice)
+                    : 0;
+                const autoImportExpenseAmount = addedStockCost + existingStockCostAdjustment;
+                const autoImportExpenseDescription = 'Ghi từ import Chi Tiet San Pham. '
+                    + (existingStockCostAdjustment > 0 ? 'Chỉnh giá vốn tồn hiện tại ' + currentStock + ' sản phẩm, chênh ' + new Intl.NumberFormat('vi-VN').format(nextCostPrice - currentCostPrice) + 'đ/sp. ' : '')
+                    + (addedStockCost > 0 ? 'Tăng tồn kho ' + stockDelta + ' sản phẩm x giá nhập ' + new Intl.NumberFormat('vi-VN').format(nextCostPrice) + 'đ/sp.' : '');
                 const nextImage = row.image || current?.image || '';
 
                 if (current) {
@@ -1111,9 +1117,7 @@ export default function AdminDashboard() {
                             amount: autoImportExpenseAmount,
                             type: 'HangHoa',
                             date: new Date().toISOString(),
-                            description: isFirstCostForExistingStock
-                                ? 'Ghi từ import Chi Tiet San Pham. Bổ sung giá nhập cho tồn kho hiện tại ' + nextStock + ' sản phẩm x giá nhập ' + new Intl.NumberFormat('vi-VN').format(nextCostPrice) + 'đ/sp.'
-                                : 'Ghi từ import Chi Tiet San Pham. Tăng tồn kho ' + stockDelta + ' sản phẩm x giá nhập ' + new Intl.NumberFormat('vi-VN').format(nextCostPrice) + 'đ/sp.',
+                            description: autoImportExpenseDescription,
                         });
                     }
                     productUpdated++;
