@@ -509,7 +509,7 @@ export default function AdminDashboard() {
         URL.revokeObjectURL(url);
     };
 
-    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImport = async (e) => {
         const file = e.target.files?.[0]; if (!file) return;
         try {
             const wb2 = new ExcelJS.Workbook();
