@@ -9,7 +9,7 @@ import * as ExcelJS from 'exceljs';
 
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-const APP_VERSION = "2.3";
+const APP_VERSION = "2.4";
 
 const PAID_STATUSES = ['PAID', 'COMPLETED', 'SHIPPED', 'Đã thanh toán', 'Đang chuẩn bị', 'Đang giao hàng', 'Đang giao', 'Đã giao thành công', 'Đã giao', 'Hoàn thành'];
 const PENDING_STATUSES = ['PENDING', 'PROCESSING', 'Chờ thanh toán'];
@@ -41,18 +41,17 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-    const [activeTab, setActiveTab] = useState<'overview' | 'expenses'>('overview');
+    const [activeTab, setActiveTab] = useState('overview');
     const [stats, setStats] = useState<Stats>({ totalProducts: 0, totalOrders: 0, totalRevenue: 0, totalExpenses: 0, totalProfit: 0, totalUsers: 0, pendingOrders: 0, todayOrders: 0 });
     const [revenueData, setRevenueData] = useState<any[]>([]);
     const [statusData, setStatusData] = useState<any[]>([]);
     const [topProducts, setTopProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [days, setDays] = useState(7);
-    const [filterType, setFilterType] = useState<'days' | 'month'>('days');
+    const [filterType, setFilterType] = useState('days');
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-    // Expense states
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [expLoading, setExpLoading] = useState(false);
     const [title, setTitle] = useState('');
@@ -67,11 +66,6 @@ export default function AdminDashboard() {
     const [filterExpType, setFilterExpType] = useState('ALL');
     const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const getAuthHeaders = () => {
-        const token = localStorage.getItem('novas_admin_token') || localStorage.getItem('novas_token');
-        return token ? { 'Authorization': 'Bearer ' + token } : {} as Record<string, string>;
-    };
 
     useEffect(() => { fetchData(); }, [days, filterType, selectedMonth, selectedYear]);
     useEffect(() => { if (activeTab === 'expenses') fetchExpenses(); }, [activeTab]);
@@ -98,6 +92,7 @@ export default function AdminDashboard() {
             const orders = await ordersRes.json();
             const users = await usersRes.json().catch(() => []);
             const expData = expensesRes ? await expensesRes.json().catch(() => []) : [];
+
 
             const ordersArray = Array.isArray(orders) ? orders : [];
             const usersArray = Array.isArray(users) ? users : [];
