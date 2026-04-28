@@ -8,7 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import * as ExcelJS from 'exceljs';
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-const APP_VERSION = "1.6";
+const APP_VERSION = "1.7";
 
 interface Order { id: number; total: number; status: string; createdAt: string; }
 interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
@@ -108,32 +108,43 @@ export default function AdminDashboard() {
                 todayOrders: ordersArray.filter((o: Order) => o.createdAt.startsWith(todayStr)).length
             });
 
-            const chartData: any[] = [];
+            const revData: any[] = [];
+            const expDataMap: Record<string, number> = {};
+            
+            expArray.forEach((e: any) => {
+                const ed = new Date(e.date);
+                const key = filterType === 'days' ? ed.toISOString().split('T')[0] : `${ed.getMonth()}-${ed.getFullYear()}`;
+                expDataMap[key] = (expDataMap[key] || 0) + e.amount;
+            });
+
             if (filterType === 'days') {
                 for (let i = days - 1; i >= 0; i--) {
                     const d = new Date(); d.setDate(d.getDate() - i);
                     const ds = d.toISOString().split('T')[0];
-                    const dayOrders = ordersArray.filter((o: Order) => o.createdAt.startsWith(ds));
-                    chartData.push({
-                        name: d.toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' }),
-                        revenue: dayOrders.filter((o: Order) => PAID_STATUSES.includes(o.status)).reduce((s: number, o: Order) => s + o.total, 0),
+                    const dayOrders = ordersArray.filter((o: Order) => o.createdAt.startsWith(ds) && PAID_STATUSES.includes(o.status));
+                    revData.push({
+                        name: d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+                        revenue: dayOrders.reduce((s, o) => s + o.total, 0),
+                        expenses: expDataMap[ds] || 0,
                         orders: dayOrders.length
                     });
                 }
             } else {
-                const dim = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-                for (let day = 1; day <= dim; day++) {
-                    const d = new Date(selectedYear, selectedMonth, day);
-                    const ds = d.toISOString().split('T')[0];
-                    const dayOrders = ordersArray.filter((o: Order) => o.createdAt.startsWith(ds));
-                    chartData.push({
-                        name: `${day}`,
-                        revenue: dayOrders.filter((o: Order) => PAID_STATUSES.includes(o.status)).reduce((s: number, o: Order) => s + o.total, 0),
-                        orders: dayOrders.length
+                for (let m = 0; m < 12; m++) {
+                    const monthOrders = ordersArray.filter((o: Order) => {
+                        const od = new Date(o.createdAt);
+                        return od.getMonth() === m && od.getFullYear() === selectedYear && PAID_STATUSES.includes(o.status);
+                    });
+                    const mKey = `${m}-${selectedYear}`;
+                    revData.push({
+                        name: months[m],
+                        revenue: monthOrders.reduce((s, o) => s + o.total, 0),
+                        expenses: expDataMap[mKey] || 0,
+                        orders: monthOrders.length
                     });
                 }
             }
-            setRevenueData(chartData);
+            setRevenueData(revData);
             setStatusData([
                 { name: 'Đã thanh toán', value: ordersArray.filter((o: Order) => PAID_STATUSES.includes(o.status)).length },
                 { name: 'Chờ xử lý', value: ordersArray.filter((o: Order) => PENDING_STATUSES.includes(o.status)).length },
@@ -613,94 +624,166 @@ export default function AdminDashboard() {
             </div>
 
             {activeTab === 'overview' && (
-                <div className="space-y-4">
-                    <div className="grid md:grid-cols-3 gap-4">
-                        <div className="md:col-span-2 border border-slate-200 bg-white p-4 rounded">
-                            <div className="flex flex-col gap-3 mb-4">
-                                <h2 className="font-medium">Biểu đồ Doanh thu</h2>
-                                <div className="flex flex-wrap gap-2 items-center">
-                                    <div className="flex gap-1">
-                                        {[7, 14, 30, 90].map(d => (
+                <div className="space-y-6">
+                    {/* Main Charts Row */}
+                    <div className="grid lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-xl shadow-sm">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-800">Xu hướng Tài chính</h2>
+                                    <p className="text-xs text-slate-500">So sánh biến động Doanh thu và Chi phí</p>
+                                </div>
+                                <div className="flex flex-wrap gap-2 items-center bg-slate-50 p-1 rounded-lg">
+                                    <div className="flex">
+                                        {[7, 14, 30].map(d => (
                                             <button key={d} onClick={() => { setFilterType('days'); setDays(d); }}
-                                                className={`px-3 py-1 text-xs border rounded ${filterType === 'days' && days === d ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-200'}`}>
-                                                {d} ngày
+                                                className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all ${filterType === 'days' && days === d ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                                                {d} NGÀY
                                             </button>
                                         ))}
                                     </div>
-                                    <span className="text-slate-300">|</span>
-                                    <div className="flex gap-2">
-                                        <select value={selectedMonth} onChange={(e) => { setFilterType('month'); setSelectedMonth(parseInt(e.target.value)); }}
-                                            className={`px-2 py-1 border text-xs rounded ${filterType === 'month' ? 'border-slate-900' : 'border-slate-200'}`}>
-                                            {months.map((m, i) => <option key={i} value={i}>{m}</option>)}
-                                        </select>
-                                        <select value={selectedYear} onChange={(e) => { setFilterType('month'); setSelectedYear(parseInt(e.target.value)); }}
-                                            className={`px-2 py-1 border text-xs rounded ${filterType === 'month' ? 'border-slate-900' : 'border-slate-200'}`}>
-                                            {[2023, 2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-                                        </select>
-                                    </div>
+                                    <span className="text-slate-200 w-[1px] h-4">|</span>
+                                    <select value={selectedYear} onChange={(e) => { setFilterType('month'); setSelectedYear(parseInt(e.target.value)); }}
+                                        className={`px-2 py-1.5 bg-transparent text-[10px] font-bold outline-none cursor-pointer ${filterType === 'month' ? 'text-blue-600' : 'text-slate-500'}`}>
+                                        {[2023, 2024, 2025, 2026].map(y => <option key={y} value={y}>NĂM {y}</option>)}
+                                    </select>
                                 </div>
                             </div>
-                            <div className="h-72">
+                            
+                            <div className="h-[320px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={revenueData}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                                        <YAxis tick={{ fontSize: 10 }} />
-                                        <Tooltip formatter={(value, name) => [name === 'revenue' ? fmt(Number(value)) : value, name === 'revenue' ? 'Doanh thu' : 'Số đơn']} />
-                                        <Legend formatter={(v) => v === 'revenue' ? 'Doanh thu' : 'Số đơn'} />
-                                        <Bar dataKey="revenue" fill="#3b82f6" />
-                                        <Bar dataKey="orders" fill="#10b981" />
+                                        <defs>
+                                            <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                                            </linearGradient>
+                                            <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+                                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => v >= 1000000 ? `${v/1000000}M` : v} />
+                                        <Tooltip 
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                            formatter={(value, name) => [fmt(Number(value)), name === 'revenue' ? 'Doanh thu' : 'Chi phí']} 
+                                        />
+                                        <Legend verticalAlign="top" align="right" iconType="circle" height={36} wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
+                                        <Bar dataKey="revenue" name="revenue" fill="url(#colorRev)" radius={[4, 4, 0, 0]} barSize={20} />
+                                        <Bar dataKey="expenses" name="expenses" fill="url(#colorExp)" radius={[4, 4, 0, 0]} barSize={20} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
                         </div>
-                        <div className="border border-slate-200 bg-white p-4 rounded">
-                            <h2 className="font-medium mb-4">Trạng thái đơn hàng</h2>
-                            <div className="h-72">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
-                                            {statusData.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
+
+                        <div className="space-y-6">
+                            {/* Expense Breakdown Card */}
+                            <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm">
+                                <h3 className="text-sm font-bold text-slate-800 mb-4">Cơ cấu Chi phí</h3>
+                                {expenseTypeStats.length > 0 ? (
+                                    <>
+                                        <div className="h-40">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie data={expenseTypeStats} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={5} dataKey="value" stroke="none">
+                                                        {expenseTypeStats.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
+                                                    </Pie>
+                                                    <Tooltip formatter={(val) => fmt(Number(val))} />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div className="mt-4 grid grid-cols-2 gap-2">
+                                            {expenseTypeStats.slice(0, 4).map((s, i) => (
+                                                <div key={i} className="flex flex-col p-2 bg-slate-50 rounded-lg">
+                                                    <div className="flex items-center gap-1.5 mb-1">
+                                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                                                        <span className="text-[10px] text-slate-500 font-medium truncate">{s.name}</span>
+                                                    </div>
+                                                    <span className="text-[10px] font-bold text-slate-700">{fmt(s.value)}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="h-40 flex items-center justify-center text-slate-400 text-xs italic">Chưa có dữ liệu chi phí</div>
+                                )}
+                            </div>
+
+                            {/* Efficiency Metrics */}
+                            <div className="bg-[#21246b] p-5 rounded-xl text-white shadow-lg shadow-blue-900/20">
+                                <h3 className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-4">Hiệu suất vận hành</h3>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-end border-b border-blue-800/50 pb-3">
+                                        <div>
+                                            <p className="text-[10px] text-blue-300 mb-0.5">Biên lợi nhuận</p>
+                                            <p className="text-xl font-bold">{stats.totalRevenue > 0 ? ((stats.totalProfit / stats.totalRevenue) * 100).toFixed(1) : 0}%</p>
+                                        </div>
+                                        <div className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${stats.totalProfit >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                            {stats.totalProfit >= 0 ? 'CÓ LÃI' : 'LỖ VỐN'}
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <p className="text-[10px] text-blue-300">Giá trị đơn TB (AOV)</p>
+                                            <p className="text-sm font-bold">{fmt(stats.totalOrders > 0 ? stats.totalRevenue / stats.totalOrders : 0)}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] text-blue-300">Tỷ lệ chi phí</p>
+                                            <p className="text-sm font-bold text-orange-400">{stats.totalRevenue > 0 ? ((stats.totalExpenses / stats.totalRevenue) * 100).toFixed(1) : 0}%</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Top Products Section */}
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div className="border border-slate-200 bg-white p-4 rounded">
-                            <h2 className="font-medium mb-4">Sản phẩm bán chạy (Doanh thu)</h2>
-                            <div className="space-y-4">
-                                {topProducts.length === 0 ? (
-                                    <p className="text-sm text-slate-500 py-10 text-center">Chưa có dữ liệu bán hàng</p>
-                                ) : topProducts.map((p, i) => (
-                                    <div key={i} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3 overflow-hidden">
-                                            <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 flex-shrink-0">
+                    {/* Secondary Row: Top Products */}
+                    <div className="grid lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-xl shadow-sm">
+                            <div className="flex items-center justify-between mb-5">
+                                <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <LucideBarChart className="w-4 h-4 text-blue-600" /> Top sản phẩm bán chạy
+                                </h2>
+                                <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded">DOANH THU CAO NHẤT</span>
+                            </div>
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                {topProducts.map((p, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:border-blue-200 transition-colors bg-slate-50/30">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-xs font-bold text-slate-600 border border-slate-100">
                                                 {i + 1}
                                             </div>
-                                            <p className="text-sm font-medium text-slate-800 truncate">{p.name}</p>
+                                            <div className="max-w-[140px]">
+                                                <p className="text-xs font-bold text-slate-800 truncate">{p.name}</p>
+                                                <p className="text-[10px] text-slate-500">{p.quantity} lượt bán</p>
+                                            </div>
                                         </div>
-                                        <div className="text-right flex-shrink-0 ml-4">
-                                            <p className="text-sm font-bold text-[#21246b]">{fmt(p.revenue)}</p>
-                                            <p className="text-[10px] text-slate-500">{p.quantity} sản phẩm</p>
+                                        <div className="text-right">
+                                            <p className="text-xs font-bold text-blue-700">{fmt(p.revenue)}</p>
+                                            <div className="w-16 h-1 bg-slate-200 rounded-full mt-1 overflow-hidden">
+                                                <div className="h-full bg-blue-500" style={{ width: topProducts[0]?.revenue > 0 ? `${(p.revenue / topProducts[0].revenue) * 100}%` : '0%' }} />
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
-                        
-                        <div className="border border-slate-200 bg-white p-4 rounded flex flex-col justify-center items-center text-center">
-                            <div className="p-6 bg-slate-50 rounded-full mb-4">
-                                <LucideBarChart className="w-10 h-10 text-slate-400" />
+
+                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm flex flex-col items-center justify-center text-center space-y-4">
+                            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+                                <Download className="w-8 h-8 text-blue-600" />
                             </div>
-                            <h3 className="font-medium text-slate-900 mb-1">Phân tích chuyên sâu</h3>
-                            <p className="text-sm text-slate-500 max-w-xs">
-                                Sử dụng tính năng Xuất Excel để xem báo cáo chi tiết về hiệu suất kinh doanh và quản lý tài chính.
-                            </p>
+                            <div>
+                                <h3 className="font-bold text-slate-800">Báo cáo tài chính</h3>
+                                <p className="text-xs text-slate-500 mt-1 px-4">
+                                    Tải file Excel để có cái nhìn chi tiết và đầy đủ nhất về mọi hoạt động thu chi.
+                                </p>
+                            </div>
+                            <button onClick={handleExport} className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition-all shadow-md">
+                                XUẤT BÁO CÁO NGAY
+                            </button>
                         </div>
                     </div>
                 </div>
