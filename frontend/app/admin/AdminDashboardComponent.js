@@ -30,6 +30,58 @@ const getAuthHeaders = () => {
     return token ? { 'Authorization': 'Bearer ' + token } : {};
 };
 
+const formatDateInput = (value = new Date()) => {
+    const d = new Date(value);
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return local.toISOString().split('T')[0];
+};
+
+const formatDateDisplay = (value) => {
+    if (!value) return '';
+    return new Date(value + 'T00:00:00').toLocaleDateString('vi-VN');
+};
+
+const getMonthStartInput = () => {
+    const now = new Date();
+    return formatDateInput(new Date(now.getFullYear(), now.getMonth(), 1));
+};
+
+const getDateBounds = (startInput, endInput) => {
+    const start = new Date(startInput + 'T00:00:00');
+    const end = new Date(endInput + 'T23:59:59.999');
+    return { start, end };
+};
+
+const isDateInRange = (value, startInput, endInput) => {
+    const d = new Date(value);
+    const { start, end } = getDateBounds(startInput, endInput);
+    return d >= start && d <= end;
+};
+
+const stripTones = (value) => String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, (c) => c === 'đ' ? 'd' : 'D')
+    .toLowerCase();
+
+const normalizeExpenseType = (expense) => {
+    const raw = String(expense?.type || '').trim();
+    if (EXPENSE_TYPES.some((t) => t.value === raw)) return raw;
+
+    const text = stripTones([raw, expense?.title, expense?.description].filter(Boolean).join(' '));
+    if (raw === 'IMPORT' || /(^|\s)(hang|nhap)(\s|$)|san pham|thiet bi|bon cau|lavabo|voi|sen tam|chau rua/.test(text)) return 'HangHoa';
+    if (raw === 'SALARY' || /luong|nhan vien/.test(text)) return 'Luong';
+    if (raw === 'RENT' || /mat bang|thue/.test(text)) return 'MatBang';
+    if (/marketing|quang cao/.test(text)) return 'Marketing';
+    if (/dien|nuoc/.test(text)) return 'DienNuoc';
+    return 'Khac';
+};
+
+const getExpenseTypeLabel = (expense) => {
+    const normalizedType = normalizeExpenseType(expense);
+    return EXPENSE_TYPES.find((t) => t.value === normalizedType)?.label || normalizedType;
+};
+
 
 
 export default function AdminDashboard() {
@@ -38,20 +90,17 @@ export default function AdminDashboard() {
     const [revenueData, setRevenueData] = useState([]);
     const [statusData, setStatusData] = useState([]);
     const [topProducts, setTopProducts] = useState([]);
+    const [ordersData, setOrdersData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [days, setDays] = useState(7);
-    const [filterType, setFilterType] = useState('days');
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [reportStartDate, setReportStartDate] = useState(getMonthStartInput);
+    const [reportEndDate, setReportEndDate] = useState(() => formatDateInput(new Date()));
 
     const [expenses, setExpenses] = useState([]);
     const [expLoading, setExpLoading] = useState(false);
     const [title, setTitle] = useState('');
     const [amount, setAmount] = useState('');
-    const [type, setType] = useState('OTHER');
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [expMonth, setExpMonth] = useState(new Date().getMonth());
-    const [expYear, setExpYear] = useState(new Date().getFullYear());
+    const [type, setType] = useState('HangHoa');
+    const [date, setDate] = useState(() => formatDateInput(new Date()));
     const [description, setDescription] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -59,8 +108,25 @@ export default function AdminDashboard() {
     const [editingExpense, setEditingExpense] = useState(null);
     const fileInputRef = useRef(null);
 
-    useEffect(() => { fetchData(); }, [days, filterType, selectedMonth, selectedYear]);
+    const maxDate = formatDateInput(new Date());
+    const reportLabel = formatDateDisplay(reportStartDate) + ' - ' + formatDateDisplay(reportEndDate);
+
+    useEffect(() => { fetchData(); }, [reportStartDate, reportEndDate]);
     useEffect(() => { if (activeTab === 'expenses') fetchExpenses(); }, [activeTab]);
+
+    const handleReportStartChange = (value) => {
+        if (!value) return;
+        const next = value > maxDate ? maxDate : value;
+        setReportStartDate(next);
+        if (next > reportEndDate) setReportEndDate(next);
+    };
+
+    const handleReportEndChange = (value) => {
+        if (!value) return;
+        const next = value > maxDate ? maxDate : value;
+        setReportEndDate(next);
+        if (next < reportStartDate) setReportStartDate(next);
+    };
 
     const fetchExpenses = async () => {
         setExpLoading(true);
@@ -89,54 +155,73 @@ export default function AdminDashboard() {
             const ordersArray = Array.isArray(orders) ? orders : [];
             const usersArray = Array.isArray(users) ? users : [];
             const expArray = Array.isArray(expData) ? expData : [];
+            setOrdersData(ordersArray);
+            setExpenses(expArray);
 
-            const paidOrders = ordersArray.filter((o) => PAID_STATUSES.includes(o.status));
-            const totalRevenue = paidOrders.reduce((s, o) => s + o.total, 0);
-            const todayStr = new Date().toISOString().split('T')[0];
-            const totalExpenses = expArray.reduce((s, e) => s + e.amount, 0);
+            const todayStr = formatDateInput(new Date());
+            const rangeOrders = ordersArray.filter((o) => isDateInRange(o.createdAt, reportStartDate, reportEndDate));
+            const rangePaidOrders = rangeOrders.filter((o) => PAID_STATUSES.includes(o.status));
+            const rangeExpenses = expArray.filter((e) => isDateInRange(e.date, reportStartDate, reportEndDate));
+            const totalRevenue = rangePaidOrders.reduce((s, o) => s + o.total, 0);
+            const totalExpenses = rangeExpenses.reduce((s, e) => s + e.amount, 0);
 
             setStats({
-                totalProducts: products.length, totalOrders: ordersArray.length,
+                totalProducts: products.length, totalOrders: rangeOrders.length,
                 totalRevenue, totalExpenses, totalProfit: totalRevenue - totalExpenses,
                 totalUsers: usersArray.length,
-                pendingOrders: ordersArray.filter((o) => PENDING_STATUSES.includes(o.status)).length,
-                todayOrders: ordersArray.filter((o) => o.createdAt.startsWith(todayStr)).length
+                pendingOrders: rangeOrders.filter((o) => PENDING_STATUSES.includes(o.status)).length,
+                todayOrders: ordersArray.filter((o) => isDateInRange(o.createdAt, todayStr, todayStr)).length
             });
 
             const revData = [];
             const expDataMap = {};
+            const revenueDataMap = {};
             
-            expArray.forEach((e) => {
-                const ed = new Date(e.date);
-                const key = filterType === 'days' ? ed.toISOString().split('T')[0] : (ed.getMonth() + 1) + '-' + ed.getFullYear();
+            const { start, end } = getDateBounds(reportStartDate, reportEndDate);
+            const dayCount = Math.max(1, Math.round((end - start) / 86400000));
+            const groupByMonth = dayCount > 62;
+            const getGroupKey = (value) => {
+                const d = new Date(value);
+                return groupByMonth ? (d.getMonth() + 1) + '-' + d.getFullYear() : formatDateInput(d);
+            };
+
+            rangeExpenses.forEach((e) => {
+                const key = getGroupKey(e.date);
                 expDataMap[key] = (expDataMap[key] || 0) + e.amount;
             });
 
-            if (filterType === 'days') {
-                for (let i = days - 1; i >= 0; i--) {
-                    const d = new Date(); d.setDate(d.getDate() - i);
-                    const ds = d.toISOString().split('T')[0];
-                    const dayOrders = ordersArray.filter((o) => o.createdAt.startsWith(ds) && PAID_STATUSES.includes(o.status));
+            rangePaidOrders.forEach((o) => {
+                const key = getGroupKey(o.createdAt);
+                if (!revenueDataMap[key]) revenueDataMap[key] = { revenue: 0, orders: 0 };
+                revenueDataMap[key].revenue += o.total;
+                revenueDataMap[key].orders += 1;
+            });
+
+            if (!groupByMonth) {
+                const cursor = new Date(start);
+                while (cursor <= end) {
+                    const ds = formatDateInput(cursor);
+                    const revenuePoint = revenueDataMap[ds] || { revenue: 0, orders: 0 };
                     revData.push({
-                        name: d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
-                        revenue: dayOrders.reduce((s, o) => s + o.total, 0),
+                        name: cursor.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+                        revenue: revenuePoint.revenue,
                         expenses: expDataMap[ds] || 0,
-                        orders: dayOrders.length
+                        orders: revenuePoint.orders
                     });
+                    cursor.setDate(cursor.getDate() + 1);
                 }
             } else {
-                for (let m = 0; m < 12; m++) {
-                    const monthOrders = ordersArray.filter((o) => {
-                        const od = new Date(o.createdAt);
-                        return od.getMonth() === m && od.getFullYear() === selectedYear && PAID_STATUSES.includes(o.status);
-                    });
-                    const mKey = m + '-' + selectedYear;
+                const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+                while (cursor <= end) {
+                    const mKey = (cursor.getMonth() + 1) + '-' + cursor.getFullYear();
+                    const revenuePoint = revenueDataMap[mKey] || { revenue: 0, orders: 0 };
                     revData.push({
-                        name: months[m],
-                        revenue: monthOrders.reduce((s, o) => s + o.total, 0),
+                        name: months[cursor.getMonth()] + '/' + cursor.getFullYear(),
+                        revenue: revenuePoint.revenue,
                         expenses: expDataMap[mKey] || 0,
-                        orders: monthOrders.length
+                        orders: revenuePoint.orders
                     });
+                    cursor.setMonth(cursor.getMonth() + 1);
                 }
             }
             setRevenueData(revData);
@@ -148,17 +233,15 @@ export default function AdminDashboard() {
 
             // Top Products
             const productSales = {};
-            ordersArray.forEach((o) => {
-                if (PAID_STATUSES.includes(o.status)) {
-                    o.items?.forEach((item) => {
-                        const pid = item.product?.id;
-                        if (pid) {
-                            if (!productSales[pid]) productSales[pid] = { name: item.product.name, quantity: 0, revenue: 0 };
-                            productSales[pid].quantity += item.quantity;
-                            productSales[pid].revenue += (item.price || item.product.price) * item.quantity;
-                        }
-                    });
-                }
+            rangePaidOrders.forEach((o) => {
+                o.items?.forEach((item) => {
+                    const pid = item.product?.id;
+                    if (pid) {
+                        if (!productSales[pid]) productSales[pid] = { name: item.product.name, quantity: 0, revenue: 0 };
+                        productSales[pid].quantity += item.quantity;
+                        productSales[pid].revenue += (item.price || item.product.price) * item.quantity;
+                    }
+                });
             });
             setTopProducts(Object.values(productSales).sort((a, b) => b.revenue - a.revenue).slice(0, 5));
         } catch (e) { console.error(e); } finally { setLoading(false); }
@@ -174,10 +257,10 @@ export default function AdminDashboard() {
             const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                body: JSON.stringify({ title, amount: parseFloat(amount), type, date: new Date(date).toISOString(), description })
+                body: JSON.stringify({ title, amount: parseFloat(amount), type: normalizeExpenseType({ type, title, description }), date: new Date(date).toISOString(), description })
             });
             if (res.ok) { 
-                setTitle(''); setAmount(''); setDescription(''); setEditingExpense(null);
+                setTitle(''); setAmount(''); setType('HangHoa'); setDate(formatDateInput(new Date())); setDescription(''); setEditingExpense(null);
                 fetchExpenses(); fetchData(); 
             }
             else alert('Có lỗi xảy ra');
@@ -188,28 +271,32 @@ export default function AdminDashboard() {
         setEditingExpense(exp);
         setTitle(exp.title);
         setAmount(exp.amount.toString());
-        setType(exp.type);
-        setDate(new Date(exp.date).toISOString().split('T')[0]);
+        setType(normalizeExpenseType(exp));
+        setDate(formatDateInput(exp.date));
         setDescription(exp.description || '');
         // Scroll to form
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const filteredExpenses = expenses.filter(exp => {
-        const d = new Date(exp.date);
-        const matchesDate = d.getMonth() === expMonth && d.getFullYear() === expYear;
+    const reportExpenses = expenses.filter(exp => isDateInRange(exp.date, reportStartDate, reportEndDate));
+
+    const filteredExpenses = reportExpenses.filter(exp => {
         const matchesSearch = exp.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                              (exp.description && exp.description.toLowerCase().includes(searchTerm.toLowerCase()));
-        const matchesType = filterExpType === 'ALL' || exp.type === filterExpType;
-        return matchesDate && matchesSearch && matchesType;
+        const matchesType = filterExpType === 'ALL' || normalizeExpenseType(exp) === filterExpType;
+        return matchesSearch && matchesType;
     });
 
     const expenseTypeStats = EXPENSE_TYPES.map(t => ({
         name: t.label,
-        value: filteredExpenses.filter(e => e.type === t.value).reduce((sum, e) => sum + e.amount, 0)
+        value: reportExpenses.filter(e => normalizeExpenseType(e) === t.value).reduce((sum, e) => sum + e.amount, 0)
     })).filter(t => t.value > 0);
 
     const totalFilteredExpenses = filteredExpenses.reduce((s, e) => s + e.amount, 0);
+    const rangeOrders = ordersData.filter((o) => isDateInRange(o.createdAt, reportStartDate, reportEndDate));
+    const rangePaidOrders = rangeOrders.filter((o) => PAID_STATUSES.includes(o.status));
+    const rangeRevenue = rangePaidOrders.reduce((s, o) => s + o.total, 0);
+    const rangeProfit = rangeRevenue - totalFilteredExpenses;
 
     const handleDeleteExpense = async (id) => {
         if (!confirm('Xóa khoản chi này?')) return;
@@ -220,9 +307,23 @@ export default function AdminDashboard() {
     };
 
     const handleExport = async () => {
-        let dataToExport = filteredExpenses;
+        let dataToExport = activeTab === 'expenses' ? filteredExpenses : reportExpenses;
+        const ordersToExport = ordersData.filter((o) => isDateInRange(o.createdAt, reportStartDate, reportEndDate));
+        const paidOrdersToExport = ordersToExport.filter((o) => PAID_STATUSES.includes(o.status));
+        const exportRevenue = paidOrdersToExport.reduce((s, o) => s + o.total, 0);
+        const exportExpenses = dataToExport.reduce((s, e) => s + e.amount, 0);
+        const exportStats = {
+            totalRevenue: exportRevenue,
+            totalExpenses: exportExpenses,
+            totalProfit: exportRevenue - exportExpenses,
+            totalOrders: ordersToExport.length,
+            pendingOrders: ordersToExport.filter((o) => PENDING_STATUSES.includes(o.status)).length,
+            todayOrders: ordersData.filter((o) => isDateInRange(o.createdAt, formatDateInput(new Date()), formatDateInput(new Date()))).length,
+            totalProducts: stats.totalProducts,
+            totalUsers: stats.totalUsers,
+        };
         // Allow export even if no expenses, if there is revenue or orders
-        if (dataToExport.length === 0 && stats.totalOrders === 0) {
+        if (dataToExport.length === 0 && ordersToExport.length === 0) {
             alert('Không có dữ liệu để xuất báo cáo.');
             return;
         }
@@ -230,7 +331,7 @@ export default function AdminDashboard() {
         const wb = new ExcelJS.Workbook();
         wb.creator = 'NOVAS Admin';
         wb.created = new Date();
-        const reportTime = 'Tháng ' + (expMonth + 1) + '/' + expYear;
+        const reportTime = reportLabel;
         const todayFull = new Date().toLocaleString('vi-VN');
 
         const NAVY = 'FF21246B', WHITE = 'FFFFFFFF', GOLD = 'FFFFD700';
@@ -258,8 +359,8 @@ export default function AdminDashboard() {
         };
 
         const grandTotal = dataToExport.reduce((s, e) => s + e.amount, 0);
-        const margin = stats.totalRevenue > 0 ? ((stats.totalProfit / stats.totalRevenue) * 100).toFixed(1) : '0.0';
-        const aov = stats.totalOrders > 0 ? Math.round(stats.totalRevenue / stats.totalOrders) : 0;
+        const margin = exportStats.totalRevenue > 0 ? ((exportStats.totalProfit / exportStats.totalRevenue) * 100).toFixed(1) : '0.0';
+        const aov = exportStats.totalOrders > 0 ? Math.round(exportStats.totalRevenue / exportStats.totalOrders) : 0;
 
         // ── SHEET 1: KPI TỔNG QUAN ──
         const s1 = wb.addWorksheet('Tong Quan KPI');
@@ -285,17 +386,17 @@ export default function AdminDashboard() {
         s1.getRow(5).height = 22;
 
         const kpiData = [
-            ['Tổng Doanh Thu', stats.totalRevenue, 'VNĐ', 'Từ đơn đã thanh toán', BLUE, 'Doanh thu tích lũy'],
-            ['Tổng Chi Phí Vận Hành', stats.totalExpenses, 'VNĐ', 'Tổng các khoản chi', RED, 'Chi phí tích lũy'],
-            ['Lợi Nhuận Ròng', stats.totalProfit, 'VNĐ', 'Doanh thu - Chi phí', stats.totalProfit >= 0 ? GREEN : RED, stats.totalProfit >= 0 ? 'Có lãi' : 'Lỗ'],
-            ['Biên Lợi Nhuận', (margin) + '%', '%', 'Profit Margin = LN/DT', stats.totalProfit >= 0 ? GREEN : RED, (margin) + '% margin'],
+            ['Tổng Doanh Thu', exportStats.totalRevenue, 'VNĐ', 'Từ đơn đã thanh toán', BLUE, 'Doanh thu trong kỳ'],
+            ['Tổng Chi Phí Vận Hành', exportStats.totalExpenses, 'VNĐ', 'Tổng các khoản chi', RED, 'Chi phí trong kỳ'],
+            ['Lợi Nhuận Ròng', exportStats.totalProfit, 'VNĐ', 'Doanh thu - Chi phí', exportStats.totalProfit >= 0 ? GREEN : RED, exportStats.totalProfit >= 0 ? 'Có lãi' : 'Lỗ'],
+            ['Biên Lợi Nhuận', (margin) + '%', '%', 'Profit Margin = LN/DT', exportStats.totalProfit >= 0 ? GREEN : RED, (margin) + '% margin'],
             ['Giá Trị Đơn TB (AOV)', aov, 'VNĐ', 'Average Order Value', BLUE, 'AOV'],
-            ['Tổng Đơn Hàng', stats.totalOrders, 'Đơn', 'Tất cả trạng thái', 'FF334155', ''],
-            ['Đơn Chờ Xử Lý', stats.pendingOrders, 'Đơn', 'Trạng thái PENDING', ORANGE, stats.pendingOrders > 10 ? 'Cần xử lý gấp' : 'Bình thường'],
-            ['Đơn Hàng Hôm Nay', stats.todayOrders, 'Đơn', 'Tính đến thời điểm xuất', BLUE, ''],
-            ['Tổng Sản Phẩm', stats.totalProducts, 'SP', 'Sản phẩm trong hệ thống', 'FF334155', ''],
-            ['Tổng Khách Hàng', stats.totalUsers, 'User', 'Người dùng đã đăng ký', 'FF334155', ''],
-            ['Doanh Thu / Khách Hàng', stats.totalUsers > 0 ? Math.round(stats.totalRevenue / stats.totalUsers) : 0, 'VNĐ', 'Revenue per User', BLUE, 'RPU'],
+            ['Tổng Đơn Hàng', exportStats.totalOrders, 'Đơn', 'Tất cả trạng thái', 'FF334155', ''],
+            ['Đơn Chờ Xử Lý', exportStats.pendingOrders, 'Đơn', 'Trạng thái PENDING', ORANGE, exportStats.pendingOrders > 10 ? 'Cần xử lý gấp' : 'Bình thường'],
+            ['Đơn Hàng Hôm Nay', exportStats.todayOrders, 'Đơn', 'Tính đến thời điểm xuất', BLUE, ''],
+            ['Tổng Sản Phẩm', exportStats.totalProducts, 'SP', 'Sản phẩm trong hệ thống', 'FF334155', ''],
+            ['Tổng Khách Hàng', exportStats.totalUsers, 'User', 'Người dùng đã đăng ký', 'FF334155', ''],
+            ['Doanh Thu / Khách Hàng', exportStats.totalUsers > 0 ? Math.round(exportStats.totalRevenue / exportStats.totalUsers) : 0, 'VNĐ', 'Revenue per User', BLUE, 'RPU'],
         ];
 
         kpiData.forEach(([label, val, unit, note, color, evalStr], ri) => {
@@ -350,7 +451,7 @@ export default function AdminDashboard() {
             const vals = [
                 idx + 1, new Date(exp.date).toLocaleDateString('vi-VN'),
                 exp.title, exp.description || '',
-                EXPENSE_TYPES.find((t) => t.value === exp.type)?.label || exp.type,
+                getExpenseTypeLabel(exp),
                 exp.amount, pct, '',
             ];
             vals.forEach((val, ci) => {
@@ -399,7 +500,7 @@ export default function AdminDashboard() {
 
         const grouped = {};
         dataToExport.forEach((exp) => {
-            const label = EXPENSE_TYPES.find((t) => t.value === exp.type)?.label || exp.type;
+            const label = getExpenseTypeLabel(exp);
             if (!grouped[label]) grouped[label] = { count: 0, amount: 0 };
             grouped[label].count++; grouped[label].amount += exp.amount;
         });
@@ -445,21 +546,21 @@ export default function AdminDashboard() {
 
         const sections = [
             { title: 'I. DOANH THU & LỢI NHUẬN', color: BLUE, rows: [
-                ['Tổng Doanh Thu', stats.totalRevenue, 'VNĐ', '= Tổng đơn đã thanh toán'],
-                ['Tổng Chi Phí Vận Hành', stats.totalExpenses, 'VNĐ', '= Tổng các khoản chi'],
-                ['Lợi Nhuận Ròng (Net Profit)', stats.totalProfit, 'VNĐ', '= Doanh Thu − Chi Phí'],
+                ['Tổng Doanh Thu', exportStats.totalRevenue, 'VNĐ', '= Tổng đơn đã thanh toán'],
+                ['Tổng Chi Phí Vận Hành', exportStats.totalExpenses, 'VNĐ', '= Tổng các khoản chi'],
+                ['Lợi Nhuận Ròng (Net Profit)', exportStats.totalProfit, 'VNĐ', '= Doanh Thu − Chi Phí'],
                 ['Biên Lợi Nhuận (Net Margin)', parseFloat(margin), '%', '= ' + (margin) + '% (LN / DT × 100)'],
             ]},
             { title: 'II. HIỆU SUẤT ĐƠN HÀNG', color: ORANGE, rows: [
-                ['Tổng Số Đơn Hàng', stats.totalOrders, 'Đơn', 'Tất cả trạng thái'],
-                ['Đơn Hàng Chờ Xử Lý', stats.pendingOrders, 'Đơn', 'Trạng thái PENDING'],
-                ['Đơn Hàng Trong Ngày', stats.todayOrders, 'Đơn', 'Tính đến thời điểm xuất'],
+                ['Tổng Số Đơn Hàng', exportStats.totalOrders, 'Đơn', 'Tất cả trạng thái'],
+                ['Đơn Hàng Chờ Xử Lý', exportStats.pendingOrders, 'Đơn', 'Trạng thái PENDING'],
+                ['Đơn Hàng Trong Ngày', exportStats.todayOrders, 'Đơn', 'Tính đến thời điểm xuất'],
                 ['Giá Trị Đơn TB (AOV)', aov, 'VNĐ', 'Average Order Value'],
             ]},
             { title: 'III. KHO & KHÁCH HÀNG', color: GREEN, rows: [
-                ['Tổng Số Sản Phẩm', stats.totalProducts, 'SP', 'Sản phẩm trong hệ thống'],
-                ['Tổng Khách Hàng Đăng Ký', stats.totalUsers, 'User', 'Tài khoản đã đăng ký'],
-                ['Doanh Thu / Khách Hàng (RPU)', stats.totalUsers > 0 ? Math.round(stats.totalRevenue / stats.totalUsers) : 0, 'VNĐ', 'Revenue per User'],
+                ['Tổng Số Sản Phẩm', exportStats.totalProducts, 'SP', 'Sản phẩm trong hệ thống'],
+                ['Tổng Khách Hàng Đăng Ký', exportStats.totalUsers, 'User', 'Tài khoản đã đăng ký'],
+                ['Doanh Thu / Khách Hàng (RPU)', exportStats.totalUsers > 0 ? Math.round(exportStats.totalRevenue / exportStats.totalUsers) : 0, 'VNĐ', 'Revenue per User'],
             ]},
             { title: 'IV. CHI PHÍ THEO LOẠI', color: RED, rows: sortedTypes.map(([label, { count, amount }]) => [label, amount, 'VNĐ', (count) + ' khoản chi']) },
         ];
@@ -543,14 +644,16 @@ export default function AdminDashboard() {
                     if (pts.length === 3) expenseDate = new Date(Number(pts[2]), Number(pts[1]) - 1, Number(pts[0]));
                 }
                 
-                const typeRaw = String(row.getCell(5).value || '').toUpperCase();
+                const typeRaw = stripTones(row.getCell(5).value || '');
+                const importType = /(^|\s)(nhap|hang)(\s|$)/.test(typeRaw) ? 'HangHoa' :
+                    typeRaw.includes('luong') ? 'Luong' :
+                    typeRaw.includes('marketing') ? 'Marketing' :
+                    typeRaw.includes('mat bang') || typeRaw.includes('thue') ? 'MatBang' :
+                    typeRaw.includes('dien') || typeRaw.includes('nuoc') ? 'DienNuoc' : 'Khac';
                 formatted.push({
                     title,
                     amount,
-                    type: typeRaw.includes('NHẬP') ? 'IMPORT' : 
-                          typeRaw.includes('LƯƠNG') ? 'SALARY' :
-                          typeRaw.includes('MARKETING') ? 'MARKETING' :
-                          typeRaw.includes('MẶT BẰNG') ? 'RENT' : 'OTHER',
+                    type: importType,
                     date: expenseDate.toISOString(),
                     description: String(row.getCell(4).value || ''),
                 });
@@ -620,6 +723,25 @@ export default function AdminDashboard() {
                 ))}
             </div>
 
+            <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Khoảng dữ liệu</p>
+                    <p className="text-sm font-semibold text-slate-800">{reportLabel}</p>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                    <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                        Từ ngày
+                        <input type="date" value={reportStartDate} max={reportEndDate > maxDate ? maxDate : reportEndDate} onChange={(e) => handleReportStartChange(e.target.value)}
+                            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#21246b]" />
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                        Đến ngày
+                        <input type="date" value={reportEndDate} min={reportStartDate} max={maxDate} onChange={(e) => handleReportEndChange(e.target.value)}
+                            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#21246b]" />
+                    </label>
+                </div>
+            </div>
+
             {activeTab === 'overview' && (
                 <div className="space-y-6">
                     <div className="grid lg:grid-cols-3 gap-6">
@@ -629,20 +751,8 @@ export default function AdminDashboard() {
                                     <h2 className="text-lg font-bold text-slate-800">Xu hướng Tài chính</h2>
                                     <p className="text-xs text-slate-500">So sánh biến động Doanh thu và Chi phí</p>
                                 </div>
-                                <div className="flex flex-wrap gap-2 items-center bg-slate-50 p-1 rounded-lg">
-                                    <div className="flex">
-                                        {[7, 14, 30].map(d => (
-                                            <button key={d} onClick={() => { setFilterType('days'); setDays(d); }}
-                                                className={'px-3 py-1.5 text-[10px] font-bold rounded-md transition-all ' + (filterType === 'days' && days === d ? 'bg-white text-[#21246b] shadow-sm' : 'text-slate-500 hover:text-slate-700')}>
-                                                {d} NGÀY
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <span className="text-slate-200 w-[1px] h-4">|</span>
-                                    <select value={selectedYear} onChange={(e) => { setFilterType('month'); setSelectedYear(parseInt(e.target.value)); }}
-                                        className={'px-2 py-1.5 bg-transparent text-[10px] font-bold outline-none cursor-pointer ' + (filterType === 'month' ? 'text-[#21246b]' : 'text-slate-500')}>
-                                        {[2023, 2024, 2025, 2026].map(y => <option key={y} value={y}>NĂM {y}</option>)}
-                                    </select>
+                                <div className="text-[10px] font-bold text-[#21246b] bg-slate-50 px-3 py-2 rounded-lg">
+                                    {reportLabel}
                                 </div>
                             </div>
                             
@@ -775,6 +885,7 @@ export default function AdminDashboard() {
                                 <p className="text-xs text-slate-500 mt-1 px-4">
                                     Tải file Excel để có cái nhìn chi tiết và đầy đủ nhất về mọi hoạt động thu chi.
                                 </p>
+                                <p className="text-[10px] font-bold text-slate-400 mt-2">{reportLabel}</p>
                             </div>
                             <button onClick={handleExport} className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition-all shadow-md">
                                 XUẤT BÁO CÁO NGAY
@@ -789,22 +900,22 @@ export default function AdminDashboard() {
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Doanh thu {months[expMonth]}</p>
-                            <p className="text-xl font-bold text-[#21246b]">{fmt(revenueData.find(d => d.name === months[expMonth])?.revenue || 0)}</p>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Doanh thu kỳ này</p>
+                            <p className="text-xl font-bold text-[#21246b]">{fmt(rangeRevenue)}</p>
                         </div>
                         <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Chi phí {months[expMonth]}</p>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Chi phí kỳ này</p>
                             <p className="text-xl font-bold text-red-600">{fmt(totalFilteredExpenses)}</p>
                         </div>
                         <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lợi nhuận {months[expMonth]}</p>
-                            <p className="text-xl font-bold text-green-600">{fmt((revenueData.find(d => d.name === months[expMonth])?.revenue || 0) - totalFilteredExpenses)}</p>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lợi nhuận kỳ này</p>
+                            <p className="text-xl font-bold text-green-600">{fmt(rangeProfit)}</p>
                         </div>
                         <div className="bg-[#21246b] p-4 rounded-xl shadow-md text-white flex flex-col justify-center">
                             <p className="text-[10px] font-bold text-blue-200 uppercase tracking-wider mb-1">Tỷ lệ chi phí</p>
                             <p className="text-xl font-bold">
-                                { (revenueData.find(d => d.name === months[expMonth])?.revenue || 0) > 0 
-                                    ? ((totalFilteredExpenses / (revenueData.find(d => d.name === months[expMonth])?.revenue || 0)) * 100).toFixed(1)
+                                { rangeRevenue > 0
+                                    ? ((totalFilteredExpenses / rangeRevenue) * 100).toFixed(1)
                                     : 0 }%
                             </p>
                         </div>
@@ -838,7 +949,7 @@ export default function AdminDashboard() {
                                     </div>
                                     <div>
                                         <label className="block text-xs font-medium text-slate-700 mb-1">Ngày chi</label>
-                                        <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                                        <input required type="date" value={date} max={maxDate} onChange={e => e.target.value && setDate(e.target.value > maxDate ? maxDate : e.target.value)}
                                             className="w-full border border-slate-300 rounded px-3 py-2 text-sm" />
                                     </div>
                                 </div>
@@ -847,15 +958,15 @@ export default function AdminDashboard() {
                                     <textarea value={description} onChange={e => setDescription(e.target.value)}
                                         className="w-full border border-slate-300 rounded px-3 py-2 text-sm h-16" placeholder="Chi tiết..." />
                                 </div>
-                                <div className="flex gap-2">
+                                <div className={editingExpense ? "grid grid-cols-2 gap-2" : ""}>
                                     {editingExpense && (
                                         <button type="button" onClick={() => { setEditingExpense(null); setTitle(''); setAmount(''); setDescription(''); }}
-                                            className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 rounded text-sm">
+                                            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 rounded text-sm">
                                             Hủy
                                         </button>
                                     )}
                                     <button type="submit" disabled={isSubmitting}
-                                        className={'flex-[2] text-white font-medium py-2 rounded text-sm flex items-center justify-center ' + (editingExpense ? 'bg-[#21246b] hover:bg-[#1a1d56]' : 'bg-[#21246b] hover:bg-blue-800')}>
+                                        className={'w-full text-white font-medium py-2 rounded text-sm flex items-center justify-center ' + (editingExpense ? 'bg-[#21246b] hover:bg-[#1a1d56]' : 'bg-[#21246b] hover:bg-blue-800')}>
                                         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingExpense ? 'Cập nhật' : 'Lưu lại')}
                                     </button>
                                 </div>
@@ -920,18 +1031,20 @@ export default function AdminDashboard() {
                                     </select>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3 border-t pt-3">
+                            <div className="grid gap-3 border-t pt-3 lg:grid-cols-[auto_1fr_1fr_auto] lg:items-center">
                                 <span className="text-xs font-medium text-slate-500">Xem dữ liệu:</span>
-                                <select value={expMonth} onChange={e => setExpMonth(parseInt(e.target.value))}
-                                    className="border border-slate-300 rounded px-2 py-1 text-xs outline-none">
-                                    {months.map((m, i) => <option key={i} value={i}>{m}</option>)}
-                                </select>
-                                <select value={expYear} onChange={e => setExpYear(parseInt(e.target.value))}
-                                    className="border border-slate-300 rounded px-2 py-1 text-xs outline-none">
-                                    {[2023, 2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-                                </select>
-                                <div className="ml-auto text-xs font-bold text-slate-700">
-                                    Tổng chi {months[expMonth]}: <span className="text-red-600">{new Intl.NumberFormat('vi-VN').format(totalFilteredExpenses)}đ</span>
+                                <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                    Từ ngày
+                                    <input type="date" value={reportStartDate} max={reportEndDate > maxDate ? maxDate : reportEndDate} onChange={(e) => handleReportStartChange(e.target.value)}
+                                        className="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none" />
+                                </label>
+                                <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                    Đến ngày
+                                    <input type="date" value={reportEndDate} min={reportStartDate} max={maxDate} onChange={(e) => handleReportEndChange(e.target.value)}
+                                        className="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none" />
+                                </label>
+                                <div className="text-xs font-bold text-slate-700 lg:text-right">
+                                    Tổng chi kỳ này: <span className="text-red-600">{new Intl.NumberFormat('vi-VN').format(totalFilteredExpenses)}đ</span>
                                 </div>
                             </div>
                         </div>
@@ -961,7 +1074,7 @@ export default function AdminDashboard() {
                                                     {exp.description && <p className="text-xs text-slate-400 truncate max-w-xs">{exp.description}</p>}
                                                 </td>
                                                 <td className="px-4 py-3 text-xs">
-                                                    <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded">{EXPENSE_TYPES.find(t => t.value === exp.type)?.label || exp.type}</span>
+                                                    <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded">{getExpenseTypeLabel(exp)}</span>
                                                 </td>
                                                 <td className="px-4 py-3 text-sm font-semibold text-red-600 text-right whitespace-nowrap">
                                                     -{new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
