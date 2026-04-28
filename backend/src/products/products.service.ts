@@ -1,10 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Product } from '@prisma/client';
 
 @Injectable()
 export class ProductsService {
     constructor(private prisma: PrismaService) { }
+
+    private normalizeProductData<T extends { price?: number; stock?: number }>(data: T): T {
+        const next: any = { ...data };
+
+        if (next.price !== undefined) {
+            const price = Number(next.price);
+            if (!Number.isFinite(price) || price < 0) {
+                throw new BadRequestException('Giá sản phẩm không hợp lệ');
+            }
+            next.price = price;
+        }
+
+        if (next.stock !== undefined) {
+            const stock = Number(next.stock);
+            if (!Number.isInteger(stock) || stock < 0) {
+                throw new BadRequestException('Tồn kho không hợp lệ');
+            }
+            next.stock = stock;
+        }
+
+        return next;
+    }
 
     async findAll(search?: string, category?: string, sort?: string, subcategoryId?: number): Promise<any[]> {
         const where: any = {};
@@ -80,14 +102,14 @@ export class ProductsService {
 
     async create(data: { name: string; slug: string; description: string; price: number; image: string; images?: string[]; subcategoryId?: number; stock: number; specs?: any }): Promise<Product> {
         return this.prisma.product.create({
-            data,
+            data: this.normalizeProductData(data),
         });
     }
 
     async update(id: number, data: { name?: string; slug?: string; description?: string; price?: number; image?: string; images?: string[]; subcategoryId?: number; stock?: number; specs?: any }): Promise<Product> {
         return this.prisma.product.update({
             where: { id },
-            data,
+            data: this.normalizeProductData(data),
         });
     }
 

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { SePayWebhookDto } from './dto/sepay-webhook.dto';
 import { SePayPgClient } from 'sepay-pg-node';
+import { OrdersService } from '../orders/orders.service';
 
 // SePay Configuration
 const SEPAY_CONFIG = {
@@ -34,7 +35,10 @@ export class SePayService {
     private readonly logger = new Logger(SePayService.name);
     private client: SePayPgClient;
 
-    constructor(private prisma: PrismaService) {
+    constructor(
+        private prisma: PrismaService,
+        private ordersService: OrdersService,
+    ) {
         this.client = new SePayPgClient({
             env: SEPAY_CONFIG.env,
             merchant_id: SEPAY_CONFIG.merchant_id,
@@ -232,7 +236,7 @@ export class SePayService {
 
             // Kiểm tra trạng thái đơn hàng hiện tại
             const currentStatus = order.status ? order.status.trim() : '';
-            const COMPLETED_STATUSES = ['Đã thanh toán', 'Đang chuẩn bị', 'Đang giao', 'Đã giao', 'Đã giao thành công', 'Hoàn thành'];
+            const COMPLETED_STATUSES = ['PAID', 'COMPLETED', 'SHIPPED', 'Đã thanh toán', 'Đang chuẩn bị', 'Đang giao hàng', 'Đang giao', 'Đã giao', 'Đã giao thành công', 'Hoàn thành'];
 
             this.logger.warn(`Checking Order #${orderId} status: "${currentStatus}" (Original: "${order.status}")`);
 
@@ -243,22 +247,7 @@ export class SePayService {
 
             this.logger.warn(`ℹ️ Order #${orderId} status "${currentStatus}" is NOT in completed list. Proceeding to update to 'Đã thanh toán'.`);
 
-            // Cập nhật trạng thái đơn hàng
-            await this.prisma.order.update({
-                where: { id: parseInt(orderId) },
-                data: { status: 'Đã thanh toán' }
-            });
-
-            // Trừ stock cho từng sản phẩm khi thanh toán thành công
-            if (order.items && order.items.length > 0) {
-                for (const item of order.items) {
-                    await this.prisma.product.update({
-                        where: { id: item.productId },
-                        data: { stock: { decrement: item.quantity } }
-                    });
-                }
-                this.logger.log(`📦 Stock decremented for ${order.items.length} products`);
-            }
+            await this.ordersService.updateStatus(parseInt(orderId), 'Đã thanh toán');
 
             this.logger.log(`✅ Order #${orderId} updated to "Đã thanh toán"`);
             this.logger.log(`=== WEBHOOK PROCESSED SUCCESSFULLY ===`);

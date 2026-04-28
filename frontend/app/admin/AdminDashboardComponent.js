@@ -113,6 +113,33 @@ const stripTones = (value) => String(value || '')
     .replace(/[đĐ]/g, (c) => c === 'đ' ? 'd' : 'D')
     .toLowerCase();
 
+const generateSlug = (value) => stripTones(value)
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+
+const getCellText = (cell) => {
+    const value = cell?.value;
+    if (value === null || value === undefined) return '';
+    if (value instanceof Date) return value.toLocaleDateString('vi-VN');
+    if (typeof value === 'object') {
+        if (value.result !== undefined) return String(value.result || '').trim();
+        if (value.text !== undefined) return String(value.text || '').trim();
+        if (value.hyperlink !== undefined && value.text !== undefined) return String(value.text || '').trim();
+        if (Array.isArray(value.richText)) return value.richText.map((part) => part.text || '').join('').trim();
+    }
+    return String(value).trim();
+};
+
+const getCellNumber = (cell) => {
+    const text = getCellText(cell);
+    if (text === '') return null;
+    if (!/\d/.test(text)) return null;
+    const parsed = toNumber(text);
+    return Number.isFinite(parsed) ? parsed : null;
+};
+
 const normalizeExpenseType = (expense) => {
     const raw = String(expense?.type || '').trim();
     if (EXPENSE_TYPES.some((t) => t.value === raw)) return raw;
@@ -141,6 +168,7 @@ export default function AdminDashboard() {
     const [topProducts, setTopProducts] = useState([]);
     const [topCustomers, setTopCustomers] = useState([]);
     const [ordersData, setOrdersData] = useState([]);
+    const [productsData, setProductsData] = useState([]);
     const [baseStats, setBaseStats] = useState({ totalProducts: 0, totalUsers: 0 });
     const [loading, setLoading] = useState(true);
     const [reportStartDate, setReportStartDate] = useState(getMonthStartInput);
@@ -157,6 +185,7 @@ export default function AdminDashboard() {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterExpType, setFilterExpType] = useState('ALL');
     const [editingExpense, setEditingExpense] = useState(null);
+    const [showAllRecords, setShowAllRecords] = useState(false);
     const fileInputRef = useRef(null);
     const rangeInitializedRef = useRef(false);
 
@@ -164,7 +193,7 @@ export default function AdminDashboard() {
     const reportLabel = formatDateDisplay(reportStartDate) + ' - ' + formatDateDisplay(reportEndDate);
 
     useEffect(() => { fetchData(true); }, []);
-    useEffect(() => { recomputeDashboard(); }, [ordersData, expenses, reportStartDate, reportEndDate, baseStats]);
+    useEffect(() => { recomputeDashboard(); }, [ordersData, expenses, reportStartDate, reportEndDate, baseStats, showAllRecords]);
     useEffect(() => {
         if (rangeInitializedRef.current) return;
         const bounds = getDataDateBounds(ordersData, expenses);
@@ -188,6 +217,7 @@ export default function AdminDashboard() {
     const handleReportStartChange = (value) => {
         if (!value) return;
         rangeInitializedRef.current = true;
+        setShowAllRecords(false);
         const next = value > maxDate ? maxDate : value;
         setReportStartDate(next);
         if (next > reportEndDate) setReportEndDate(next);
@@ -196,6 +226,7 @@ export default function AdminDashboard() {
     const handleReportEndChange = (value) => {
         if (!value) return;
         rangeInitializedRef.current = true;
+        setShowAllRecords(false);
         const next = value > maxDate ? maxDate : value;
         setReportEndDate(next);
         if (next < reportStartDate) setReportStartDate(next);
@@ -203,6 +234,7 @@ export default function AdminDashboard() {
 
     const handleShowAllData = () => {
         const bounds = getDataDateBounds(ordersData, expenses);
+        setShowAllRecords(true);
         if (!bounds) return;
 
         rangeInitializedRef.current = true;
@@ -214,9 +246,13 @@ export default function AdminDashboard() {
         const ordersArray = Array.isArray(ordersData) ? ordersData : [];
         const expArray = Array.isArray(expenses) ? expenses : [];
         const todayStr = formatDateInput(new Date());
-        const rangeOrders = ordersArray.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
+        const rangeOrders = showAllRecords
+            ? ordersArray
+            : ordersArray.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
         const rangePaidOrders = rangeOrders.filter((o) => PAID_STATUSES.includes(o.status));
-        const rangeExpenses = expArray.filter((e) => isDateInRange(getExpenseDateValue(e), reportStartDate, reportEndDate));
+        const rangeExpenses = showAllRecords
+            ? expArray
+            : expArray.filter((e) => isDateInRange(getExpenseDateValue(e), reportStartDate, reportEndDate));
         const totalRevenue = rangePaidOrders.reduce((s, o) => s + toNumber(o.total), 0);
         const totalExpenses = rangeExpenses.reduce((s, e) => s + toNumber(e.amount), 0);
 
@@ -355,13 +391,18 @@ export default function AdminDashboard() {
             const expArray = Array.isArray(expData) ? expData : [];
             const productsArray = Array.isArray(products) ? products : [];
             setOrdersData(ordersArray);
+            setProductsData(productsArray);
             setExpenses(expArray);
             setBaseStats({ totalProducts: productsArray.length, totalUsers: usersArray.length });
 
             const todayStr = formatDateInput(new Date());
-            const rangeOrders = ordersArray.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
+            const rangeOrders = showAllRecords
+                ? ordersArray
+                : ordersArray.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
             const rangePaidOrders = rangeOrders.filter((o) => PAID_STATUSES.includes(o.status));
-            const rangeExpenses = expArray.filter((e) => isDateInRange(getExpenseDateValue(e), reportStartDate, reportEndDate));
+            const rangeExpenses = showAllRecords
+                ? expArray
+                : expArray.filter((e) => isDateInRange(getExpenseDateValue(e), reportStartDate, reportEndDate));
             const totalRevenue = rangePaidOrders.reduce((s, o) => s + toNumber(o.total), 0);
             const totalExpenses = rangeExpenses.reduce((s, e) => s + toNumber(e.amount), 0);
 
@@ -485,7 +526,7 @@ export default function AdminDashboard() {
     const allExpenses = Array.isArray(expenses) ? expenses : [];
     const normalizedSearchTerm = stripTones(searchTerm);
     const reportExpenses = allExpenses
-        .filter(exp => isDateInRange(getExpenseDateValue(exp), reportStartDate, reportEndDate))
+        .filter(exp => showAllRecords || isDateInRange(getExpenseDateValue(exp), reportStartDate, reportEndDate))
         .sort((a, b) => {
             const bd = parseDateValue(getExpenseDateValue(b))?.getTime() || 0;
             const ad = parseDateValue(getExpenseDateValue(a))?.getTime() || 0;
@@ -506,7 +547,9 @@ export default function AdminDashboard() {
 
     const totalReportExpenses = reportExpenses.reduce((s, e) => s + toNumber(e.amount), 0);
     const totalFilteredExpenses = filteredExpenses.reduce((s, e) => s + toNumber(e.amount), 0);
-    const rangeOrders = ordersData.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
+    const rangeOrders = showAllRecords
+        ? ordersData
+        : ordersData.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
     const rangePaidOrders = rangeOrders.filter((o) => PAID_STATUSES.includes(o.status));
     const rangeRevenue = rangePaidOrders.reduce((s, o) => s + toNumber(o.total), 0);
     const rangeProfit = rangeRevenue - totalReportExpenses;
@@ -521,8 +564,11 @@ export default function AdminDashboard() {
 
     const handleExport = async () => {
         let dataToExport = activeTab === 'expenses' ? filteredExpenses : reportExpenses;
-        const ordersToExport = ordersData.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
+        const ordersToExport = showAllRecords
+            ? ordersData
+            : ordersData.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
         const paidOrdersToExport = ordersToExport.filter((o) => PAID_STATUSES.includes(o.status));
+        const productsToExport = Array.isArray(productsData) ? productsData : [];
         const exportRevenue = paidOrdersToExport.reduce((s, o) => s + toNumber(o.total), 0);
         const exportExpenses = dataToExport.reduce((s, e) => s + toNumber(e.amount), 0);
         const exportStats = {
@@ -536,7 +582,7 @@ export default function AdminDashboard() {
             totalUsers: stats.totalUsers,
         };
         // Allow export even if no expenses, if there is revenue or orders
-        if (dataToExport.length === 0 && ordersToExport.length === 0) {
+        if (dataToExport.length === 0 && ordersToExport.length === 0 && productsToExport.length === 0) {
             alert('Không có dữ liệu để xuất báo cáo.');
             return;
         }
@@ -800,6 +846,77 @@ export default function AdminDashboard() {
         [32, 22, 10, 38].forEach((w, i) => { s4.getColumn(i + 1).width = w; });
         s4.views = [{ state: 'frozen', ySplit: 3, activeCell: 'A4' }];
 
+        // ── SHEET 5: CHI TIẾT SẢN PHẨM / TỒN KHO ──
+        const productRows = productsToExport;
+        const totalStock = productRows.reduce((sum, p) => sum + toNumber(p.stock), 0);
+        const totalSold = productRows.reduce((sum, p) => sum + toNumber(p.soldCount), 0);
+        const totalInventoryValue = productRows.reduce((sum, p) => sum + (toNumber(p.stock) * toNumber(p.price)), 0);
+        const s5 = wb.addWorksheet('Chi Tiet San Pham');
+
+        s5.mergeCells('A1:M1');
+        const s5h1 = s5.getCell('A1');
+        s5h1.value = 'CHI TIẾT SẢN PHẨM & TỒN KHO';
+        s5h1.font = fn(true, 14, GOLD); s5h1.fill = fl(NAVY); s5h1.alignment = { horizontal: 'center', vertical: 'middle' };
+        s5.getRow(1).height = 32;
+
+        s5.mergeCells('A2:M2');
+        const s5h2 = s5.getCell('A2');
+        s5h2.value = 'Tổng sản phẩm: ' + productRows.length + '  |  Tổng tồn: ' + totalStock + '  |  Đã bán: ' + totalSold + '  |  Giá trị bán tồn: ' + new Intl.NumberFormat('vi-VN').format(totalInventoryValue) + ' đ';
+        s5h2.font = fn(true, 10, WHITE); s5h2.fill = fl('FF1E293B'); s5h2.alignment = { horizontal: 'center', vertical: 'middle' };
+        s5.getRow(2).height = 22;
+
+        s5.mergeCells('A3:M3');
+        const s5h3 = s5.getCell('A3');
+        s5h3.value = 'Import sẽ cập nhật theo ID hoặc Slug. Cột "Đã bán" chỉ để xem, không dùng để sửa thủ công.';
+        s5h3.font = { size: 9, name: 'Calibri', color: { argb: 'FF64748B' }, italic: true };
+        s5h3.fill = fl(LIGHT); s5h3.border = bT; s5h3.alignment = { horizontal: 'center', vertical: 'middle' };
+        s5.getRow(3).height = 20;
+        s5.getRow(4).height = 8;
+
+        ['STT', 'ID', 'TÊN SẢN PHẨM', 'SLUG', 'GIÁ BÁN (VNĐ)', 'TỒN KHO', 'ĐÃ BÁN', 'GIÁ TRỊ BÁN TỒN', 'DANH MỤC', 'DANH MỤC PHỤ', 'SUBCATEGORY ID', 'HÌNH ẢNH', 'MÔ TẢ'].forEach((hdr, i) => {
+            const c = s5.getCell(5, i + 1);
+            c.value = hdr; c.font = fn(true, 10, WHITE); c.fill = fl(NAVY);
+            c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; c.border = bT;
+        });
+        s5.getRow(5).height = 26;
+
+        productRows.forEach((product, idx) => {
+            const bg = idx % 2 === 0 ? WHITE : STRIPE;
+            const stock = toNumber(product.stock);
+            const sold = toNumber(product.soldCount);
+            const price = toNumber(product.price);
+            const r = s5.getRow(6 + idx); r.height = 22;
+            const vals = [
+                idx + 1,
+                product.id || '',
+                product.name || '',
+                product.slug || '',
+                price,
+                stock,
+                sold,
+                stock * price,
+                product.subcategory?.category?.name || '',
+                product.subcategory?.name || '',
+                product.subcategoryId || '',
+                product.image || '',
+                product.description || '',
+            ];
+
+            vals.forEach((val, ci) => {
+                const c = r.getCell(ci + 1);
+                c.value = val; c.fill = fl(bg); c.border = bH; c.font = fn(false, 10, 'FF1E293B'); c.alignment = { vertical: 'middle', wrapText: ci === 12 };
+            });
+            [1, 2, 6, 7, 11].forEach((ci) => { r.getCell(ci).alignment = { horizontal: 'center', vertical: 'middle' }; });
+            [5, 8].forEach((ci) => { r.getCell(ci).numFmt = '#,##0'; r.getCell(ci).alignment = { horizontal: 'right', vertical: 'middle' }; });
+            r.getCell(5).font = fn(true, 10, BLUE);
+            r.getCell(6).font = fn(true, 10, stock === 0 ? RED : stock <= 5 ? ORANGE : GREEN);
+        });
+
+        s5.views = [{ state: 'frozen', ySplit: 5, activeCell: 'A6' }];
+        s5.autoFilter = { from: 'A5', to: 'M5' };
+        [6, 8, 36, 28, 18, 12, 12, 20, 22, 24, 14, 32, 48].forEach((w, i) => { s5.getColumn(i + 1).width = w; });
+        s5.getColumn(11).hidden = true;
+
         // ── XUẤT FILE ──
         const buffer = await wb.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -818,60 +935,85 @@ export default function AdminDashboard() {
             const wb2 = new ExcelJS.Workbook();
             const arrayBuffer = await file.arrayBuffer();
             await wb2.xlsx.load(arrayBuffer);
-            
-            let ws = wb2.getWorksheet('Chi Tiet Chi Phi') || wb2.worksheets[0];
-            if (!ws) { alert('Không đọc được dữ liệu từ file.'); return; }
-            
-            const formatted = [];
-            ws.eachRow((row, rowNumber) => {
-                if (rowNumber < 6) return;
-                
-                const firstCell = stripTones(row.getCell(1).value || '');
-                const title = String(row.getCell(3).value || '').trim();
-                if (firstCell.includes('tong cong') || stripTones(title).includes('tong cong')) return;
-                const amountRaw = row.getCell(6).value;
-                
-                let amount = 0;
-                if (typeof amountRaw === 'number') amount = amountRaw;
-                else if (typeof amountRaw === 'object' && amountRaw !== null) amount = Number(amountRaw.result || 0);
-                else amount = parseFloat(String(amountRaw || '0').replace(/[^0-9.-]/g, ''));
-                
-                if (!title || isNaN(amount) || amount <= 0) return;
 
-                const dateRaw = row.getCell(2).value;
-                let expenseDate = new Date();
-                if (dateRaw instanceof Date) {
-                    expenseDate = dateRaw;
-                } else if (typeof dateRaw === 'string') {
-                    const pts = dateRaw.split('/');
-                    if (pts.length === 3) expenseDate = new Date(Number(pts[2]), Number(pts[1]) - 1, Number(pts[0]));
-                }
-                
-                const typeRaw = stripTones(row.getCell(5).value || '');
-                const importType = /(^|\s)(nhap|hang)(\s|$)/.test(typeRaw) ? 'HangHoa' :
-                    typeRaw.includes('luong') ? 'Luong' :
-                    typeRaw.includes('marketing') ? 'Marketing' :
-                    typeRaw.includes('mat bang') || typeRaw.includes('thue') ? 'MatBang' :
-                    typeRaw.includes('dien') || typeRaw.includes('nuoc') ? 'DienNuoc' : 'Khac';
-                formatted.push({
-                    id: Number(row.getCell(9).value || 0) || null,
-                    title,
-                    amount,
-                    type: importType,
-                    date: expenseDate.toISOString(),
-                    description: String(row.getCell(4).value || ''),
-                });
-            });
+            const productWs = wb2.getWorksheet('Chi Tiet San Pham');
+            const expenseWs = wb2.getWorksheet('Chi Tiet Chi Phi') || (!productWs ? wb2.worksheets[0] : null);
+            if (!expenseWs && !productWs) { alert('Không đọc được dữ liệu từ file.'); return; }
 
-            if (formatted.length === 0) { 
-                alert('Không tìm thấy dữ liệu hợp lệ. Dữ liệu phải nằm trong Sheet "Chi Tiet Chi Phi" từ dòng 6.'); 
-                return; 
-            }
-            
             const importHeaders = { 'Content-Type': 'application/json', ...getAuthHeaders() };
-            const updates = formatted.filter((item) => item.id);
-            const creates = formatted.filter((item) => !item.id).map(({ id, ...item }) => item);
-            const updateResults = await Promise.all(updates.map(({ id, ...item }) =>
+            const formattedExpenses = [];
+            const formattedProducts = [];
+
+            if (expenseWs) {
+                expenseWs.eachRow((row, rowNumber) => {
+                    if (rowNumber < 6) return;
+
+                    const firstCell = stripTones(getCellText(row.getCell(1)));
+                    const title = getCellText(row.getCell(3));
+                    if (firstCell.includes('tong cong') || stripTones(title).includes('tong cong')) return;
+                    const amount = getCellNumber(row.getCell(6));
+
+                    if (!title || !amount || amount <= 0) return;
+
+                    const dateRaw = row.getCell(2).value;
+                    let expenseDate = new Date();
+                    if (dateRaw instanceof Date) {
+                        expenseDate = dateRaw;
+                    } else {
+                        const dateText = getCellText(row.getCell(2));
+                        const pts = dateText.split('/');
+                        if (pts.length === 3) expenseDate = new Date(Number(pts[2]), Number(pts[1]) - 1, Number(pts[0]));
+                    }
+
+                    const typeRaw = stripTones(getCellText(row.getCell(5)));
+                    const importType = /(^|\s)(nhap|hang)(\s|$)/.test(typeRaw) ? 'HangHoa' :
+                        typeRaw.includes('luong') ? 'Luong' :
+                        typeRaw.includes('marketing') ? 'Marketing' :
+                        typeRaw.includes('mat bang') || typeRaw.includes('thue') ? 'MatBang' :
+                        typeRaw.includes('dien') || typeRaw.includes('nuoc') ? 'DienNuoc' : 'Khac';
+
+                    formattedExpenses.push({
+                        id: getCellNumber(row.getCell(9)) || null,
+                        title,
+                        amount,
+                        type: importType,
+                        date: expenseDate.toISOString(),
+                        description: getCellText(row.getCell(4)),
+                    });
+                });
+            }
+
+            if (productWs) {
+                productWs.eachRow((row, rowNumber) => {
+                    if (rowNumber < 6) return;
+
+                    const firstCell = stripTones(getCellText(row.getCell(1)));
+                    const name = getCellText(row.getCell(3));
+                    const slug = getCellText(row.getCell(4));
+                    if (firstCell.includes('tong cong') || stripTones(name).includes('tong cong')) return;
+                    if (!name && !slug && !getCellNumber(row.getCell(2))) return;
+
+                    formattedProducts.push({
+                        id: getCellNumber(row.getCell(2)) || null,
+                        name,
+                        slug,
+                        price: getCellNumber(row.getCell(5)),
+                        stock: getCellNumber(row.getCell(6)),
+                        subcategoryId: getCellNumber(row.getCell(11)),
+                        image: getCellText(row.getCell(12)),
+                        description: getCellText(row.getCell(13)),
+                    });
+                });
+            }
+
+            if (formattedExpenses.length === 0 && formattedProducts.length === 0) {
+                alert('Không tìm thấy dữ liệu hợp lệ. Dữ liệu chi phí nằm trong "Chi Tiet Chi Phi", dữ liệu sản phẩm nằm trong "Chi Tiet San Pham" từ dòng 6.');
+                return;
+            }
+
+            const expenseUpdates = formattedExpenses.filter((item) => item.id);
+            const expenseCreates = formattedExpenses.filter((item) => !item.id).map(({ id, ...item }) => item);
+            const expenseUpdateResults = await Promise.all(expenseUpdates.map(({ id, ...item }) =>
                 fetch((API_URL) + '/api/expenses/' + id, {
                     method: 'PUT',
                     headers: importHeaders,
@@ -879,18 +1021,83 @@ export default function AdminDashboard() {
                 })
             ));
 
-            let createRes = null;
-            if (creates.length > 0) {
-                createRes = await fetch((API_URL) + '/api/expenses/bulk', {
+            let expenseCreateRes = null;
+            if (expenseCreates.length > 0) {
+                expenseCreateRes = await fetch((API_URL) + '/api/expenses/bulk', {
                     method: 'POST',
                     headers: importHeaders,
-                    body: JSON.stringify(creates)
+                    body: JSON.stringify(expenseCreates)
                 });
             }
 
-            const hasUpdateError = updateResults.some((res) => !res.ok);
-            if (!hasUpdateError && (!createRes || createRes.ok)) {
-                alert('Import thành công: cập nhật ' + updates.length + ', thêm mới ' + creates.length + ' khoản chi.');
+            const existingProducts = productsData.length > 0
+                ? productsData
+                : await fetch(API_URL + '/api/products').then((res) => res.json()).catch(() => []);
+            const productById = new Map((Array.isArray(existingProducts) ? existingProducts : []).map((product) => [Number(product.id), product]));
+            const productBySlug = new Map((Array.isArray(existingProducts) ? existingProducts : []).filter((product) => product.slug).map((product) => [String(product.slug), product]));
+
+            const productResults = [];
+            let productUpdated = 0;
+            let productCreated = 0;
+            let productSkipped = 0;
+
+            for (const row of formattedProducts) {
+                const current = (row.id ? productById.get(Number(row.id)) : null) || (row.slug ? productBySlug.get(row.slug) : null);
+                const nextName = row.name || current?.name || '';
+                const nextSlug = row.slug || current?.slug || generateSlug(nextName);
+                const nextPrice = row.price !== null ? row.price : current ? toNumber(current.price) : null;
+                const nextStock = row.stock !== null ? Math.max(0, Math.floor(row.stock)) : current ? Math.max(0, Math.floor(toNumber(current.stock))) : 0;
+                const nextImage = row.image || current?.image || '';
+
+                if (current) {
+                    const payload = {
+                        name: nextName,
+                        slug: nextSlug,
+                        description: row.description || current.description || '',
+                        price: nextPrice,
+                        image: nextImage,
+                        images: Array.isArray(current.images) ? current.images : [],
+                        subcategoryId: row.subcategoryId !== null ? Number(row.subcategoryId) : current.subcategoryId ?? null,
+                        stock: nextStock,
+                        specs: current.specs || {},
+                    };
+                    productResults.push(await fetch((API_URL) + '/api/products/' + current.id, {
+                        method: 'PATCH',
+                        headers: importHeaders,
+                        body: JSON.stringify(payload)
+                    }));
+                    productUpdated++;
+                } else if (nextName && nextPrice !== null && nextImage) {
+                    const payload = {
+                        name: nextName,
+                        slug: nextSlug,
+                        description: row.description || '',
+                        price: nextPrice,
+                        image: nextImage,
+                        images: [],
+                        subcategoryId: row.subcategoryId !== null ? Number(row.subcategoryId) : null,
+                        stock: nextStock,
+                        specs: {},
+                    };
+                    productResults.push(await fetch((API_URL) + '/api/products', {
+                        method: 'POST',
+                        headers: importHeaders,
+                        body: JSON.stringify(payload)
+                    }));
+                    productCreated++;
+                } else {
+                    productSkipped++;
+                }
+            }
+
+            const hasExpenseError = expenseUpdateResults.some((res) => !res.ok) || (expenseCreateRes && !expenseCreateRes.ok);
+            const hasProductError = productResults.some((res) => !res.ok);
+            if (!hasExpenseError && !hasProductError) {
+                alert(
+                    'Import thành công: cập nhật ' + expenseUpdates.length + ', thêm mới ' + expenseCreates.length + ' khoản chi; ' +
+                    'cập nhật ' + productUpdated + ', thêm mới ' + productCreated + ' sản phẩm' +
+                    (productSkipped > 0 ? '; bỏ qua ' + productSkipped + ' dòng sản phẩm thiếu dữ liệu.' : '.')
+                );
                 fetchData();
             } else {
                 alert('Lỗi import: có dòng chưa được lưu. Kiểm tra lại file Excel rồi thử lại.');
@@ -922,6 +1129,15 @@ export default function AdminDashboard() {
     }), { revenue: 0, expenses: 0, orders: 0 });
     const chartHasData = chartData.some((item) => toNumber(item.revenue) > 0 || toNumber(item.expenses) > 0 || toNumber(item.orders) > 0);
     const showChartLabels = chartData.length <= 18;
+    const chartTooltipFormatter = (value, name, props) => {
+        const key = props?.dataKey || name;
+        const label = key === 'revenue' || name === 'Doanh thu'
+            ? 'Doanh thu'
+            : key === 'expenses' || name === 'Chi phí'
+                ? 'Chi phí'
+                : String(name);
+        return [fmt(toNumber(value)), label];
+    };
 
     const content = (
         <div className="space-y-6">
@@ -963,7 +1179,7 @@ export default function AdminDashboard() {
             <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                 <div>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Khoảng dữ liệu</p>
-                    <p className="text-sm font-semibold text-slate-800">{reportLabel}</p>
+                    <p className="text-sm font-semibold text-slate-800">{showAllRecords ? 'Tất cả dữ liệu' : reportLabel}</p>
                 </div>
                 <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3">
                     <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
@@ -977,7 +1193,7 @@ export default function AdminDashboard() {
                             className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#21246b]" />
                     </label>
                     <button type="button" onClick={handleShowAllData}
-                        className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                        className={'rounded-lg border px-3 py-2 text-xs font-bold hover:bg-slate-50 ' + (showAllRecords ? 'border-[#21246b] text-[#21246b] bg-blue-50' : 'border-slate-300 text-slate-700')}>
                         Tất cả dữ liệu
                     </button>
                 </div>
@@ -993,20 +1209,20 @@ export default function AdminDashboard() {
                                     <p className="text-xs text-slate-500">So sánh biến động Doanh thu và Chi phí</p>
                                 </div>
                                 <div className="text-[10px] font-bold text-[#21246b] bg-slate-50 px-3 py-2 rounded-lg">
-                                    {reportLabel}
+                                    {showAllRecords ? 'Tất cả dữ liệu' : reportLabel}
                                 </div>
                             </div>
                             
-                            <div className="grid grid-cols-3 gap-2 mb-4">
-                                <div className="rounded-lg bg-blue-50 px-3 py-2">
+                            <div className="mb-4 flex flex-row flex-nowrap gap-2 overflow-x-auto">
+                                <div className="min-w-[160px] flex-1 rounded-lg bg-blue-50 px-3 py-2">
                                     <p className="text-[10px] font-bold uppercase text-blue-700">Doanh thu</p>
                                     <p className="text-sm font-bold text-blue-900">{fmt(chartTotals.revenue)}</p>
                                 </div>
-                                <div className="rounded-lg bg-red-50 px-3 py-2">
+                                <div className="min-w-[160px] flex-1 rounded-lg bg-red-50 px-3 py-2">
                                     <p className="text-[10px] font-bold uppercase text-red-700">Chi phí</p>
                                     <p className="text-sm font-bold text-red-900">{fmt(chartTotals.expenses)}</p>
                                 </div>
-                                <div className="rounded-lg bg-slate-50 px-3 py-2">
+                                <div className="min-w-[160px] flex-1 rounded-lg bg-slate-50 px-3 py-2">
                                     <p className="text-[10px] font-bold uppercase text-slate-600">Đơn hàng</p>
                                     <p className="text-sm font-bold text-slate-900">{chartTotals.orders}</p>
                                 </div>
@@ -1031,7 +1247,7 @@ export default function AdminDashboard() {
                                             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={fmtCompact} />
                                             <Tooltip
                                                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                                                formatter={(value, name) => [fmt(Number(value)), name === 'revenue' ? 'Doanh thu' : 'Chi phí']}
+                                                formatter={chartTooltipFormatter}
                                             />
                                             <Legend verticalAlign="top" align="right" iconType="circle" height={36} wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
                                             <Bar dataKey="revenue" name="Doanh thu" fill="url(#colorRev)" radius={[4, 4, 0, 0]} maxBarSize={36} minPointSize={3}>
@@ -1336,11 +1552,12 @@ export default function AdminDashboard() {
                                         className="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none" />
                                 </label>
                                 <button type="button" onClick={handleShowAllData}
-                                    className="rounded border border-slate-300 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                                    className={'rounded border px-2 py-1 text-xs font-bold hover:bg-slate-50 ' + (showAllRecords ? 'border-[#21246b] text-[#21246b] bg-blue-50' : 'border-slate-300 text-slate-700')}>
                                     Tất cả
                                 </button>
                                 <div className="text-xs font-bold text-slate-700 lg:text-right">
-                                    Tổng chi kỳ này: <span className="text-red-600">{new Intl.NumberFormat('vi-VN').format(totalFilteredExpenses)}đ</span>
+                                    {showAllRecords ? 'Tổng chi tất cả: ' : 'Tổng chi kỳ này: '}
+                                    <span className="text-red-600">{new Intl.NumberFormat('vi-VN').format(totalFilteredExpenses)}đ</span>
                                 </div>
                             </div>
                         </div>

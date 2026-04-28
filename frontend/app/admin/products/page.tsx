@@ -4,8 +4,8 @@ import { API_URL } from '@/config';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { Plus, Trash2, Edit, Loader2, X, Package } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Plus, Trash2, Edit, Loader2, X, Package, AlertTriangle, Boxes, Search, ShoppingCart } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useToast, ToastContainer } from "@/components/Toast";
 import DynamicSpecs from "@/components/admin/DynamicSpecs";
 
@@ -49,6 +49,17 @@ const generateSlug = (name: string) => {
         .trim();
 };
 
+const LOW_STOCK_THRESHOLD = 5;
+
+const formatCurrency = (value: number) => `${new Intl.NumberFormat('vi-VN').format(value || 0)}đ`;
+
+const toNumber = (value: unknown) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const toStockNumber = (value: unknown) => Math.max(0, Math.floor(toNumber(value)));
+
 export default function AdminProducts() {
     const { token } = useAuth();
     const [products, setProducts] = useState<Product[]>([]);
@@ -58,6 +69,8 @@ export default function AdminProducts() {
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [saving, setSaving] = useState(false);
     const [filterCategory, setFilterCategory] = useState('');
+    const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'out'>('all');
+    const [searchTerm, setSearchTerm] = useState('');
     const { toasts, showToast, removeToast } = useToast();
     const [form, setForm] = useState({
         name: '',
@@ -69,6 +82,7 @@ export default function AdminProducts() {
         categorySlug: '',
         subcategoryId: '',
         stock: '',
+        importExpenseAmount: '',
         specs: [{ title: '', value: '' }] as { title: string; value: string }[]
     });
 
@@ -78,10 +92,16 @@ export default function AdminProducts() {
     }, []);
 
     const fetchProducts = async () => {
-        const res = await fetch(`${API_URL}/api/products`);
-        const data = await res.json();
-        setProducts(data);
-        setLoading(false);
+        try {
+            const res = await fetch(`${API_URL}/api/products`);
+            const data = await res.json();
+            setProducts(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Failed to fetch products', error);
+            showToast('Không thể tải danh sách sản phẩm', 'error');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const fetchCategories = async () => {
@@ -143,6 +163,7 @@ export default function AdminProducts() {
         setForm({
             name: '', slug: '', description: '', price: '', image: '',
             images: [''], categorySlug: '', subcategoryId: '', stock: '',
+            importExpenseAmount: '',
             specs: [{ title: '', value: '' }]
         });
         setShowModal(true);
@@ -163,7 +184,7 @@ export default function AdminProducts() {
             name: product.name, slug: product.slug || '', description: product.description,
             price: product.price.toString(), image: product.image, images: images,
             categorySlug: categorySlug, subcategoryId: product.subcategoryId?.toString() || '',
-            stock: product.stock.toString(), specs: specsArray
+            stock: product.stock.toString(), importExpenseAmount: '', specs: specsArray
         });
         setShowModal(true);
     };
@@ -201,8 +222,13 @@ export default function AdminProducts() {
                 : `${API_URL}/api/products`;
 
             const slug = form.slug || generateSlug(form.name);
+            const nextStock = toStockNumber(form.stock);
+            const previousStock = editingProduct ? toStockNumber(editingProduct.stock) : 0;
+            const stockDelta = Math.max(0, nextStock - previousStock);
+            const importExpenseAmount = toNumber(form.importExpenseAmount);
+            let expenseWarning = false;
 
-            await fetch(url, {
+            const productRes = await fetch(url, {
                 method: editingProduct ? 'PATCH' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -216,10 +242,39 @@ export default function AdminProducts() {
                     image: form.image, // Use the uploaded image URL directly
                     images: form.images.filter(img => img.trim() !== ''),
                     subcategoryId: form.subcategoryId ? parseInt(form.subcategoryId) : null,
-                    stock: parseInt(form.stock),
+                    stock: nextStock,
                     specs: form.specs
                 })
             });
+
+            if (!productRes.ok) {
+                const message = await productRes.text().catch(() => '');
+                throw new Error(message || 'Không thể lưu sản phẩm');
+            }
+
+            if (importExpenseAmount > 0) {
+                const expenseRes = await fetch(`${API_URL}/api/expenses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title: `Nhập hàng: ${form.name}`,
+                        amount: importExpenseAmount,
+                        type: 'HangHoa',
+                        date: new Date().toISOString(),
+                        description: stockDelta > 0
+                            ? `Ghi từ quản lý sản phẩm. Tăng tồn kho ${stockDelta} sản phẩm.`
+                            : `Ghi từ quản lý sản phẩm. Tồn kho hiện tại ${nextStock} sản phẩm.`
+                    })
+                });
+
+                if (!expenseRes.ok) {
+                    expenseWarning = true;
+                    showToast('Đã lưu sản phẩm nhưng chưa ghi được chi phí nhập hàng', 'error');
+                }
+            }
 
             // Save specs template for this subcategory (for future products)
             if (form.subcategoryId) {
@@ -228,6 +283,14 @@ export default function AdminProducts() {
 
             setShowModal(false);
             setEditingProduct(null);
+            if (!expenseWarning) {
+                showToast(
+                    importExpenseAmount > 0
+                        ? 'Đã lưu sản phẩm và ghi chi phí nhập hàng'
+                        : editingProduct ? 'Đã cập nhật sản phẩm' : 'Đã thêm sản phẩm',
+                    'success'
+                );
+            }
             fetchProducts();
         } catch (error) {
             console.error("Error saving product:", error);
@@ -250,10 +313,45 @@ export default function AdminProducts() {
     const selectedCategory = categories.find(c => c.slug === form.categorySlug);
     const subcategories = selectedCategory?.subcategories || [];
 
-    // Filter products by category
-    const filteredProducts = filterCategory
-        ? products.filter(p => p.subcategory?.category?.slug === filterCategory)
-        : products;
+    const inventoryStats = useMemo(() => {
+        return products.reduce((acc, product) => {
+            const stock = toStockNumber(product.stock);
+            const soldCount = toStockNumber(product.soldCount);
+            const price = toNumber(product.price);
+
+            acc.totalStock += stock;
+            acc.totalValue += stock * price;
+            acc.totalSold += soldCount;
+            if (stock === 0) acc.outOfStock += 1;
+            if (stock > 0 && stock <= LOW_STOCK_THRESHOLD) acc.lowStock += 1;
+            return acc;
+        }, {
+            totalStock: 0,
+            totalValue: 0,
+            totalSold: 0,
+            lowStock: 0,
+            outOfStock: 0
+        });
+    }, [products]);
+
+    const filteredProducts = useMemo(() => {
+        const keyword = searchTerm.trim().toLowerCase();
+
+        return products.filter((product) => {
+            const stock = toStockNumber(product.stock);
+            const matchesCategory = !filterCategory || product.subcategory?.category?.slug === filterCategory;
+            const matchesStock = stockFilter === 'all'
+                || (stockFilter === 'low' && stock > 0 && stock <= LOW_STOCK_THRESHOLD)
+                || (stockFilter === 'out' && stock === 0);
+            const matchesSearch = !keyword
+                || product.name.toLowerCase().includes(keyword)
+                || Boolean(product.slug?.toLowerCase().includes(keyword))
+                || Boolean(product.subcategory?.name?.toLowerCase().includes(keyword))
+                || Boolean(product.subcategory?.category?.name?.toLowerCase().includes(keyword));
+
+            return matchesCategory && matchesStock && matchesSearch;
+        });
+    }, [products, filterCategory, stockFilter, searchTerm]);
 
     if (loading) return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin" /></div>;
 
@@ -269,26 +367,100 @@ export default function AdminProducts() {
                 </Button>
             </div>
 
-            {/* Filter by category */}
-            <div className="flex gap-2 flex-wrap">
-                <Button
-                    variant={filterCategory === '' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilterCategory('')}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+                <Card>
+                    <CardContent className="pt-5 pb-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-semibold uppercase text-slate-500">Tổng tồn</p>
+                                <p className="text-2xl font-bold text-slate-900">{inventoryStats.totalStock}</p>
+                            </div>
+                            <Boxes className="h-5 w-5 text-[#21246b]" />
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="pt-5 pb-4">
+                        <p className="text-xs font-semibold uppercase text-slate-500">Giá trị bán tồn</p>
+                        <p className="text-xl font-bold text-slate-900 break-words">{formatCurrency(inventoryStats.totalValue)}</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="pt-5 pb-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-semibold uppercase text-slate-500">Đã bán</p>
+                                <p className="text-2xl font-bold text-slate-900">{inventoryStats.totalSold}</p>
+                            </div>
+                            <ShoppingCart className="h-5 w-5 text-emerald-600" />
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card
+                    className={`cursor-pointer transition-all hover:shadow-md ${stockFilter === 'low' ? 'ring-2 ring-amber-500' : ''}`}
+                    onClick={() => setStockFilter(stockFilter === 'low' ? 'all' : 'low')}
                 >
-                    Tất cả
-                </Button>
-                {categories.map((cat) => (
-                    <Button
-                        key={cat.id}
-                        variant={filterCategory === cat.slug ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setFilterCategory(cat.slug)}
-                    >
-                        {cat.name}
-                    </Button>
-                ))}
+                    <CardContent className="pt-5 pb-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-semibold uppercase text-slate-500">Sắp hết</p>
+                                <p className="text-2xl font-bold text-amber-600">{inventoryStats.lowStock}</p>
+                            </div>
+                            <AlertTriangle className="h-5 w-5 text-amber-600" />
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card
+                    className={`cursor-pointer transition-all hover:shadow-md ${stockFilter === 'out' ? 'ring-2 ring-red-500' : ''}`}
+                    onClick={() => setStockFilter(stockFilter === 'out' ? 'all' : 'out')}
+                >
+                    <CardContent className="pt-5 pb-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-semibold uppercase text-slate-500">Hết hàng</p>
+                                <p className="text-2xl font-bold text-red-600">{inventoryStats.outOfStock}</p>
+                            </div>
+                            <Package className="h-5 w-5 text-red-600" />
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
+
+            <Card>
+                <CardContent className="pt-5">
+                    <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto] gap-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#21246b] focus:border-[#21246b]"
+                                placeholder="Tìm sản phẩm, danh mục..."
+                            />
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                            <Button
+                                variant={filterCategory === '' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setFilterCategory('')}
+                            >
+                                Tất cả
+                            </Button>
+                            {categories.map((cat) => (
+                                <Button
+                                    key={cat.id}
+                                    variant={filterCategory === cat.slug ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => setFilterCategory(cat.slug)}
+                                >
+                                    {cat.name}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Add/Edit Product Modal */}
             {showModal && (
@@ -344,6 +516,7 @@ export default function AdminProducts() {
                                         <input
                                             type="number"
                                             required
+                                            min="0"
                                             value={form.price}
                                             onChange={(e) => setForm({ ...form, price: e.target.value })}
                                             className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#21246b]"
@@ -355,12 +528,24 @@ export default function AdminProducts() {
                                         <input
                                             type="number"
                                             required
+                                            min="0"
                                             value={form.stock}
                                             onChange={(e) => setForm({ ...form, stock: e.target.value })}
                                             className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#21246b]"
                                             placeholder="VD: 100"
                                         />
                                     </div>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">Chi phí nhập hàng ghi vào Thu - Chi (VNĐ)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={form.importExpenseAmount}
+                                        onChange={(e) => setForm({ ...form, importExpenseAmount: e.target.value })}
+                                        className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#21246b]"
+                                        placeholder="VD: 3000000"
+                                    />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
@@ -515,12 +700,19 @@ export default function AdminProducts() {
                                         {p.subcategory?.category?.name || 'Chưa phân loại'}
                                     </td>
                                     <td className="py-4 text-sm">
-                                        {new Intl.NumberFormat('vi-VN').format(p.price)}đ
+                                        {formatCurrency(p.price)}
                                     </td>
                                     <td className="py-4 text-sm">
-                                        {p.stock}
+                                        <span className={`inline-flex min-w-12 items-center justify-center rounded px-2 py-1 font-semibold ${toStockNumber(p.stock) === 0
+                                            ? 'bg-red-50 text-red-700'
+                                            : toStockNumber(p.stock) <= LOW_STOCK_THRESHOLD
+                                                ? 'bg-amber-50 text-amber-700'
+                                                : 'bg-emerald-50 text-emerald-700'
+                                            }`}>
+                                            {toStockNumber(p.stock)}
+                                        </span>
                                     </td>
-                                    <td className="py-4 text-sm">{p.soldCount || 0}</td>
+                                    <td className="py-4 text-sm">{toStockNumber(p.soldCount)}</td>
                                     <td className="py-4">
                                         <div className="flex gap-2">
                                             <button onClick={() => openEditModal(p)} className="p-2 hover:bg-slate-100 rounded">
@@ -537,7 +729,7 @@ export default function AdminProducts() {
                     </table>
                     {filteredProducts.length === 0 && (
                         <div className="text-center py-10 text-slate-500 font-normal">
-                            Không có sản phẩm nào trong danh mục này
+                            Không có sản phẩm phù hợp
                         </div>
                     )}
                 </CardContent>

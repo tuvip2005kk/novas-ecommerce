@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { SalesService } from '../sales/sales.service';
@@ -15,11 +15,19 @@ export class OrdersService {
 
         // Tính tổng giá trước giảm
         let subtotal = 0;
+        const priceByProductId = new Map<number, number>();
         for (const item of items) {
             const product = await this.prisma.product.findUnique({ where: { id: item.productId } });
-            if (product) {
-                subtotal += product.price * item.quantity;
+            if (!product) {
+                throw new BadRequestException(`Product ${item.productId} not found`);
             }
+
+            if (product.stock < item.quantity) {
+                throw new BadRequestException(`Không đủ tồn kho cho sản phẩm "${product.name}". Còn ${product.stock}, cần ${item.quantity}.`);
+            }
+
+            priceByProductId.set(item.productId, product.price);
+            subtotal += product.price * item.quantity;
         }
 
         // Tính tổng sau giảm giá
@@ -39,7 +47,7 @@ export class OrdersService {
                 items: {
                     create: items.map((item) => ({
                         quantity: item.quantity,
-                        price: 0,
+                        price: priceByProductId.get(item.productId) || 0,
                         product: { connect: { id: item.productId } },
                     })),
                 },
@@ -96,7 +104,9 @@ export class OrdersService {
     }
 
     async updateStatus(id: number, status: string) {
-        const COMPLETED_STATUSES = ['Đã giao thành công', 'Đã giao', 'Hoàn thành'];
+        const INVENTORY_STATUSES = ['PAID', 'COMPLETED', 'SHIPPED', 'Đã thanh toán', 'Đang chuẩn bị', 'Đang giao hàng', 'Đang giao', 'Đã giao thành công', 'Đã giao', 'Hoàn thành'];
+
+        const shouldApplyInventory = (value: string) => INVENTORY_STATUSES.includes((value || '').trim());
 
         const currentOrder = await this.prisma.order.findUnique({
             where: { id },
@@ -107,21 +117,66 @@ export class OrdersService {
             throw new Error('Order not found');
         }
 
-        const order = await this.prisma.order.update({
-            where: { id },
-            data: { status },
-            include: { items: true }
-        });
+        const hadInventoryApplied = shouldApplyInventory(currentOrder.status);
+        const shouldApplyInventoryNow = shouldApplyInventory(status);
 
-        if (COMPLETED_STATUSES.includes(status) && !COMPLETED_STATUSES.includes(currentOrder.status)) {
-            for (const item of order.items) {
-                await this.prisma.product.update({
+        if (shouldApplyInventoryNow && !hadInventoryApplied) {
+            for (const item of currentOrder.items) {
+                const product = await this.prisma.product.findUnique({
                     where: { id: item.productId },
-                    data: { soldCount: { increment: item.quantity } }
+                    select: { name: true, stock: true }
                 });
+
+                if (!product) {
+                    throw new Error(`Product ${item.productId} not found`);
+                }
+
+                if (product.stock < item.quantity) {
+                    throw new BadRequestException(`Không đủ tồn kho cho sản phẩm "${product.name}". Còn ${product.stock}, cần ${item.quantity}.`);
+                }
             }
         }
 
+        const updates: any[] = [
+            this.prisma.order.update({
+                where: { id },
+                data: { status },
+                include: { items: true }
+            })
+        ];
+
+        if (shouldApplyInventoryNow && !hadInventoryApplied) {
+            for (const item of currentOrder.items) {
+                updates.push(this.prisma.product.update({
+                    where: { id: item.productId },
+                    data: {
+                        stock: { decrement: item.quantity },
+                        soldCount: { increment: item.quantity }
+                    }
+                }));
+            }
+        }
+
+        if (!shouldApplyInventoryNow && hadInventoryApplied) {
+            for (const item of currentOrder.items) {
+                updates.push(this.prisma.product.updateMany({
+                    where: { id: item.productId, soldCount: { lt: item.quantity } },
+                    data: {
+                        stock: { increment: item.quantity },
+                        soldCount: 0
+                    }
+                }));
+                updates.push(this.prisma.product.updateMany({
+                    where: { id: item.productId, soldCount: { gte: item.quantity } },
+                    data: {
+                        stock: { increment: item.quantity },
+                        soldCount: { decrement: item.quantity }
+                    }
+                }));
+            }
+        }
+
+        const [order] = await this.prisma.$transaction(updates);
         return order;
     }
 }

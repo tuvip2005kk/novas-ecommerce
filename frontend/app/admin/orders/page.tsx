@@ -62,12 +62,27 @@ export default function AdminOrders() {
     };
 
     const updateStatus = async (id: number, status: string) => {
-        await fetch(`${API_URL}/api/orders/${id}/status`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status })
-        });
-        fetchOrders();
+        try {
+            const res = await fetch(`${API_URL}/api/orders/${id}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => null);
+                toast.showToast(data?.message || 'Không thể cập nhật trạng thái đơn hàng', 'error');
+                fetchOrders();
+                return false;
+            }
+
+            fetchOrders();
+            return true;
+        } catch (error) {
+            toast.showToast('Lỗi kết nối', 'error');
+            fetchOrders();
+            return false;
+        }
     };
 
     const confirmPayment = async (id: number) => {
@@ -299,9 +314,12 @@ export default function AdminOrders() {
                                 <div className="flex gap-2">
                                     <select
                                         value={selectedOrder.status}
-                                        onChange={(e) => {
-                                            updateStatus(selectedOrder.id, e.target.value);
-                                            setSelectedOrder({ ...selectedOrder, status: e.target.value });
+                                        onChange={async (e) => {
+                                            const nextStatus = e.target.value;
+                                            const updated = await updateStatus(selectedOrder.id, nextStatus);
+                                            if (updated) {
+                                                setSelectedOrder({ ...selectedOrder, status: nextStatus });
+                                            }
                                         }}
                                         className="flex-1 border rounded-lg px-4 py-2"
                                     >
