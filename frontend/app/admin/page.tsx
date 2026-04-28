@@ -3,12 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { API_URL } from '@/config';
 import React, { useEffect, useState, useRef } from "react";
-import { Loader2, Plus, Trash2, Download, Upload, BarChart as LucideBarChart } from "lucide-react";
+import { Loader2, Plus, Trash2, Download, Upload, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import * as ExcelJS from 'exceljs';
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-const APP_VERSION = "2.0";
+const APP_VERSION = "2.1";
 
 interface Order { id: number; total: number; status: string; createdAt: string; }
 interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
@@ -584,12 +584,12 @@ export default function AdminDashboard() {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    if (loading) {
-        return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin" /></div>;
-    }
-
     return (
         <div className="space-y-6">
+            {loading ? (
+                <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin" /></div>
+            ) : (
+                <>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -744,7 +744,7 @@ export default function AdminDashboard() {
                         <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-xl shadow-sm">
                             <div className="flex items-center justify-between mb-5">
                                 <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                    <LucideBarChart className="w-4 h-4 text-[#21246b]" /> Top sản phẩm bán chạy
+                                    <TrendingUp className="w-4 h-4 text-[#21246b]" /> Top sản phẩm bán chạy
                                 </h2>
                                 <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded">DOANH THU CAO NHẤT</span>
                             </div>
@@ -990,6 +990,7 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 </div>
+                </>
             )}
         </div>
     );
