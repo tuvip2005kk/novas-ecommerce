@@ -243,8 +243,11 @@ export default function AdminProducts() {
             const previousStock = editingProduct ? toStockNumber(editingProduct.stock) : 0;
             const stockDelta = Math.max(0, nextStock - previousStock);
             const costPrice = toNumber(form.costPrice);
+            const previousCostPrice = editingProduct ? toNumber(editingProduct.costPrice) : 0;
+            const isFirstCostForExistingStock = Boolean(editingProduct) && previousCostPrice <= 0 && costPrice > 0 && stockDelta === 0 && nextStock > 0;
+            const importExpenseQuantity = stockDelta > 0 ? stockDelta : isFirstCostForExistingStock ? nextStock : 0;
             const manualImportExpenseAmount = toNumber(form.importExpenseAmount);
-            const importExpenseAmount = manualImportExpenseAmount > 0 ? manualImportExpenseAmount : stockDelta * costPrice;
+            const importExpenseAmount = manualImportExpenseAmount > 0 ? manualImportExpenseAmount : importExpenseQuantity * costPrice;
             let expenseWarning = false;
 
             const productRes = await fetch(url, {
@@ -284,7 +287,9 @@ export default function AdminProducts() {
                         amount: importExpenseAmount,
                         type: 'HangHoa',
                         date: new Date().toISOString(),
-                        description: stockDelta > 0
+                        description: isFirstCostForExistingStock
+                            ? `Ghi từ quản lý sản phẩm. Bổ sung giá nhập cho tồn kho hiện tại ${nextStock} sản phẩm x giá nhập ${formatCurrency(costPrice)}/sp.`
+                            : stockDelta > 0
                             ? `Ghi từ quản lý sản phẩm. Tăng tồn kho ${stockDelta} sản phẩm${costPrice > 0 && manualImportExpenseAmount <= 0 ? ` x giá nhập ${formatCurrency(costPrice)}/sp` : ''}.`
                             : `Ghi từ quản lý sản phẩm. Tồn kho hiện tại ${nextStock} sản phẩm.`
                     })
