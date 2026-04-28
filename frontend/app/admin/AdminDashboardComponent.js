@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { API_URL } from '@/config';
 import React, { useEffect, useState, useRef } from "react";
-import { Loader2, Plus, Trash2, Download, Upload, TrendingUp } from "lucide-react";
+import { Loader2, Plus, Trash2, Download, Upload, TrendingUp, Users } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import * as ExcelJS from 'exceljs';
 
@@ -90,7 +90,9 @@ export default function AdminDashboard() {
     const [revenueData, setRevenueData] = useState([]);
     const [statusData, setStatusData] = useState([]);
     const [topProducts, setTopProducts] = useState([]);
+    const [topCustomers, setTopCustomers] = useState([]);
     const [ordersData, setOrdersData] = useState([]);
+    const [baseStats, setBaseStats] = useState({ totalProducts: 0, totalUsers: 0 });
     const [loading, setLoading] = useState(true);
     const [reportStartDate, setReportStartDate] = useState(getMonthStartInput);
     const [reportEndDate, setReportEndDate] = useState(() => formatDateInput(new Date()));
@@ -111,8 +113,8 @@ export default function AdminDashboard() {
     const maxDate = formatDateInput(new Date());
     const reportLabel = formatDateDisplay(reportStartDate) + ' - ' + formatDateDisplay(reportEndDate);
 
-    useEffect(() => { fetchData(); }, [reportStartDate, reportEndDate]);
-    useEffect(() => { if (activeTab === 'expenses') fetchExpenses(); }, [activeTab]);
+    useEffect(() => { fetchData(true); }, []);
+    useEffect(() => { recomputeDashboard(); }, [ordersData, expenses, reportStartDate, reportEndDate, baseStats]);
 
     const handleReportStartChange = (value) => {
         if (!value) return;
@@ -128,16 +130,126 @@ export default function AdminDashboard() {
         if (next < reportStartDate) setReportStartDate(next);
     };
 
-    const fetchExpenses = async () => {
-        setExpLoading(true);
+    function recomputeDashboard() {
+        const ordersArray = Array.isArray(ordersData) ? ordersData : [];
+        const expArray = Array.isArray(expenses) ? expenses : [];
+        const todayStr = formatDateInput(new Date());
+        const rangeOrders = ordersArray.filter((o) => isDateInRange(o.createdAt, reportStartDate, reportEndDate));
+        const rangePaidOrders = rangeOrders.filter((o) => PAID_STATUSES.includes(o.status));
+        const rangeExpenses = expArray.filter((e) => isDateInRange(e.date, reportStartDate, reportEndDate));
+        const totalRevenue = rangePaidOrders.reduce((s, o) => s + o.total, 0);
+        const totalExpenses = rangeExpenses.reduce((s, e) => s + e.amount, 0);
+
+        setStats({
+            totalProducts: baseStats.totalProducts,
+            totalOrders: rangeOrders.length,
+            totalRevenue,
+            totalExpenses,
+            totalProfit: totalRevenue - totalExpenses,
+            totalUsers: baseStats.totalUsers,
+            pendingOrders: rangeOrders.filter((o) => PENDING_STATUSES.includes(o.status)).length,
+            todayOrders: ordersArray.filter((o) => isDateInRange(o.createdAt, todayStr, todayStr)).length
+        });
+
+        const revData = [];
+        const expDataMap = {};
+        const revenueDataMap = {};
+        const { start, end } = getDateBounds(reportStartDate, reportEndDate);
+        const dayCount = Math.max(1, Math.round((end - start) / 86400000));
+        const groupByMonth = dayCount > 62;
+        const getGroupKey = (value) => {
+            const d = new Date(value);
+            return groupByMonth ? (d.getMonth() + 1) + '-' + d.getFullYear() : formatDateInput(d);
+        };
+
+        rangeExpenses.forEach((e) => {
+            const key = getGroupKey(e.date);
+            expDataMap[key] = (expDataMap[key] || 0) + e.amount;
+        });
+
+        rangePaidOrders.forEach((o) => {
+            const key = getGroupKey(o.createdAt);
+            if (!revenueDataMap[key]) revenueDataMap[key] = { revenue: 0, orders: 0 };
+            revenueDataMap[key].revenue += o.total || 0;
+            revenueDataMap[key].orders += 1;
+        });
+
+        if (!groupByMonth) {
+            const cursor = new Date(start);
+            while (cursor <= end) {
+                const ds = formatDateInput(cursor);
+                const revenuePoint = revenueDataMap[ds] || { revenue: 0, orders: 0 };
+                revData.push({
+                    name: cursor.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+                    revenue: revenuePoint.revenue,
+                    expenses: expDataMap[ds] || 0,
+                    orders: revenuePoint.orders
+                });
+                cursor.setDate(cursor.getDate() + 1);
+            }
+        } else {
+            const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+            while (cursor <= end) {
+                const mKey = (cursor.getMonth() + 1) + '-' + cursor.getFullYear();
+                const revenuePoint = revenueDataMap[mKey] || { revenue: 0, orders: 0 };
+                revData.push({
+                    name: months[cursor.getMonth()] + '/' + cursor.getFullYear(),
+                    revenue: revenuePoint.revenue,
+                    expenses: expDataMap[mKey] || 0,
+                    orders: revenuePoint.orders
+                });
+                cursor.setMonth(cursor.getMonth() + 1);
+            }
+        }
+        setRevenueData(revData);
+        setStatusData([
+            { name: 'Đã thanh toán', value: rangeOrders.filter((o) => PAID_STATUSES.includes(o.status)).length },
+            { name: 'Chờ xử lý', value: rangeOrders.filter((o) => PENDING_STATUSES.includes(o.status)).length },
+            { name: 'Đã hủy', value: rangeOrders.filter((o) => CANCELLED_STATUSES.includes(o.status)).length },
+        ]);
+
+        const productSales = {};
+        const customerSales = {};
+        rangePaidOrders.forEach((o) => {
+            const customerKey = o.userId ? 'user-' + o.userId : (o.customerPhone ? 'phone-' + o.customerPhone : (o.customerName ? 'name-' + stripTones(o.customerName) : 'guest-' + o.id));
+            if (!customerSales[customerKey]) {
+                customerSales[customerKey] = {
+                    name: o.customerName || (o.userId ? 'User #' + o.userId : 'Khách lẻ'),
+                    phone: o.customerPhone || '',
+                    orders: 0,
+                    quantity: 0,
+                    revenue: 0,
+                };
+            }
+            customerSales[customerKey].orders += 1;
+            customerSales[customerKey].revenue += o.total || 0;
+
+            o.items?.forEach((item) => {
+                const quantity = item.quantity || 0;
+                customerSales[customerKey].quantity += quantity;
+
+                const pid = item.product?.id;
+                if (pid) {
+                    if (!productSales[pid]) productSales[pid] = { name: item.product.name, quantity: 0, revenue: 0 };
+                    productSales[pid].quantity += quantity;
+                    productSales[pid].revenue += (item.price || item.product.price) * quantity;
+                }
+            });
+        });
+        setTopProducts(Object.values(productSales).sort((a, b) => b.revenue - a.revenue).slice(0, 5));
+        setTopCustomers(Object.values(customerSales).sort((a, b) => b.revenue - a.revenue).slice(0, 5));
+    }
+
+    const fetchExpenses = async (showLoading = false) => {
+        if (showLoading) setExpLoading(true);
         try {
             const res = await fetch(API_URL + '/api/expenses', { headers: getAuthHeaders() });
             if (res.ok) setExpenses(await res.json());
-        } catch (e) { console.error(e); } finally { setExpLoading(false); }
+        } catch (e) { console.error(e); } finally { if (showLoading) setExpLoading(false); }
     };
 
-    const fetchData = async () => {
-        setLoading(true);
+    const fetchData = async (showLoading = false) => {
+        if (showLoading) setLoading(true);
         try {
             const headers = getAuthHeaders();
             const [productsRes, ordersRes, usersRes, expensesRes] = await Promise.all([
@@ -157,6 +269,7 @@ export default function AdminDashboard() {
             const expArray = Array.isArray(expData) ? expData : [];
             setOrdersData(ordersArray);
             setExpenses(expArray);
+            setBaseStats({ totalProducts: products.length, totalUsers: usersArray.length });
 
             const todayStr = formatDateInput(new Date());
             const rangeOrders = ordersArray.filter((o) => isDateInRange(o.createdAt, reportStartDate, reportEndDate));
@@ -244,7 +357,7 @@ export default function AdminDashboard() {
                 });
             });
             setTopProducts(Object.values(productSales).sort((a, b) => b.revenue - a.revenue).slice(0, 5));
-        } catch (e) { console.error(e); } finally { setLoading(false); }
+        } catch (e) { console.error(e); } finally { if (showLoading) setLoading(false); }
     };
 
     const handleAddExpense = async (e) => {
@@ -261,7 +374,7 @@ export default function AdminDashboard() {
             });
             if (res.ok) { 
                 setTitle(''); setAmount(''); setType('HangHoa'); setDate(formatDateInput(new Date())); setDescription(''); setEditingExpense(null);
-                fetchExpenses(); fetchData(); 
+                fetchData();
             }
             else alert('Có lỗi xảy ra');
         } catch (e) { console.error(e); } finally { setIsSubmitting(false); }
@@ -292,17 +405,18 @@ export default function AdminDashboard() {
         value: reportExpenses.filter(e => normalizeExpenseType(e) === t.value).reduce((sum, e) => sum + e.amount, 0)
     })).filter(t => t.value > 0);
 
+    const totalReportExpenses = reportExpenses.reduce((s, e) => s + e.amount, 0);
     const totalFilteredExpenses = filteredExpenses.reduce((s, e) => s + e.amount, 0);
     const rangeOrders = ordersData.filter((o) => isDateInRange(o.createdAt, reportStartDate, reportEndDate));
     const rangePaidOrders = rangeOrders.filter((o) => PAID_STATUSES.includes(o.status));
     const rangeRevenue = rangePaidOrders.reduce((s, o) => s + o.total, 0);
-    const rangeProfit = rangeRevenue - totalFilteredExpenses;
+    const rangeProfit = rangeRevenue - totalReportExpenses;
 
     const handleDeleteExpense = async (id) => {
         if (!confirm('Xóa khoản chi này?')) return;
         try {
             await fetch(API_URL + '/api/expenses/' + id, { method: 'DELETE', headers: getAuthHeaders() });
-            fetchExpenses(); fetchData();
+            fetchData();
         } catch (e) { console.error(e); }
     };
 
@@ -418,26 +532,26 @@ export default function AdminDashboard() {
         // ── SHEET 2: CHI TIẾT CHI PHÍ ──
         const s2 = wb.addWorksheet('Chi Tiet Chi Phi');
 
-        s2.mergeCells('A1:H1');
+        s2.mergeCells('A1:I1');
         const s2h1 = s2.getCell('A1');
         s2h1.value = 'CÔNG TY TNHH THIẾT BỊ VỆ SINH THÔNG MINH NOVAS';
         s2h1.font = fn(true, 14, GOLD); s2h1.fill = fl(NAVY); s2h1.alignment = { horizontal: 'center', vertical: 'middle' };
         s2.getRow(1).height = 32;
 
-        s2.mergeCells('A2:H2');
+        s2.mergeCells('A2:I2');
         const s2h2 = s2.getCell('A2');
         s2h2.value = 'BẢNG CHI TIẾT CHI PHÍ VẬN HÀNH  |  Ngày xuất: ' + (todayFull);
         s2h2.font = fn(true, 11, WHITE); s2h2.fill = fl('FF1E293B'); s2h2.alignment = { horizontal: 'center', vertical: 'middle' };
         s2.getRow(2).height = 22;
 
-        s2.mergeCells('A3:H3');
+        s2.mergeCells('A3:I3');
         const s2h3 = s2.getCell('A3');
         s2h3.value = 'Tổng khoản chi: ' + (dataToExport.length) + '  |  Tổng chi phí: ' + (new Intl.NumberFormat('vi-VN').format(grandTotal)) + ' đ';
         s2h3.font = fn(true, 10, RED); s2h3.fill = fl(LIGHT); s2h3.border = bT; s2h3.alignment = { horizontal: 'center', vertical: 'middle' };
         s2.getRow(3).height = 20;
         s2.getRow(4).height = 8;
 
-        ['STT', 'NGÀY CHI', 'TÊN KHOẢN CHI', 'MÔ TẢ CHI TIẾT', 'PHÂN LOẠI', 'SỐ TIỀN (VNĐ)', 'TỶ LỆ (%)', 'GHI CHÚ'].forEach((hdr, i) => {
+        ['STT', 'NGÀY CHI', 'TÊN KHOẢN CHI', 'MÔ TẢ CHI TIẾT', 'PHÂN LOẠI', 'SỐ TIỀN (VNĐ)', 'TỶ LỆ (%)', 'GHI CHÚ', 'ID'].forEach((hdr, i) => {
             const c = s2.getCell(5, i + 1);
             c.value = hdr; c.font = fn(true, 10, WHITE); c.fill = fl(NAVY);
             c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; c.border = bT;
@@ -452,7 +566,7 @@ export default function AdminDashboard() {
                 idx + 1, new Date(exp.date).toLocaleDateString('vi-VN'),
                 exp.title, exp.description || '',
                 getExpenseTypeLabel(exp),
-                exp.amount, pct, '',
+                exp.amount, pct, '', exp.id || '',
             ];
             vals.forEach((val, ci) => {
                 const c = r.getCell(ci + 1); c.value = val; c.fill = fl(bg); c.border = bH;
@@ -465,19 +579,10 @@ export default function AdminDashboard() {
             r.getCell(7).numFmt = '0.00"%"'; r.getCell(7).alignment = { horizontal: 'center', vertical: 'middle' };
         });
 
-        if (dataToExport.length > 0) {
-            const lastR = 5 + dataToExport.length;
-            const tr = s2.getRow(lastR + 1); tr.height = 26;
-            s2.mergeCells(lastR + 1, 1, lastR + 1, 5);
-            const tl = tr.getCell(1); tl.value = 'TỔNG CỘNG'; tl.font = fn(true, 12, GOLD); tl.fill = fl(NAVY); tl.alignment = { horizontal: 'center', vertical: 'middle' }; tl.border = bM;
-            const tv = tr.getCell(6); tv.value = { formula: 'SUM(F6:F' + (lastR) + ')' }; tv.numFmt = '#,##0'; tv.font = fn(true, 12, GOLD); tv.fill = fl(NAVY); tv.alignment = { horizontal: 'right', vertical: 'middle' }; tv.border = bM;
-            const tp = tr.getCell(7); tp.value = '100%'; tp.font = fn(true, 11, GOLD); tp.fill = fl(NAVY); tp.alignment = { horizontal: 'center', vertical: 'middle' }; tp.border = bM;
-            const te = tr.getCell(8); te.value = ''; te.fill = fl(NAVY); te.border = bM;
-        }
-
         s2.views = [{ state: 'frozen', ySplit: 5, activeCell: 'A6' }];
         s2.autoFilter = { from: 'A5', to: 'H5' };
-        [6, 14, 36, 36, 20, 20, 12, 16].forEach((w, i) => { s2.getColumn(i + 1).width = w; });
+        [6, 14, 36, 36, 20, 20, 12, 16, 8].forEach((w, i) => { s2.getColumn(i + 1).width = w; });
+        s2.getColumn(9).hidden = true;
 
         // ── SHEET 3: THỐNG KÊ THEO LOẠI ──
         const s3 = wb.addWorksheet('Thong Ke Theo Loai');
@@ -619,13 +724,11 @@ export default function AdminDashboard() {
             
             const formatted = [];
             ws.eachRow((row, rowNumber) => {
-                if (rowNumber < 5) return;
+                if (rowNumber < 6) return;
                 
-                const sttValue = row.getCell(1).value;
-                const stt = typeof sttValue === 'object' ? sttValue?.result : sttValue;
-                if (isNaN(Number(stt)) || stt === null || stt === '') return;
-
+                const firstCell = stripTones(row.getCell(1).value || '');
                 const title = String(row.getCell(3).value || '').trim();
+                if (firstCell.includes('tong cong') || stripTones(title).includes('tong cong')) return;
                 const amountRaw = row.getCell(6).value;
                 
                 let amount = 0;
@@ -651,6 +754,7 @@ export default function AdminDashboard() {
                     typeRaw.includes('mat bang') || typeRaw.includes('thue') ? 'MatBang' :
                     typeRaw.includes('dien') || typeRaw.includes('nuoc') ? 'DienNuoc' : 'Khac';
                 formatted.push({
+                    id: Number(row.getCell(9).value || 0) || null,
                     title,
                     amount,
                     type: importType,
@@ -664,19 +768,32 @@ export default function AdminDashboard() {
                 return; 
             }
             
-            const res = await fetch((API_URL) + '/api/expenses/bulk', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                body: JSON.stringify(formatted)
-            });
+            const importHeaders = { 'Content-Type': 'application/json', ...getAuthHeaders() };
+            const updates = formatted.filter((item) => item.id);
+            const creates = formatted.filter((item) => !item.id).map(({ id, ...item }) => item);
+            const updateResults = await Promise.all(updates.map(({ id, ...item }) =>
+                fetch((API_URL) + '/api/expenses/' + id, {
+                    method: 'PUT',
+                    headers: importHeaders,
+                    body: JSON.stringify(item)
+                })
+            ));
 
-            if (res.ok) { 
-                alert('Import thành công ' + (formatted.length) + ' khoản chi!'); 
-                fetchExpenses(); 
-                fetchData(); 
+            let createRes = null;
+            if (creates.length > 0) {
+                createRes = await fetch((API_URL) + '/api/expenses/bulk', {
+                    method: 'POST',
+                    headers: importHeaders,
+                    body: JSON.stringify(creates)
+                });
+            }
+
+            const hasUpdateError = updateResults.some((res) => !res.ok);
+            if (!hasUpdateError && (!createRes || createRes.ok)) {
+                alert('Import thành công: cập nhật ' + updates.length + ', thêm mới ' + creates.length + ' khoản chi.');
+                fetchData();
             } else {
-                const err = await res.json().catch(() => ({}));
-                alert('Lỗi import: ' + (err.message || 'Lỗi server'));
+                alert('Lỗi import: có dòng chưa được lưu. Kiểm tra lại file Excel rồi thử lại.');
             }
         } catch (err) { alert('Lỗi đọc file Excel: ' + (err.message || 'Lỗi định dạng')); }
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -777,8 +894,8 @@ export default function AdminDashboard() {
                                             formatter={(value, name) => [fmt(Number(value)), name === 'revenue' ? 'Doanh thu' : 'Chi phí']} 
                                         />
                                         <Legend verticalAlign="top" align="right" iconType="circle" height={36} wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                                        <Bar dataKey="revenue" name="Doanh thu" fill="url(#colorRev)" radius={[4, 4, 0, 0]} barSize={20} />
-                                        <Bar dataKey="expenses" name="Chi phí" fill="url(#colorExp)" radius={[4, 4, 0, 0]} barSize={20} />
+                                        <Bar dataKey="revenue" name="Doanh thu" fill="url(#colorRev)" radius={[4, 4, 0, 0]} maxBarSize={32} />
+                                        <Bar dataKey="expenses" name="Chi phí" fill="url(#colorExp)" radius={[4, 4, 0, 0]} maxBarSize={32} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -876,7 +993,32 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
-                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm flex flex-col items-center justify-center text-center space-y-4">
+                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <Users className="w-4 h-4 text-[#21246b]" /> Top khách hàng
+                                </h2>
+                                <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded">MUA NHIỀU</span>
+                            </div>
+                            <div className="space-y-3">
+                                {topCustomers.length === 0 ? (
+                                    <div className="py-8 text-center text-xs italic text-slate-400">Chưa có khách hàng trong khoảng này</div>
+                                ) : topCustomers.map((c, i) => (
+                                    <div key={i} className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">{i + 1}</div>
+                                            <div className="min-w-0">
+                                                <p className="text-xs font-bold text-slate-800 truncate">{c.name}</p>
+                                                <p className="text-[10px] text-slate-500 truncate">{c.orders} đơn · {c.quantity} sản phẩm</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-xs font-bold text-[#21246b] whitespace-nowrap">{fmt(c.revenue)}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm flex flex-col items-center justify-center text-center space-y-4 lg:col-start-3">
                             <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
                                 <Download className="w-8 h-8 text-[#21246b]" />
                             </div>
@@ -905,7 +1047,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Chi phí kỳ này</p>
-                            <p className="text-xl font-bold text-red-600">{fmt(totalFilteredExpenses)}</p>
+                            <p className="text-xl font-bold text-red-600">{fmt(totalReportExpenses)}</p>
                         </div>
                         <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lợi nhuận kỳ này</p>
@@ -915,7 +1057,7 @@ export default function AdminDashboard() {
                             <p className="text-[10px] font-bold text-blue-200 uppercase tracking-wider mb-1">Tỷ lệ chi phí</p>
                             <p className="text-xl font-bold">
                                 { rangeRevenue > 0
-                                    ? ((totalFilteredExpenses / rangeRevenue) * 100).toFixed(1)
+                                    ? ((totalReportExpenses / rangeRevenue) * 100).toFixed(1)
                                     : 0 }%
                             </p>
                         </div>
@@ -1005,7 +1147,7 @@ export default function AdminDashboard() {
                                     className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700">
                                     <Upload className="w-4 h-4" /> Import từ Excel
                                 </button>
-                                <input type="file" accept=".xlsx,.xls,.csv" ref={fileInputRef} onChange={handleImport} className="hidden" />
+                                <input type="file" accept=".xlsx,.xls" ref={fileInputRef} onChange={handleImport} className="hidden" />
                                 <button onClick={handleExport}
                                     className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-slate-700 text-white text-sm rounded hover:bg-slate-800">
                                     <Download className="w-4 h-4" /> Xuất Excel
