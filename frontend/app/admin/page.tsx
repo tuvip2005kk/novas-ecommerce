@@ -150,7 +150,6 @@ export default function AdminDashboard() {
     };
 
     const handleExport = async () => {
-        // Fetch fresh data mới nhất trước khi xuất
         let dataToExport = expenses;
         if (dataToExport.length === 0) {
             try {
@@ -159,65 +158,219 @@ export default function AdminDashboard() {
             } catch (e) { console.error(e); }
         }
 
-        const workbook = new ExcelJS.Workbook();
-        workbook.creator = 'Novas Admin';
-        const sheet = workbook.addWorksheet('Chi Phi');
+        const wb = new ExcelJS.Workbook();
+        wb.creator = 'NOVAS Admin';
+        wb.created = new Date();
+        const today = new Date().toLocaleDateString('vi-VN');
 
-        // Định nghĩa cột với tiêu đề và độ rộng
-        sheet.columns = [
-            { header: 'ID',           key: 'id',          width: 8 },
-            { header: 'Tên khoản chi', key: 'title',       width: 35 },
-            { header: 'Số tiền (VNĐ)', key: 'amount',      width: 20 },
-            { header: 'Phân loại',    key: 'type',        width: 22 },
-            { header: 'Ngày chi',     key: 'date',        width: 14 },
-            { header: 'Ghi chú',      key: 'description', width: 35 },
+        const NAVY = 'FF21246B', WHITE = 'FFFFFFFF', GOLD = 'FFFFD700';
+        const LIGHT = 'FFF0F4FF', GRAY = 'FFE2E8F0';
+        const thin = { style: 'thin' as const };
+        const hair = { style: 'hair' as const };
+        const medium = { style: 'medium' as const };
+        const bThin = { top: thin, bottom: thin, left: thin, right: thin };
+        const bHair = { top: hair, bottom: hair, left: hair, right: hair };
+        const bMed  = { top: medium, bottom: medium, left: medium, right: medium };
+
+        // ══════════════════════════════════════
+        // SHEET 1: BÁO CÁO CHI TIẾT
+        // ══════════════════════════════════════
+        const s1 = wb.addWorksheet('Báo Cáo Thu Chi');
+
+        // --- Dòng 1: Tên công ty ---
+        s1.mergeCells('A1:H1');
+        const c1 = s1.getCell('A1');
+        c1.value = 'CÔNG TY TNHH THIẾT BỊ VỆ SINH THÔNG MINH NOVAS';
+        c1.font = { bold: true, size: 14, color: { argb: NAVY }, name: 'Calibri' };
+        c1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: LIGHT } };
+        c1.alignment = { horizontal: 'center', vertical: 'middle' };
+        s1.getRow(1).height = 30;
+
+        // --- Dòng 2: Tên báo cáo ---
+        s1.mergeCells('A2:H2');
+        const c2 = s1.getCell('A2');
+        c2.value = `BÁO CÁO THU - CHI  |  Ngày xuất: ${today}`;
+        c2.font = { bold: true, size: 12, color: { argb: WHITE }, name: 'Calibri' };
+        c2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
+        c2.alignment = { horizontal: 'center', vertical: 'middle' };
+        s1.getRow(2).height = 24;
+        s1.getRow(3).height = 8;
+
+        // --- Dòng 4: Header bảng tóm tắt ---
+        (['CHỈ TIÊU', 'GIÁ TRỊ (VNĐ)'] as string[]).forEach((h, i) => {
+            const c = s1.getCell(4, i + 1);
+            c.value = h;
+            c.font = { bold: true, color: { argb: WHITE }, name: 'Calibri' };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
+            c.alignment = { horizontal: 'center', vertical: 'middle' };
+            c.border = bThin;
+        });
+        s1.getRow(4).height = 20;
+
+        // --- Dòng 5-7: Dữ liệu tóm tắt ---
+        const summaryRows: [string, number, string][] = [
+            ['Tổng Doanh Thu (đơn đã thanh toán)', stats.totalRevenue, '00000000'],
+            ['Tổng Chi Phí', stats.totalExpenses, '00000000'],
+            ['Lợi Nhuận Ròng', stats.totalProfit, stats.totalProfit >= 0 ? 'FF16A34A' : 'FFDC2626'],
         ];
-
-        // Style hàng tiêu đề: in đậm + màu nền + viền
-        const headerRow = sheet.getRow(1);
-        headerRow.eachCell((cell) => {
-            cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF21246B' } };
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            cell.border = {
-                top:    { style: 'thin' }, bottom: { style: 'thin' },
-                left:   { style: 'thin' }, right:  { style: 'thin' },
-            };
-        });
-        headerRow.height = 24;
-
-        // Thêm dữ liệu từng hàng
-        dataToExport.forEach((exp) => {
-            const row = sheet.addRow({
-                id:          exp.id,
-                title:       exp.title,
-                amount:      exp.amount,
-                type:        EXPENSE_TYPES.find(t => t.value === exp.type)?.label || exp.type,
-                date:        new Date(exp.date).toLocaleDateString('vi-VN'),
-                description: exp.description || '',
+        summaryRows.forEach(([label, val, color], ri) => {
+            const isProfit = ri === 2;
+            const labelC = s1.getCell(5 + ri, 1);
+            const valC   = s1.getCell(5 + ri, 2);
+            labelC.value = label;
+            valC.value   = val;
+            [labelC, valC].forEach(c => {
+                c.font   = { bold: isProfit, size: 11, color: { argb: color }, name: 'Calibri' };
+                c.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: isProfit ? LIGHT : WHITE } };
+                c.border = bThin;
             });
-            // Căn chỉnh + viền nhẹ cho từng ô dữ liệu
-            row.eachCell((cell) => {
-                cell.border = {
-                    top:    { style: 'hair' }, bottom: { style: 'hair' },
-                    left:   { style: 'hair' }, right:  { style: 'hair' },
-                };
-                cell.alignment = { vertical: 'middle' };
+            valC.numFmt = '#,##0';
+            valC.alignment = { horizontal: 'right', vertical: 'middle' };
+            s1.getRow(5 + ri).height = 20;
+        });
+        s1.getRow(8).height = 10;
+
+        // --- Cấu hình độ rộng cột ---
+        const colDefs = [
+            { width: 7  }, { width: 14 }, { width: 36 },
+            { width: 36 }, { width: 22 }, { width: 20 },
+            { width: 20 }, { width: 18 },
+        ];
+        colDefs.forEach((c, i) => { s1.getColumn(i + 1).width = c.width; });
+        s1.getColumn(1).width = 40;
+        s1.getColumn(2).width = 22;
+
+        // --- Dòng 9: Headers bảng chi tiết ---
+        const headers = ['STT', 'NGÀY CHI', 'TÊN KHOẢN CHI', 'MÔ TẢ CHI TIẾT', 'PHÂN LOẠI', 'SỐ TIỀN (VNĐ)', 'NGÀY NHẬP HỆ THỐNG', 'GHI CHÚ'];
+        const hRow = s1.getRow(9);
+        headers.forEach((h, i) => {
+            const c = hRow.getCell(i + 1);
+            c.value = h;
+            c.font      = { bold: true, color: { argb: WHITE }, size: 10, name: 'Calibri' };
+            c.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
+            c.alignment = { horizontal: 'center', vertical: 'middle' };
+            c.border    = bThin;
+        });
+        hRow.height = 22;
+
+        // --- Dòng 10+: Dữ liệu chi tiết ---
+        dataToExport.forEach((exp, idx) => {
+            const r = s1.getRow(10 + idx);
+            const bg = idx % 2 === 0 ? WHITE : LIGHT;
+            const vals: (string | number)[] = [
+                idx + 1,
+                new Date(exp.date).toLocaleDateString('vi-VN'),
+                exp.title,
+                exp.description || '',
+                EXPENSE_TYPES.find(t => t.value === exp.type)?.label || exp.type,
+                exp.amount,
+                new Date((exp as any).createdAt || exp.date).toLocaleDateString('vi-VN'),
+                '',
+            ];
+            vals.forEach((v, ci) => {
+                const c = r.getCell(ci + 1);
+                c.value  = v;
+                c.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+                c.border = bHair;
+                c.font   = { size: 10, name: 'Calibri' };
+                c.alignment = { vertical: 'middle' };
             });
-            // Format cột Số tiền kiểu VNĐ
-            row.getCell('amount').numFmt = '#,##0" đ"';
-            row.getCell('amount').alignment = { horizontal: 'right' };
-            row.getCell('id').alignment = { horizontal: 'center' };
-            row.height = 20;
+            r.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+            r.getCell(6).numFmt    = '#,##0';
+            r.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
+            r.height = 20;
         });
 
+        // --- Dòng tổng cộng ---
+        if (dataToExport.length > 0) {
+            const lastDataRow = 9 + dataToExport.length;
+            const tRow = s1.getRow(lastDataRow + 1);
+            tRow.getCell(5).value = 'TỔNG CHI PHÍ';
+            tRow.getCell(6).value = { formula: `SUM(F10:F${lastDataRow})` } as any;
+            [5, 6].forEach(ci => {
+                const c = tRow.getCell(ci);
+                c.font      = { bold: true, size: 11, color: { argb: NAVY }, name: 'Calibri' };
+                c.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: GOLD } };
+                c.alignment = { horizontal: ci === 5 ? 'center' : 'right', vertical: 'middle' };
+                c.border    = bMed;
+            });
+            tRow.getCell(6).numFmt = '#,##0';
+            tRow.height = 24;
+        }
+
+        s1.views = [{ state: 'frozen', ySplit: 9, xSplit: 0, activeCell: 'A10' }];
+
+        // ══════════════════════════════════════
+        // SHEET 2: THỐNG KÊ THEO LOẠI
+        // ══════════════════════════════════════
+        const s2 = wb.addWorksheet('Thống Kê Theo Loại');
+
+        s2.mergeCells('A1:C1');
+        const s2h = s2.getCell('A1');
+        s2h.value = 'THỐNG KÊ CHI PHÍ THEO LOẠI';
+        s2h.font      = { bold: true, size: 13, color: { argb: WHITE }, name: 'Calibri' };
+        s2h.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
+        s2h.alignment = { horizontal: 'center', vertical: 'middle' };
+        s2.getRow(1).height = 28;
+
+        (['PHÂN LOẠI', 'TỔNG SỐ TIỀN (VNĐ)', 'TỶ LỆ (%)'] as string[]).forEach((h, i) => {
+            const c = s2.getCell(2, i + 1);
+            c.value = h;
+            c.font      = { bold: true, color: { argb: NAVY }, name: 'Calibri' };
+            c.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRAY } };
+            c.alignment = { horizontal: 'center', vertical: 'middle' };
+            c.border    = bThin;
+        });
+        s2.getRow(2).height = 20;
+
+        const grouped: Record<string, number> = {};
+        dataToExport.forEach(exp => {
+            const label = EXPENSE_TYPES.find(t => t.value === exp.type)?.label || exp.type;
+            grouped[label] = (grouped[label] || 0) + exp.amount;
+        });
+        const grandTotal = Object.values(grouped).reduce((a, b) => a + b, 0);
+
+        Object.entries(grouped).sort((a, b) => b[1] - a[1]).forEach(([label, amt], ri) => {
+            const bg = ri % 2 === 0 ? WHITE : LIGHT;
+            const pct = grandTotal > 0 ? parseFloat(((amt / grandTotal) * 100).toFixed(1)) : 0;
+            [label, amt, pct].forEach((v, ci) => {
+                const c = s2.getCell(3 + ri, ci + 1);
+                c.value  = v;
+                c.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+                c.border = bHair;
+                c.font   = { size: 10, name: 'Calibri' };
+                if (ci === 1) { c.numFmt = '#,##0'; c.alignment = { horizontal: 'right' }; }
+                if (ci === 2) { c.numFmt = '0.0"%"'; c.alignment = { horizontal: 'center' }; }
+            });
+            s2.getRow(3 + ri).height = 20;
+        });
+
+        const len = Object.keys(grouped).length;
+        const tRow2 = s2.getRow(3 + len);
+        [('TỔNG CỘNG' as string | number), grandTotal, 100].forEach((v, ci) => {
+            const c = tRow2.getCell(ci + 1);
+            c.value  = v;
+            c.font   = { bold: true, color: { argb: NAVY }, name: 'Calibri' };
+            c.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: GOLD } };
+            c.border = bMed;
+            c.alignment = { horizontal: ci === 0 ? 'center' : 'right', vertical: 'middle' };
+            if (ci === 1) c.numFmt = '#,##0';
+            if (ci === 2) c.numFmt = '0.0"%"';
+        });
+        tRow2.height = 22;
+        s2.getColumn(1).width = 28;
+        s2.getColumn(2).width = 22;
+        s2.getColumn(3).width = 14;
+
+        // ══════════════════════════════════════
         // Xuất file
-        const buffer = await workbook.xlsx.writeBuffer();
+        // ══════════════════════════════════════
+        const buffer = await wb.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Chi_Phi_${new Date().toISOString().split('T')[0]}.xlsx`;
+        a.download = `BaoCao_ThuChi_NOVAS_${new Date().toISOString().split('T')[0]}.xlsx`;
         a.click();
         URL.revokeObjectURL(url);
     };
