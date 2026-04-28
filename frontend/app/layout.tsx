@@ -9,8 +9,8 @@ import ChatBot from '@/components/ChatBot';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Novas - nhóm 12',
-  description: 'nhóm 12',
+  title: 'Website Bán Thiết Bị Vệ Sinh Thông Minh - Novas',
+  description: 'Chuyên cung cấp các thiết bị vệ sinh thông minh, cao cấp và chính hãng.',
 };
 
 export default function RootLayout({

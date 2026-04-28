@@ -20,6 +20,7 @@ import { UploadModule } from './upload/upload.module';
 import { BannersModule } from './banners/banners.module';
 import { ShowroomsModule } from './showrooms/showrooms.module';
 import { SettingsModule } from './settings/settings.module';
+import { ExpensesModule } from './expenses/expenses.module';
 
 import { SeedModule } from './seed/seed.module';
 import { ChatModule } from './chat/chat.module';
@@ -54,6 +55,7 @@ import { PrismaModule } from './prisma.module';
         BannersModule,
         ShowroomsModule,
         SettingsModule,
+        ExpensesModule,
         SeedModule,
         ChatModule,
     ],

@@ -185,3 +185,14 @@ model ChatMessage {
   content   String       @db.Text
   createdAt DateTime     @default(now())
 }
+
+model Expense {
+  id          Int      @id @default(autoincrement())
+  title       String
+  amount      Float
+  type        String   @default("OTHER") // IMPORT, SALARY, MARKETING, RENT, OTHER
+  date        DateTime @default(now())
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

@@ -20,13 +20,15 @@ interface Stats {
     totalProducts: number;
     totalOrders: number;
     totalRevenue: number;
+    totalExpenses: number;
+    totalProfit: number;
     totalUsers: number;
     pendingOrders: number;
     todayOrders: number;
 }
 
 export default function AdminDashboard() {
-    const [stats, setStats] = useState<Stats>({ totalProducts: 0, totalOrders: 0, totalRevenue: 0, totalUsers: 0, pendingOrders: 0, todayOrders: 0 });
+    const [stats, setStats] = useState<Stats>({ totalProducts: 0, totalOrders: 0, totalRevenue: 0, totalExpenses: 0, totalProfit: 0, totalUsers: 0, pendingOrders: 0, todayOrders: 0 });
     const [revenueData, setRevenueData] = useState<any[]>([]);
     const [statusData, setStatusData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -42,15 +44,20 @@ export default function AdminDashboard() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [productsRes, ordersRes, usersRes] = await Promise.all([
+            const token = localStorage.getItem('novas_admin_token') || localStorage.getItem('novas_token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const [productsRes, ordersRes, usersRes, expensesRes] = await Promise.all([
                 fetch(`${API_URL}/api/products`),
-                fetch(`${API_URL}/api/orders/all`),
-                fetch(`${API_URL}/api/users/all`)
+                fetch(`${API_URL}/api/orders/all`, { headers }),
+                fetch(`${API_URL}/api/users/all`, { headers }),
+                fetch(`${API_URL}/api/expenses`, { headers }).catch(() => null)
             ]);
 
             const products = await productsRes.json();
             const orders = await ordersRes.json();
             const users = await usersRes.json().catch(() => []);
+            const expenses = expensesRes ? await expensesRes.json().catch(() => []) : [];
 
             const ordersArray = Array.isArray(orders) ? orders : [];
             const usersArray = Array.isArray(users) ? users : [];
@@ -63,10 +70,17 @@ export default function AdminDashboard() {
             const todayStr = today.toISOString().split('T')[0];
             const todayOrders = ordersArray.filter((o: Order) => o.createdAt.startsWith(todayStr));
 
+            // Expenses
+            const expensesArray = Array.isArray(expenses) ? expenses : [];
+            const totalExpenses = expensesArray.reduce((sum: number, exp: any) => sum + exp.amount, 0);
+            const totalProfit = totalRevenue - totalExpenses;
+
             setStats({
                 totalProducts: products.length,
                 totalOrders: ordersArray.length,
                 totalRevenue,
+                totalExpenses,
+                totalProfit,
                 totalUsers: usersArray.length,
                 pendingOrders: ordersArray.filter((o: Order) => o.status === 'PENDING').length,
                 todayOrders: todayOrders.length
@@ -152,13 +166,21 @@ export default function AdminDashboard() {
                 </div>
                 <div className="border border-slate-200 bg-white p-4">
                     <p className="text-xs text-slate-500 font-normal">Doanh thu</p>
-                    <p className="text-2xl font-bold mt-1 text-slate-900">
+                    <p className="text-xl font-bold mt-1 text-slate-900">
                         {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.totalRevenue)}
                     </p>
                 </div>
                 <div className="border border-slate-200 bg-white p-4">
-                    <p className="text-xs text-slate-500 font-normal">Người dùng</p>
-                    <p className="text-2xl font-bold mt-1">{stats.totalUsers}</p>
+                    <p className="text-xs text-slate-500 font-normal">Chi phí</p>
+                    <p className="text-xl font-bold mt-1 text-red-600">
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.totalExpenses)}
+                    </p>
+                </div>
+                <div className="border border-slate-200 bg-white p-4">
+                    <p className="text-xs text-slate-500 font-normal">Lợi nhuận</p>
+                    <p className="text-xl font-bold mt-1 text-green-600">
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.totalProfit)}
+                    </p>
                 </div>
             </div>
 
