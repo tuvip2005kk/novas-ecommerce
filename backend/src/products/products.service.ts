@@ -6,11 +6,27 @@ import { Product } from '@prisma/client';
 export class ProductsService {
     constructor(private prisma: PrismaService) { }
 
-    private removeCostPrice<T>(product: T): T {
-        if (!product) return product;
-        const { costPrice, ...safeProduct } = product as any;
-        return safeProduct;
-    }
+    private readonly publicProductSelect = {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        originalPrice: true,
+        image: true,
+        images: true,
+        slug: true,
+        subcategoryId: true,
+        stock: true,
+        soldCount: true,
+        specs: true,
+        createdAt: true,
+        updatedAt: true,
+        subcategory: {
+            include: {
+                category: true
+            }
+        }
+    };
 
     private normalizeProductData<T extends { price?: number; costPrice?: number; stock?: number }>(data: T): T {
         const next: any = { ...data };
@@ -67,45 +83,40 @@ export class ProductsService {
             orderBy.createdAt = 'desc';
         }
 
-        const products = await this.prisma.product.findMany({
-            where,
-            orderBy,
-            include: {
-                subcategory: {
-                    include: {
-                        category: true
+        const products = await this.prisma.product.findMany(includeCostPrice
+            ? {
+                where,
+                orderBy,
+                include: {
+                    subcategory: {
+                        include: {
+                            category: true
+                        }
                     }
                 }
             }
-        });
+            : {
+                where,
+                orderBy,
+                select: this.publicProductSelect
+            }
+        );
 
-        return includeCostPrice ? products : products.map((product) => this.removeCostPrice(product));
+        return products;
     }
 
     async findOne(id: number): Promise<any | null> {
-        const product = await this.prisma.product.findUnique({
+        return this.prisma.product.findUnique({
             where: { id },
-            include: {
-                subcategory: {
-                    include: {
-                        category: true
-                    }
-                }
-            }
+            select: this.publicProductSelect
         });
-
-        return this.removeCostPrice(product);
     }
 
     async findBySlug(slug: string): Promise<any | null> {
-        const product = await this.prisma.product.findUnique({
+        return this.prisma.product.findUnique({
             where: { slug },
-            include: {
-                subcategory: {
-                    include: {
-                        category: true
-                    }
-                },
+            select: {
+                ...this.publicProductSelect,
                 reviews: {
                     include: {
                         user: { select: { name: true } }
@@ -116,8 +127,6 @@ export class ProductsService {
                 }
             }
         });
-
-        return this.removeCostPrice(product);
     }
 
     async create(data: { name: string; slug: string; description: string; price: number; costPrice?: number; image: string; images?: string[]; subcategoryId?: number; stock: number; specs?: any }): Promise<Product> {

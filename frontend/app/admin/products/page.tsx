@@ -95,14 +95,22 @@ export default function AdminProducts() {
     }, [authLoading, token]);
 
     const fetchProducts = async () => {
-        if (!token) {
-            setLoading(false);
-            return;
-        }
         try {
-            const res = await fetch(`${API_URL}/api/products/admin/all`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            let res: Response | null = null;
+            if (token) {
+                res = await fetch(`${API_URL}/api/products/admin/all`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            }
+
+            if (!res || !res.ok) {
+                res = await fetch(`${API_URL}/api/products`);
+            }
+
+            if (!res.ok) {
+                throw new Error(await res.text().catch(() => 'Không thể tải sản phẩm'));
+            }
+
             const data = await res.json();
             setProducts(Array.isArray(data) ? data : []);
         } catch (error) {

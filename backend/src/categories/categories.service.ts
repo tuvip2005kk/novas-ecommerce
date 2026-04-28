@@ -5,24 +5,22 @@ import { PrismaService } from '../prisma.service';
 export class CategoriesService {
     constructor(private readonly prisma: PrismaService) { }
 
-    private removeCostPrice(product: any) {
-        if (!product) return product;
-        const { costPrice, ...safeProduct } = product;
-        return safeProduct;
-    }
-
-    private removeNestedProductCosts(category: any) {
-        if (!category?.subcategories) return category;
-        return {
-            ...category,
-            subcategories: category.subcategories.map((subcategory: any) => ({
-                ...subcategory,
-                products: Array.isArray(subcategory.products)
-                    ? subcategory.products.map((product: any) => this.removeCostPrice(product))
-                    : subcategory.products,
-            })),
-        };
-    }
+    private readonly publicProductSelect = {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        originalPrice: true,
+        image: true,
+        images: true,
+        slug: true,
+        subcategoryId: true,
+        stock: true,
+        soldCount: true,
+        specs: true,
+        createdAt: true,
+        updatedAt: true,
+    };
 
     async findAll() {
         return this.prisma.category.findMany({
@@ -45,13 +43,15 @@ export class CategoriesService {
             include: {
                 subcategories: {
                     include: {
-                        products: true
+                        products: {
+                            select: this.publicProductSelect
+                        }
                     }
                 }
             }
         });
 
-        return this.removeNestedProductCosts(category);
+        return category;
     }
 
     async findBySlug(slug: string) {
@@ -60,13 +60,15 @@ export class CategoriesService {
             include: {
                 subcategories: {
                     include: {
-                        products: true
+                        products: {
+                            select: this.publicProductSelect
+                        }
                     }
                 }
             }
         });
 
-        return this.removeNestedProductCosts(category);
+        return category;
     }
 
     async create(data: { name: string; slug: string; image?: string; description?: string }) {
