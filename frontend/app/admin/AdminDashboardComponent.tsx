@@ -8,10 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import * as ExcelJS from 'exceljs';
 
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
-function fmt(n: number) {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-}
-const APP_VERSION = "3.1";
+const APP_VERSION = "3.3";
 
 const PAID_STATUSES = ['PAID', 'COMPLETED', 'SHIPPED', 'Đã thanh toán', 'Đang chuẩn bị', 'Đang giao hàng', 'Đang giao', 'Đã giao thành công', 'Đã giao', 'Hoàn thành'];
 const PENDING_STATUSES = ['PENDING', 'PROCESSING', 'Chờ thanh toán'];
@@ -589,26 +586,20 @@ export default function AdminDashboard() {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center py-20">
-                <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-        );
-    }
+    if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
     return <AdminUI 
         activeTab={activeTab} setActiveTab={setActiveTab} 
         stats={stats} revenueData={revenueData} statusData={statusData}
         topProducts={topProducts} expenses={expenses} expLoading={expLoading}
-        handleExport={() => {}} handleImport={() => {}} handleAddExpense={() => {}}
-        handleDeleteExpense={() => {}}
+        handleExport={handleExport} handleImport={handleImport} handleAddExpense={() => {}}
+        handleDeleteExpense={handleDeleteExpense}
+        fmt={(n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)}
     />;
 }
 
-function AdminUI({ activeTab, setActiveTab, stats, revenueData, statusData, topProducts, expenses, expLoading, handleExport, handleImport, handleAddExpense, handleDeleteExpense }: any) {
-    return (
-        <div className="space-y-6">
+function AdminUI({ activeTab, setActiveTab, stats, revenueData, statusData, topProducts, expenses, expLoading, handleExport, handleImport, handleAddExpense, handleDeleteExpense, fmt }: any) {
+    return <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
