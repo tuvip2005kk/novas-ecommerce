@@ -32,6 +32,9 @@ const getAuthHeaders = () => {
 
 
 
+
+
+
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('overview');
     const [stats, setStats] = useState({ totalProducts: 0, totalOrders: 0, totalRevenue: 0, totalExpenses: 0, totalProfit: 0, totalUsers: 0, pendingOrders: 0, todayOrders: 0 });
@@ -443,7 +446,7 @@ export default function AdminDashboard() {
         s4h2.value = 'Báo cáo tài chính tổng hợp | Ngày xuất: ' + (todayFull); s4h2.font = fn(false, 10, WHITE); s4h2.fill = fl('FF1E293B'); s4h2.alignment = { horizontal: 'center', vertical: 'middle' };
         s4.getRow(2).height = 20;
 
-        const sections = [
+        const sections: { title; color; rows: (string | number)[][] }[] = [
             { title: 'I. DOANH THU & LỢI NHUẬN', color: BLUE, rows: [
                 ['Tổng Doanh Thu', stats.totalRevenue, 'VNĐ', '= Tổng đơn đã thanh toán'],
                 ['Tổng Chi Phí Vận Hành', stats.totalExpenses, 'VNĐ', '= Tổng các khoản chi'],
@@ -506,7 +509,7 @@ export default function AdminDashboard() {
         URL.revokeObjectURL(url);
     };
 
-    const handleImport = async (e) => {
+    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]; if (!file) return;
         try {
             const wb2 = new ExcelJS.Workbook();
@@ -521,7 +524,7 @@ export default function AdminDashboard() {
                 if (rowNumber < 5) return;
                 
                 const sttValue = row.getCell(1).value;
-                const stt = typeof sttValue === 'object' ? sttValue?.result : sttValue;
+                const stt = typeof sttValue === 'object' ? (sttValue)?.result : sttValue;
                 if (isNaN(Number(stt)) || stt === null || stt === '') return;
 
                 const title = String(row.getCell(3).value || '').trim();
@@ -529,7 +532,7 @@ export default function AdminDashboard() {
                 
                 let amount = 0;
                 if (typeof amountRaw === 'number') amount = amountRaw;
-                else if (typeof amountRaw === 'object' && amountRaw !== null) amount = Number(amountRaw.result || 0);
+                else if (typeof amountRaw === 'object' && amountRaw !== null) amount = Number((amountRaw).result || 0);
                 else amount = parseFloat(String(amountRaw || '0').replace(/[^0-9.-]/g, ''));
                 
                 if (!title || isNaN(amount) || amount <= 0) return;
@@ -586,7 +589,7 @@ export default function AdminDashboard() {
     const content = (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                
+                <div>
                     <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                         Dashboard <span className="text-[10px] font-normal bg-slate-100 px-1.5 py-0.5 rounded text-slate-400">v{APP_VERSION}</span>
                     </h1>
@@ -625,7 +628,7 @@ export default function AdminDashboard() {
                     <div className="grid lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-xl shadow-sm">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                                
+                                <div>
                                     <h2 className="text-lg font-bold text-slate-800">Xu hướng Tài chính</h2>
                                     <p className="text-xs text-slate-500">So sánh biến động Doanh thu và Chi phí</p>
                                 </div>
@@ -649,7 +652,7 @@ export default function AdminDashboard() {
                             <div className="h-[320px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={revenueData}>
-                                        
+                                        <defs>
                                             <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
                                                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
@@ -681,7 +684,7 @@ export default function AdminDashboard() {
                                     <>
                                         <div className="h-40">
                                             <ResponsiveContainer width="100%" height="100%">
-                                                
+                                                <PieChart>
                                                     <Pie data={expenseTypeStats} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={5} dataKey="value" stroke="none">
                                                         {expenseTypeStats.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
                                                     </Pie>
@@ -711,7 +714,7 @@ export default function AdminDashboard() {
                                 <h3 className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-4">Hiệu suất vận hành</h3>
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-end border-b border-blue-800/50 pb-3">
-                                        
+                                        <div>
                                             <p className="text-[10px] text-blue-300 mb-0.5">Biên lợi nhuận</p>
                                             <p className="text-xl font-bold">{stats.totalRevenue > 0 ? ((stats.totalProfit / stats.totalRevenue) * 100).toFixed(1) : 0}%</p>
                                         </div>
@@ -720,7 +723,7 @@ export default function AdminDashboard() {
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        
+                                        <div>
                                             <p className="text-[10px] text-blue-300">Giá trị đơn TB (AOV)</p>
                                             <p className="text-sm font-bold">{fmt(stats.totalOrders > 0 ? stats.totalRevenue / stats.totalOrders : 0)}</p>
                                         </div>
@@ -770,7 +773,7 @@ export default function AdminDashboard() {
                             <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
                                 <Download className="w-8 h-8 text-[#21246b]" />
                             </div>
-                            
+                            <div>
                                 <h3 className="font-bold text-slate-800">Báo cáo tài chính</h3>
                                 <p className="text-xs text-slate-500 mt-1 px-4">
                                     Tải file Excel để có cái nhìn chi tiết và đầy đủ nhất về mọi hoạt động thu chi.
@@ -820,30 +823,30 @@ export default function AdminDashboard() {
                                 {editingExpense ? 'Chỉnh sửa khoản chi' : 'Thêm khoản chi mới'}
                             </h2>
                             <form onSubmit={handleAddExpense} className="space-y-4">
-                                
+                                <div>
                                     <label className="block text-xs font-medium text-slate-700 mb-1">Tên khoản chi *</label>
                                     <input required type="text" value={title} onChange={e => setTitle(e.target.value)}
                                         className="w-full border border-slate-300 rounded px-3 py-2 text-sm" placeholder="VD: Nhập bồn cầu Inax..." />
                                 </div>
-                                
+                                <div>
                                     <label className="block text-xs font-medium text-slate-700 mb-1">Số tiền (VNĐ) *</label>
                                     <input required type="number" min="0" value={amount} onChange={e => setAmount(e.target.value)}
                                         className="w-full border border-slate-300 rounded px-3 py-2 text-sm" placeholder="0" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
-                                    
+                                    <div>
                                         <label className="block text-xs font-medium text-slate-700 mb-1">Loại</label>
                                         <select value={type} onChange={e => setType(e.target.value)} className="w-full border border-slate-300 rounded px-3 py-2 text-sm">
                                             {EXPENSE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                                         </select>
                                     </div>
-                                    
+                                    <div>
                                         <label className="block text-xs font-medium text-slate-700 mb-1">Ngày chi</label>
                                         <input type="date" value={date} onChange={e => setDate(e.target.value)}
                                             className="w-full border border-slate-300 rounded px-3 py-2 text-sm" />
                                     </div>
                                 </div>
-                                
+                                <div>
                                     <label className="block text-xs font-medium text-slate-700 mb-1">Ghi chú</label>
                                     <textarea value={description} onChange={e => setDescription(e.target.value)}
                                         className="w-full border border-slate-300 rounded px-3 py-2 text-sm h-16" placeholder="Chi tiết..." />
@@ -868,7 +871,7 @@ export default function AdminDashboard() {
                                     <h3 className="text-sm font-semibold text-slate-800 mb-4">Cơ cấu chi phí</h3>
                                     <div className="h-48">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            
+                                            <PieChart>
                                                 <Pie data={expenseTypeStats} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={2} dataKey="value">
                                                     {expenseTypeStats.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
                                                 </Pie>
@@ -940,7 +943,7 @@ export default function AdminDashboard() {
                         <div className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">
-                                    
+                                    <thead>
                                         <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase font-medium text-slate-500">
                                             <th className="px-4 py-3">Ngày</th>
                                             <th className="px-4 py-3">Khoản chi</th>
@@ -949,11 +952,11 @@ export default function AdminDashboard() {
                                             <th className="px-4 py-3 text-center">Thao tác</th>
                                         </tr>
                                     </thead>
-                                    
+                                    <tbody>
                                         {expLoading ? (
-                                            <td colSpan={5} className="text-center py-8"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></td></tr>
+                                            <tr><td colSpan={5} className="text-center py-8"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></td></tr>
                                         ) : filteredExpenses.length === 0 ? (
-                                            <td colSpan={5} className="text-center py-8 text-slate-500 text-sm">Không tìm thấy dữ liệu phù hợp.</td></tr>
+                                            <tr><td colSpan={5} className="text-center py-8 text-slate-500 text-sm">Không tìm thấy dữ liệu phù hợp.</td></tr>
                                         ) : filteredExpenses.map(exp => (
                                             <tr key={exp.id} className={'border-b border-slate-100 hover:bg-slate-50 ' + (editingExpense?.id === exp.id ? 'bg-blue-50' : '')}>
                                                 <td className="px-4 py-3 text-sm text-slate-500">{new Date(exp.date).toLocaleDateString('vi-VN')}</td>
