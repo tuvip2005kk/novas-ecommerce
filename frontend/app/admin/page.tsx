@@ -4,6 +4,9 @@ import { Loader2, Plus, Trash2, Download, Upload, BarChart3 } from "lucide-react
 import { useEffect, useState, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import ExcelJS from 'exceljs';
+const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
+const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+const APP_VERSION = "1.1";
 
 interface Order { id: number; total: number; status: string; createdAt: string; }
 interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
@@ -567,9 +570,6 @@ export default function AdminDashboard() {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-    const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
-
     if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
     return (
@@ -577,7 +577,9 @@ export default function AdminDashboard() {
             {/* Header + Tabs */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900">Dashboard</h1>
+                    <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        Dashboard <span className="text-[10px] font-normal bg-slate-100 px-1.5 py-0.5 rounded text-slate-400">v{APP_VERSION}</span>
+                    </h1>
                     <p className="text-sm text-slate-500">Tổng quan hoạt động kinh doanh</p>
                 </div>
                 <div className="flex border border-slate-200 bg-white rounded overflow-hidden self-start">
