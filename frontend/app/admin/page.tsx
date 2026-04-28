@@ -1,6 +1,6 @@
+"use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-"use client";
 import { API_URL } from '@/config';
 import React, { useEffect, useState, useRef } from "react";
 import { Loader2, Plus, Trash2, Download, Upload, BarChart as LucideBarChart } from "lucide-react";
@@ -8,7 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import * as ExcelJS from 'exceljs';
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-const APP_VERSION = "1.9";
+const APP_VERSION = "2.0";
 
 interface Order { id: number; total: number; status: string; createdAt: string; }
 interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
@@ -590,7 +590,6 @@ export default function AdminDashboard() {
 
     return (
         <div className="space-y-6">
-            {/* Header + Tabs */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -628,7 +627,6 @@ export default function AdminDashboard() {
 
             {activeTab === 'overview' && (
                 <div className="space-y-6">
-                    {/* Main Charts Row */}
                     <div className="grid lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-xl shadow-sm">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -682,7 +680,6 @@ export default function AdminDashboard() {
                         </div>
 
                         <div className="space-y-6">
-                            {/* Expense Breakdown Card */}
                             <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm">
                                 <h3 className="text-sm font-bold text-slate-800 mb-4">Cơ cấu Chi phí</h3>
                                 {expenseTypeStats.length > 0 ? (
@@ -795,7 +792,6 @@ export default function AdminDashboard() {
             {/* TAB: THU - CHI */}
             {activeTab === 'expenses' && (
                 <div className="space-y-6">
-                    {/* Monthly Summary Strip */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Doanh thu {months[expMonth]}</p>
