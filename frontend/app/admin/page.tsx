@@ -8,7 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import * as ExcelJS from 'exceljs';
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-const APP_VERSION = "1.5";
+const APP_VERSION = "1.6";
 
 interface Order { id: number; total: number; status: string; createdAt: string; }
 interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
@@ -318,7 +318,7 @@ export default function AdminDashboard() {
 
         s2.mergeCells('A2:H2');
         const s2h2 = s2.getCell('A2');
-        s2h2.value = `BẢNG CHI TIẾT CHI PHÍ VẬN HÀNH  |  Ngày xuất: ${today}`;
+        s2h2.value = `BẢNG CHI TIẾT CHI PHÍ VẬN HÀNH  |  Ngày xuất: ${todayFull}`;
         s2h2.font = fn(true, 11, WHITE); s2h2.fill = fl('FF1E293B'); s2h2.alignment = { horizontal: 'center', vertical: 'middle' };
         s2.getRow(2).height = 22;
 
@@ -380,7 +380,7 @@ export default function AdminDashboard() {
         s3.getRow(1).height = 30;
         s3.mergeCells('A2:E2');
         const s3h2 = s3.getCell('A2');
-        s3h2.value = `Ngày xuất: ${today}`; s3h2.font = fn(false, 10, 'FF1E293B'); s3h2.fill = fl(LIGHT); s3h2.alignment = { horizontal: 'center', vertical: 'middle' }; s3h2.border = bT;
+        s3h2.value = `Ngày xuất: ${todayFull}`; s3h2.font = fn(false, 10, 'FF1E293B'); s3h2.fill = fl(LIGHT); s3h2.alignment = { horizontal: 'center', vertical: 'middle' }; s3h2.border = bT;
         s3.getRow(2).height = 18; s3.getRow(3).height = 10;
 
         ['PHÂN LOẠI CHI PHÍ', 'SỐ KHOẢN CHI', 'TỔNG SỐ TIỀN (VNĐ)', 'TỶ LỆ (%)', 'XẾP HẠNG'].forEach((hdr, i) => {
