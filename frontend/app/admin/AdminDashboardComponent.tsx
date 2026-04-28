@@ -590,7 +590,8 @@ export default function AdminDashboard() {
 
     const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 
-    return <div className="space-y-6">
+    const content = (
+        <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -788,7 +789,8 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
+        )}
 
             {/* TAB: THU - CHI */}
             {activeTab === 'expenses' && (
@@ -991,6 +993,9 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 </div>
+            )}
         </div>
-    );
+    </div>
+);
+    return content;
 }
