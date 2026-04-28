@@ -3,10 +3,10 @@ import { API_URL } from '@/config';
 import { Loader2, Plus, Trash2, Download, Upload, BarChart3 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
-import ExcelJS from 'exceljs';
+import * as ExcelJS from 'exceljs';
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-const APP_VERSION = "1.1";
+const APP_VERSION = "1.2";
 
 interface Order { id: number; total: number; status: string; createdAt: string; }
 interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
@@ -229,13 +229,13 @@ export default function AdminDashboard() {
         const GREEN = 'FF16A34A', RED = 'FFDC2626', BLUE = 'FF1D4ED8';
         const DARK = 'FF1E293B', ORANGE = 'FFEA580C';
 
-        const t = { style: 'thin' as const };
-        const m = { style: 'medium' as const };
-        const h = { style: 'hair' as const };
+        const t: any = { style: 'thin' };
+        const m: any = { style: 'medium' };
+        const h: any = { style: 'hair' };
         const bT = { top: t, bottom: t, left: t, right: t };
         const bM = { top: m, bottom: m, left: m, right: m };
         const bH = { top: h, bottom: h, left: h, right: h };
-        const fl = (argb: string) => ({ type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb } });
+        const fl = (argb: string) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
         const fn = (bold: boolean, size: number, argb: string) => ({ bold, size, name: 'Calibri', color: { argb } });
         const setCell = (ws: any, addr: string, val: any, style: any = {}) => {
             const c = ws.getCell(addr);
