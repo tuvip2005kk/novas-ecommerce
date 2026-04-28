@@ -6,7 +6,13 @@ import { Product } from '@prisma/client';
 export class ProductsService {
     constructor(private prisma: PrismaService) { }
 
-    private normalizeProductData<T extends { price?: number; stock?: number }>(data: T): T {
+    private removeCostPrice<T>(product: T): T {
+        if (!product) return product;
+        const { costPrice, ...safeProduct } = product as any;
+        return safeProduct;
+    }
+
+    private normalizeProductData<T extends { price?: number; costPrice?: number; stock?: number }>(data: T): T {
         const next: any = { ...data };
 
         if (next.price !== undefined) {
@@ -15,6 +21,14 @@ export class ProductsService {
                 throw new BadRequestException('Giá sản phẩm không hợp lệ');
             }
             next.price = price;
+        }
+
+        if (next.costPrice !== undefined) {
+            const costPrice = Number(next.costPrice);
+            if (!Number.isFinite(costPrice) || costPrice < 0) {
+                throw new BadRequestException('Giá nhập sản phẩm không hợp lệ');
+            }
+            next.costPrice = costPrice;
         }
 
         if (next.stock !== undefined) {
@@ -28,7 +42,7 @@ export class ProductsService {
         return next;
     }
 
-    async findAll(search?: string, category?: string, sort?: string, subcategoryId?: number): Promise<any[]> {
+    async findAll(search?: string, category?: string, sort?: string, subcategoryId?: number, includeCostPrice = false): Promise<any[]> {
         const where: any = {};
 
         if (search) {
@@ -53,7 +67,7 @@ export class ProductsService {
             orderBy.createdAt = 'desc';
         }
 
-        return this.prisma.product.findMany({
+        const products = await this.prisma.product.findMany({
             where,
             orderBy,
             include: {
@@ -64,10 +78,12 @@ export class ProductsService {
                 }
             }
         });
+
+        return includeCostPrice ? products : products.map((product) => this.removeCostPrice(product));
     }
 
     async findOne(id: number): Promise<any | null> {
-        return this.prisma.product.findUnique({
+        const product = await this.prisma.product.findUnique({
             where: { id },
             include: {
                 subcategory: {
@@ -77,10 +93,12 @@ export class ProductsService {
                 }
             }
         });
+
+        return this.removeCostPrice(product);
     }
 
     async findBySlug(slug: string): Promise<any | null> {
-        return this.prisma.product.findUnique({
+        const product = await this.prisma.product.findUnique({
             where: { slug },
             include: {
                 subcategory: {
@@ -98,15 +116,17 @@ export class ProductsService {
                 }
             }
         });
+
+        return this.removeCostPrice(product);
     }
 
-    async create(data: { name: string; slug: string; description: string; price: number; image: string; images?: string[]; subcategoryId?: number; stock: number; specs?: any }): Promise<Product> {
+    async create(data: { name: string; slug: string; description: string; price: number; costPrice?: number; image: string; images?: string[]; subcategoryId?: number; stock: number; specs?: any }): Promise<Product> {
         return this.prisma.product.create({
             data: this.normalizeProductData(data),
         });
     }
 
-    async update(id: number, data: { name?: string; slug?: string; description?: string; price?: number; image?: string; images?: string[]; subcategoryId?: number; stock?: number; specs?: any }): Promise<Product> {
+    async update(id: number, data: { name?: string; slug?: string; description?: string; price?: number; costPrice?: number; image?: string; images?: string[]; subcategoryId?: number; stock?: number; specs?: any }): Promise<Product> {
         return this.prisma.product.update({
             where: { id },
             data: this.normalizeProductData(data),

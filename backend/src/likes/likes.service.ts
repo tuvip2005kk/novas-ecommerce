@@ -5,10 +5,27 @@ import { PrismaService } from '../prisma.service';
 export class LikesService {
     constructor(private prisma: PrismaService) { }
 
+    private readonly productSelect = {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        price: true,
+        originalPrice: true,
+        image: true,
+        images: true,
+        stock: true,
+        soldCount: true,
+        subcategoryId: true,
+        specs: true,
+        createdAt: true,
+        updatedAt: true,
+    };
+
     async findAllByUser(userId: number) {
         return this.prisma.like.findMany({
             where: { userId },
-            include: { product: true },
+            include: { product: { select: this.productSelect } },
             orderBy: { createdAt: 'desc' },
         });
     }
@@ -18,7 +35,7 @@ export class LikesService {
             where: { userId_productId: { userId, productId } },
             update: {},
             create: { userId, productId },
-            include: { product: true },
+            include: { product: { select: this.productSelect } },
         });
     }
 

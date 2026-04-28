@@ -18,6 +18,17 @@ export class ProductsController {
         return this.productsService.findAll(search, category, sort, subcategoryId ? parseInt(subcategoryId) : undefined);
     }
 
+    @Get('admin/all')
+    @UseGuards(AdminGuard)
+    findAllForAdmin(
+        @Query('search') search?: string,
+        @Query('category') category?: string,
+        @Query('sort') sort?: string,
+        @Query('subcategoryId') subcategoryId?: string
+    ) {
+        return this.productsService.findAll(search, category, sort, subcategoryId ? parseInt(subcategoryId) : undefined, true);
+    }
+
     @Post('bulk-discount')
     @UseGuards(AdminGuard)
     applyBulkDiscount(@Body() body: { targetType: string, targetId?: number, discountPercent: number, action: 'apply' | 'remove' }) {

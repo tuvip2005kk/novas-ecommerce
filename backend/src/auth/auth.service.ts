@@ -83,7 +83,17 @@ export class AuthService {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
             include: {
-                orders: { include: { items: { include: { product: true } } } },
+                orders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: {
+                                    select: { id: true, name: true, slug: true, image: true, price: true }
+                                }
+                            }
+                        }
+                    }
+                },
                 reviews: true
             },
         });

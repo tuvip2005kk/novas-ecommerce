@@ -52,7 +52,7 @@ export class SePayService {
     async createCheckout(orderId: number): Promise<SePayCheckoutData> {
         const order = await this.prisma.order.findUnique({
             where: { id: orderId },
-            include: { items: { include: { product: true } } }
+            include: { items: { include: { product: { select: { name: true } } } } }
         });
 
         if (!order) {

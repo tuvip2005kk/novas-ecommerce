@@ -28,6 +28,7 @@ interface Product {
     slug: string;
     description: string;
     price: number;
+    costPrice?: number;
     image: string;
     images: string[];
     subcategoryId: number | null;
@@ -61,7 +62,7 @@ const toNumber = (value: unknown) => {
 const toStockNumber = (value: unknown) => Math.max(0, Math.floor(toNumber(value)));
 
 export default function AdminProducts() {
-    const { token } = useAuth();
+    const { token, isLoading: authLoading } = useAuth();
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -77,6 +78,7 @@ export default function AdminProducts() {
         slug: '',
         description: '',
         price: '',
+        costPrice: '',
         image: '',
         images: [''] as string[],
         categorySlug: '',
@@ -87,13 +89,20 @@ export default function AdminProducts() {
     });
 
     useEffect(() => {
+        if (authLoading) return;
         fetchProducts();
         fetchCategories();
-    }, []);
+    }, [authLoading, token]);
 
     const fetchProducts = async () => {
+        if (!token) {
+            setLoading(false);
+            return;
+        }
         try {
-            const res = await fetch(`${API_URL}/api/products`);
+            const res = await fetch(`${API_URL}/api/products/admin/all`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             const data = await res.json();
             setProducts(Array.isArray(data) ? data : []);
         } catch (error) {
@@ -161,7 +170,7 @@ export default function AdminProducts() {
     const openAddModal = () => {
         setEditingProduct(null);
         setForm({
-            name: '', slug: '', description: '', price: '', image: '',
+            name: '', slug: '', description: '', price: '', costPrice: '', image: '',
             images: [''], categorySlug: '', subcategoryId: '', stock: '',
             importExpenseAmount: '',
             specs: [{ title: '', value: '' }]
@@ -182,7 +191,7 @@ export default function AdminProducts() {
         if (specsArray.length === 0) specsArray = [{ title: '', value: '' }];
         setForm({
             name: product.name, slug: product.slug || '', description: product.description,
-            price: product.price.toString(), image: product.image, images: images,
+            price: product.price.toString(), costPrice: toNumber(product.costPrice).toString(), image: product.image, images: images,
             categorySlug: categorySlug, subcategoryId: product.subcategoryId?.toString() || '',
             stock: product.stock.toString(), importExpenseAmount: '', specs: specsArray
         });
@@ -225,7 +234,9 @@ export default function AdminProducts() {
             const nextStock = toStockNumber(form.stock);
             const previousStock = editingProduct ? toStockNumber(editingProduct.stock) : 0;
             const stockDelta = Math.max(0, nextStock - previousStock);
-            const importExpenseAmount = toNumber(form.importExpenseAmount);
+            const costPrice = toNumber(form.costPrice);
+            const manualImportExpenseAmount = toNumber(form.importExpenseAmount);
+            const importExpenseAmount = manualImportExpenseAmount > 0 ? manualImportExpenseAmount : stockDelta * costPrice;
             let expenseWarning = false;
 
             const productRes = await fetch(url, {
@@ -239,6 +250,7 @@ export default function AdminProducts() {
                     slug: slug,
                     description: form.description,
                     price: parseFloat(form.price),
+                    costPrice,
                     image: form.image, // Use the uploaded image URL directly
                     images: form.images.filter(img => img.trim() !== ''),
                     subcategoryId: form.subcategoryId ? parseInt(form.subcategoryId) : null,
@@ -265,7 +277,7 @@ export default function AdminProducts() {
                         type: 'HangHoa',
                         date: new Date().toISOString(),
                         description: stockDelta > 0
-                            ? `Ghi từ quản lý sản phẩm. Tăng tồn kho ${stockDelta} sản phẩm.`
+                            ? `Ghi từ quản lý sản phẩm. Tăng tồn kho ${stockDelta} sản phẩm${costPrice > 0 && manualImportExpenseAmount <= 0 ? ` x giá nhập ${formatCurrency(costPrice)}/sp` : ''}.`
                             : `Ghi từ quản lý sản phẩm. Tồn kho hiện tại ${nextStock} sản phẩm.`
                     })
                 });
@@ -510,9 +522,9 @@ export default function AdminProducts() {
                                         placeholder="Mô tả chi tiết sản phẩm..."
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div>
-                                        <label className="text-sm font-medium">Giá (VNĐ) *</label>
+                                        <label className="text-sm font-medium">Giá bán (VNĐ) *</label>
                                         <input
                                             type="number"
                                             required
@@ -521,6 +533,17 @@ export default function AdminProducts() {
                                             onChange={(e) => setForm({ ...form, price: e.target.value })}
                                             className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#21246b]"
                                             placeholder="VD: 25000000"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium">Giá nhập/sp (VNĐ)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={form.costPrice}
+                                            onChange={(e) => setForm({ ...form, costPrice: e.target.value })}
+                                            className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#21246b]"
+                                            placeholder="VD: 18000000"
                                         />
                                     </div>
                                     <div>
@@ -537,14 +560,14 @@ export default function AdminProducts() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium">Chi phí nhập hàng ghi vào Thu - Chi (VNĐ)</label>
+                                    <label className="text-sm font-medium">Tổng chi phí nhập ghi Thu - Chi (VNĐ)</label>
                                     <input
                                         type="number"
                                         min="0"
                                         value={form.importExpenseAmount}
                                         onChange={(e) => setForm({ ...form, importExpenseAmount: e.target.value })}
                                         className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#21246b]"
-                                        placeholder="VD: 3000000"
+                                        placeholder="Bỏ trống để tính theo tồn kho tăng x giá nhập/sp"
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -703,11 +726,11 @@ export default function AdminProducts() {
                                         {formatCurrency(p.price)}
                                     </td>
                                     <td className="py-4 text-sm">
-                                        <span className={`inline-flex min-w-12 items-center justify-center rounded px-2 py-1 font-semibold ${toStockNumber(p.stock) === 0
-                                            ? 'bg-red-50 text-red-700'
+                                        <span className={`font-semibold ${toStockNumber(p.stock) === 0
+                                            ? 'text-red-700'
                                             : toStockNumber(p.stock) <= LOW_STOCK_THRESHOLD
-                                                ? 'bg-amber-50 text-amber-700'
-                                                : 'bg-emerald-50 text-emerald-700'
+                                                ? 'text-amber-700'
+                                                : 'text-emerald-700'
                                             }`}>
                                             {toStockNumber(p.stock)}
                                         </span>

@@ -50,6 +50,7 @@ model Product {
   name          String
   description   String       @db.Text
   price         Float
+  costPrice     Float        @default(0)
   originalPrice Float?
   image         String
   images        Json?        @default("[]")

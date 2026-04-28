@@ -5,6 +5,20 @@ import { PrismaService } from '../prisma.service';
 export class SubcategoriesService {
     constructor(private readonly prisma: PrismaService) { }
 
+    private removeCostPrice(product: any) {
+        if (!product) return product;
+        const { costPrice, ...safeProduct } = product;
+        return safeProduct;
+    }
+
+    private removeNestedProductCosts(subcategory: any) {
+        if (!subcategory || !Array.isArray(subcategory.products)) return subcategory;
+        return {
+            ...subcategory,
+            products: subcategory.products.map((product: any) => this.removeCostPrice(product)),
+        };
+    }
+
     async findAll() {
         return this.prisma.subcategory.findMany({
             include: {
@@ -18,23 +32,27 @@ export class SubcategoriesService {
     }
 
     async findOne(id: number) {
-        return this.prisma.subcategory.findUnique({
+        const subcategory = await this.prisma.subcategory.findUnique({
             where: { id },
             include: {
                 category: true,
                 products: true
             }
         });
+
+        return this.removeNestedProductCosts(subcategory);
     }
 
     async findBySlug(slug: string) {
-        return this.prisma.subcategory.findUnique({
+        const subcategory = await this.prisma.subcategory.findUnique({
             where: { slug },
             include: {
                 category: true,
                 products: true
             }
         });
+
+        return this.removeNestedProductCosts(subcategory);
     }
 
     async create(data: { name: string; slug: string; image?: string; categoryId: number }) {

@@ -375,7 +375,7 @@ export default function AdminDashboard() {
         try {
             const headers = getAuthHeaders();
             const [productsRes, ordersRes, usersRes, expensesRes] = await Promise.all([
-                fetch(API_URL + '/api/products'),
+                fetch(API_URL + '/api/products/admin/all', { headers }),
                 fetch(API_URL + '/api/orders/all', { headers }),
                 fetch(API_URL + '/api/users/all', { headers }),
                 fetch(API_URL + '/api/expenses', { headers }).catch(() => null)
@@ -851,29 +851,30 @@ export default function AdminDashboard() {
         const totalStock = productRows.reduce((sum, p) => sum + toNumber(p.stock), 0);
         const totalSold = productRows.reduce((sum, p) => sum + toNumber(p.soldCount), 0);
         const totalInventoryValue = productRows.reduce((sum, p) => sum + (toNumber(p.stock) * toNumber(p.price)), 0);
+        const totalInventoryCost = productRows.reduce((sum, p) => sum + (toNumber(p.stock) * toNumber(p.costPrice)), 0);
         const s5 = wb.addWorksheet('Chi Tiet San Pham');
 
-        s5.mergeCells('A1:M1');
+        s5.mergeCells('A1:O1');
         const s5h1 = s5.getCell('A1');
         s5h1.value = 'CHI TIẾT SẢN PHẨM & TỒN KHO';
         s5h1.font = fn(true, 14, GOLD); s5h1.fill = fl(NAVY); s5h1.alignment = { horizontal: 'center', vertical: 'middle' };
         s5.getRow(1).height = 32;
 
-        s5.mergeCells('A2:M2');
+        s5.mergeCells('A2:O2');
         const s5h2 = s5.getCell('A2');
-        s5h2.value = 'Tổng sản phẩm: ' + productRows.length + '  |  Tổng tồn: ' + totalStock + '  |  Đã bán: ' + totalSold + '  |  Giá trị bán tồn: ' + new Intl.NumberFormat('vi-VN').format(totalInventoryValue) + ' đ';
+        s5h2.value = 'Tổng sản phẩm: ' + productRows.length + '  |  Tổng tồn: ' + totalStock + '  |  Đã bán: ' + totalSold + '  |  Giá trị bán tồn: ' + new Intl.NumberFormat('vi-VN').format(totalInventoryValue) + ' đ  |  Giá vốn tồn: ' + new Intl.NumberFormat('vi-VN').format(totalInventoryCost) + ' đ';
         s5h2.font = fn(true, 10, WHITE); s5h2.fill = fl('FF1E293B'); s5h2.alignment = { horizontal: 'center', vertical: 'middle' };
         s5.getRow(2).height = 22;
 
-        s5.mergeCells('A3:M3');
+        s5.mergeCells('A3:O3');
         const s5h3 = s5.getCell('A3');
-        s5h3.value = 'Import sẽ cập nhật theo ID hoặc Slug. Cột "Đã bán" chỉ để xem, không dùng để sửa thủ công.';
+        s5h3.value = 'Import cập nhật theo ID hoặc Slug. Khi tồn kho tăng và có Giá nhập/sp, hệ thống tự ghi chi phí nhập hàng = số lượng tăng x giá nhập.';
         s5h3.font = { size: 9, name: 'Calibri', color: { argb: 'FF64748B' }, italic: true };
         s5h3.fill = fl(LIGHT); s5h3.border = bT; s5h3.alignment = { horizontal: 'center', vertical: 'middle' };
         s5.getRow(3).height = 20;
         s5.getRow(4).height = 8;
 
-        ['STT', 'ID', 'TÊN SẢN PHẨM', 'SLUG', 'GIÁ BÁN (VNĐ)', 'TỒN KHO', 'ĐÃ BÁN', 'GIÁ TRỊ BÁN TỒN', 'DANH MỤC', 'DANH MỤC PHỤ', 'SUBCATEGORY ID', 'HÌNH ẢNH', 'MÔ TẢ'].forEach((hdr, i) => {
+        ['STT', 'ID', 'TÊN SẢN PHẨM', 'SLUG', 'GIÁ BÁN (VNĐ)', 'GIÁ NHẬP/SP (VNĐ)', 'TỒN KHO', 'ĐÃ BÁN', 'GIÁ TRỊ BÁN TỒN', 'GIÁ TRỊ VỐN TỒN', 'DANH MỤC', 'DANH MỤC PHỤ', 'SUBCATEGORY ID', 'HÌNH ẢNH', 'MÔ TẢ'].forEach((hdr, i) => {
             const c = s5.getCell(5, i + 1);
             c.value = hdr; c.font = fn(true, 10, WHITE); c.fill = fl(NAVY);
             c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; c.border = bT;
@@ -885,6 +886,7 @@ export default function AdminDashboard() {
             const stock = toNumber(product.stock);
             const sold = toNumber(product.soldCount);
             const price = toNumber(product.price);
+            const costPrice = toNumber(product.costPrice);
             const r = s5.getRow(6 + idx); r.height = 22;
             const vals = [
                 idx + 1,
@@ -892,9 +894,11 @@ export default function AdminDashboard() {
                 product.name || '',
                 product.slug || '',
                 price,
+                costPrice,
                 stock,
                 sold,
                 stock * price,
+                stock * costPrice,
                 product.subcategory?.category?.name || '',
                 product.subcategory?.name || '',
                 product.subcategoryId || '',
@@ -904,18 +908,19 @@ export default function AdminDashboard() {
 
             vals.forEach((val, ci) => {
                 const c = r.getCell(ci + 1);
-                c.value = val; c.fill = fl(bg); c.border = bH; c.font = fn(false, 10, 'FF1E293B'); c.alignment = { vertical: 'middle', wrapText: ci === 12 };
+                c.value = val; c.fill = fl(bg); c.border = bH; c.font = fn(false, 10, 'FF1E293B'); c.alignment = { vertical: 'middle', wrapText: ci === 14 };
             });
-            [1, 2, 6, 7, 11].forEach((ci) => { r.getCell(ci).alignment = { horizontal: 'center', vertical: 'middle' }; });
-            [5, 8].forEach((ci) => { r.getCell(ci).numFmt = '#,##0'; r.getCell(ci).alignment = { horizontal: 'right', vertical: 'middle' }; });
+            [1, 2, 7, 8, 13].forEach((ci) => { r.getCell(ci).alignment = { horizontal: 'center', vertical: 'middle' }; });
+            [5, 6, 9, 10].forEach((ci) => { r.getCell(ci).numFmt = '#,##0'; r.getCell(ci).alignment = { horizontal: 'right', vertical: 'middle' }; });
             r.getCell(5).font = fn(true, 10, BLUE);
-            r.getCell(6).font = fn(true, 10, stock === 0 ? RED : stock <= 5 ? ORANGE : GREEN);
+            r.getCell(6).font = fn(true, 10, RED);
+            r.getCell(7).font = fn(true, 10, stock === 0 ? RED : stock <= 5 ? ORANGE : GREEN);
         });
 
         s5.views = [{ state: 'frozen', ySplit: 5, activeCell: 'A6' }];
-        s5.autoFilter = { from: 'A5', to: 'M5' };
-        [6, 8, 36, 28, 18, 12, 12, 20, 22, 24, 14, 32, 48].forEach((w, i) => { s5.getColumn(i + 1).width = w; });
-        s5.getColumn(11).hidden = true;
+        s5.autoFilter = { from: 'A5', to: 'O5' };
+        [6, 8, 36, 28, 18, 18, 12, 12, 20, 20, 22, 24, 14, 32, 48].forEach((w, i) => { s5.getColumn(i + 1).width = w; });
+        s5.getColumn(13).hidden = true;
 
         // ── XUẤT FILE ──
         const buffer = await wb.xlsx.writeBuffer();
@@ -943,6 +948,17 @@ export default function AdminDashboard() {
             const importHeaders = { 'Content-Type': 'application/json', ...getAuthHeaders() };
             const formattedExpenses = [];
             const formattedProducts = [];
+            const getRowText = (row, column) => column ? getCellText(row.getCell(column)) : '';
+            const getRowNumber = (row, column) => column ? getCellNumber(row.getCell(column)) : null;
+            const findColumnByHeader = (worksheet, fallback, matcher) => {
+                let column = fallback;
+                const headerRow = worksheet.getRow(5);
+                headerRow.eachCell((cell, colNumber) => {
+                    const header = stripTones(getCellText(cell));
+                    if (matcher(header)) column = colNumber;
+                });
+                return column;
+            };
 
             if (expenseWs) {
                 expenseWs.eachRow((row, rowNumber) => {
@@ -984,24 +1000,37 @@ export default function AdminDashboard() {
             }
 
             if (productWs) {
+                const productCols = {
+                    id: findColumnByHeader(productWs, 2, (header) => header === 'id'),
+                    name: findColumnByHeader(productWs, 3, (header) => header.includes('ten san pham')),
+                    slug: findColumnByHeader(productWs, 4, (header) => header === 'slug'),
+                    price: findColumnByHeader(productWs, 5, (header) => header.includes('gia ban')),
+                    costPrice: findColumnByHeader(productWs, null, (header) => header.includes('gia nhap') || header.includes('gia von') || header.includes('cost')),
+                    stock: findColumnByHeader(productWs, 6, (header) => header.includes('ton kho')),
+                    subcategoryId: findColumnByHeader(productWs, 11, (header) => header.includes('subcategory id')),
+                    image: findColumnByHeader(productWs, 12, (header) => header.includes('hinh anh')),
+                    description: findColumnByHeader(productWs, 13, (header) => header.includes('mo ta')),
+                };
+
                 productWs.eachRow((row, rowNumber) => {
                     if (rowNumber < 6) return;
 
                     const firstCell = stripTones(getCellText(row.getCell(1)));
-                    const name = getCellText(row.getCell(3));
-                    const slug = getCellText(row.getCell(4));
+                    const name = getRowText(row, productCols.name);
+                    const slug = getRowText(row, productCols.slug);
                     if (firstCell.includes('tong cong') || stripTones(name).includes('tong cong')) return;
-                    if (!name && !slug && !getCellNumber(row.getCell(2))) return;
+                    if (!name && !slug && !getRowNumber(row, productCols.id)) return;
 
                     formattedProducts.push({
-                        id: getCellNumber(row.getCell(2)) || null,
+                        id: getRowNumber(row, productCols.id) || null,
                         name,
                         slug,
-                        price: getCellNumber(row.getCell(5)),
-                        stock: getCellNumber(row.getCell(6)),
-                        subcategoryId: getCellNumber(row.getCell(11)),
-                        image: getCellText(row.getCell(12)),
-                        description: getCellText(row.getCell(13)),
+                        price: getRowNumber(row, productCols.price),
+                        costPrice: getRowNumber(row, productCols.costPrice),
+                        stock: getRowNumber(row, productCols.stock),
+                        subcategoryId: getRowNumber(row, productCols.subcategoryId),
+                        image: getRowText(row, productCols.image),
+                        description: getRowText(row, productCols.description),
                     });
                 });
             }
@@ -1032,7 +1061,7 @@ export default function AdminDashboard() {
 
             const existingProducts = productsData.length > 0
                 ? productsData
-                : await fetch(API_URL + '/api/products').then((res) => res.json()).catch(() => []);
+                : await fetch(API_URL + '/api/products/admin/all', { headers: getAuthHeaders() }).then((res) => res.json()).catch(() => []);
             const productById = new Map((Array.isArray(existingProducts) ? existingProducts : []).map((product) => [Number(product.id), product]));
             const productBySlug = new Map((Array.isArray(existingProducts) ? existingProducts : []).filter((product) => product.slug).map((product) => [String(product.slug), product]));
 
@@ -1040,13 +1069,18 @@ export default function AdminDashboard() {
             let productUpdated = 0;
             let productCreated = 0;
             let productSkipped = 0;
+            const productImportExpenses = [];
 
             for (const row of formattedProducts) {
                 const current = (row.id ? productById.get(Number(row.id)) : null) || (row.slug ? productBySlug.get(row.slug) : null);
                 const nextName = row.name || current?.name || '';
                 const nextSlug = row.slug || current?.slug || generateSlug(nextName);
                 const nextPrice = row.price !== null ? row.price : current ? toNumber(current.price) : null;
+                const nextCostPrice = row.costPrice !== null ? row.costPrice : current ? toNumber(current.costPrice) : 0;
                 const nextStock = row.stock !== null ? Math.max(0, Math.floor(row.stock)) : current ? Math.max(0, Math.floor(toNumber(current.stock))) : 0;
+                const currentStock = current ? Math.max(0, Math.floor(toNumber(current.stock))) : 0;
+                const stockDelta = Math.max(0, nextStock - currentStock);
+                const autoImportExpenseAmount = stockDelta > 0 && nextCostPrice > 0 ? stockDelta * nextCostPrice : 0;
                 const nextImage = row.image || current?.image || '';
 
                 if (current) {
@@ -1055,17 +1089,28 @@ export default function AdminDashboard() {
                         slug: nextSlug,
                         description: row.description || current.description || '',
                         price: nextPrice,
+                        costPrice: nextCostPrice,
                         image: nextImage,
                         images: Array.isArray(current.images) ? current.images : [],
                         subcategoryId: row.subcategoryId !== null ? Number(row.subcategoryId) : current.subcategoryId ?? null,
                         stock: nextStock,
                         specs: current.specs || {},
                     };
-                    productResults.push(await fetch((API_URL) + '/api/products/' + current.id, {
+                    const productRes = await fetch((API_URL) + '/api/products/' + current.id, {
                         method: 'PATCH',
                         headers: importHeaders,
                         body: JSON.stringify(payload)
-                    }));
+                    });
+                    productResults.push(productRes);
+                    if (productRes.ok && autoImportExpenseAmount > 0) {
+                        productImportExpenses.push({
+                            title: 'Nhập hàng: ' + nextName,
+                            amount: autoImportExpenseAmount,
+                            type: 'HangHoa',
+                            date: new Date().toISOString(),
+                            description: 'Ghi từ import Chi Tiet San Pham. Tăng tồn kho ' + stockDelta + ' sản phẩm x giá nhập ' + new Intl.NumberFormat('vi-VN').format(nextCostPrice) + 'đ/sp.',
+                        });
+                    }
                     productUpdated++;
                 } else if (nextName && nextPrice !== null && nextImage) {
                     const payload = {
@@ -1073,29 +1118,51 @@ export default function AdminDashboard() {
                         slug: nextSlug,
                         description: row.description || '',
                         price: nextPrice,
+                        costPrice: nextCostPrice,
                         image: nextImage,
                         images: [],
                         subcategoryId: row.subcategoryId !== null ? Number(row.subcategoryId) : null,
                         stock: nextStock,
                         specs: {},
                     };
-                    productResults.push(await fetch((API_URL) + '/api/products', {
+                    const productRes = await fetch((API_URL) + '/api/products', {
                         method: 'POST',
                         headers: importHeaders,
                         body: JSON.stringify(payload)
-                    }));
+                    });
+                    productResults.push(productRes);
+                    if (productRes.ok && autoImportExpenseAmount > 0) {
+                        productImportExpenses.push({
+                            title: 'Nhập hàng: ' + nextName,
+                            amount: autoImportExpenseAmount,
+                            type: 'HangHoa',
+                            date: new Date().toISOString(),
+                            description: 'Ghi từ import Chi Tiet San Pham. Tạo sản phẩm với tồn kho ' + nextStock + ' x giá nhập ' + new Intl.NumberFormat('vi-VN').format(nextCostPrice) + 'đ/sp.',
+                        });
+                    }
                     productCreated++;
                 } else {
                     productSkipped++;
                 }
             }
 
+            let productExpenseCreateRes = null;
+            if (productImportExpenses.length > 0) {
+                productExpenseCreateRes = await fetch((API_URL) + '/api/expenses/bulk', {
+                    method: 'POST',
+                    headers: importHeaders,
+                    body: JSON.stringify(productImportExpenses)
+                });
+            }
+
             const hasExpenseError = expenseUpdateResults.some((res) => !res.ok) || (expenseCreateRes && !expenseCreateRes.ok);
+            const hasProductExpenseError = productExpenseCreateRes && !productExpenseCreateRes.ok;
             const hasProductError = productResults.some((res) => !res.ok);
-            if (!hasExpenseError && !hasProductError) {
+            if (!hasExpenseError && !hasProductError && !hasProductExpenseError) {
                 alert(
                     'Import thành công: cập nhật ' + expenseUpdates.length + ', thêm mới ' + expenseCreates.length + ' khoản chi; ' +
                     'cập nhật ' + productUpdated + ', thêm mới ' + productCreated + ' sản phẩm' +
+                    (productImportExpenses.length > 0 ? '; ghi thêm ' + productImportExpenses.length + ' khoản chi nhập hàng' : '') +
                     (productSkipped > 0 ? '; bỏ qua ' + productSkipped + ' dòng sản phẩm thiếu dữ liệu.' : '.')
                 );
                 fetchData();

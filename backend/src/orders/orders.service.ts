@@ -5,6 +5,14 @@ import { SalesService } from '../sales/sales.service';
 
 @Injectable()
 export class OrdersService {
+    private readonly orderProductSelect = {
+        id: true,
+        name: true,
+        slug: true,
+        image: true,
+        price: true,
+    };
+
     constructor(
         private prisma: PrismaService,
         private salesService: SalesService,
@@ -90,7 +98,7 @@ export class OrdersService {
         return this.prisma.order.findUnique({
             where: { id },
             include: {
-                items: { include: { product: true } },
+                items: { include: { product: { select: this.orderProductSelect } } },
                 user: { select: { id: true, email: true, name: true } }
             },
         });
@@ -98,7 +106,7 @@ export class OrdersService {
 
     async findAll() {
         return this.prisma.order.findMany({
-            include: { items: { include: { product: true } } },
+            include: { items: { include: { product: { select: this.orderProductSelect } } } },
             orderBy: { createdAt: 'desc' },
         });
     }
