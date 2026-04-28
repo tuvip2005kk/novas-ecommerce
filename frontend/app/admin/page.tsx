@@ -9,7 +9,7 @@ import * as ExcelJS from 'exceljs';
 
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-const APP_VERSION = "2.2";
+const APP_VERSION = "2.3";
 
 const PAID_STATUSES = ['PAID', 'COMPLETED', 'SHIPPED', 'Đã thanh toán', 'Đang chuẩn bị', 'Đang giao hàng', 'Đang giao', 'Đã giao thành công', 'Đã giao', 'Hoàn thành'];
 const PENDING_STATUSES = ['PENDING', 'PROCESSING', 'Chờ thanh toán'];
@@ -28,7 +28,7 @@ const COLORS = ['#21246b', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'
 const getAuthHeaders = () => {
     if (typeof window === 'undefined') return {};
     const token = localStorage.getItem('novas_admin_token') || localStorage.getItem('novas_token') || localStorage.getItem('token');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return token ? { 'Authorization': 'Bearer ' + token } : {};
 };
 
 interface Order { id: number; total: number; status: string; createdAt: string; items?: any[]; }
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
 
     const getAuthHeaders = () => {
         const token = localStorage.getItem('novas_admin_token') || localStorage.getItem('novas_token');
-        return token ? { 'Authorization': `Bearer ${token}` } : {} as Record<string, string>;
+        return token ? { 'Authorization': 'Bearer ' + token } : {} as Record<string, string>;
     };
 
     useEffect(() => { fetchData(); }, [days, filterType, selectedMonth, selectedYear]);
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
     const fetchExpenses = async () => {
         setExpLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/expenses`, { headers: getAuthHeaders() });
+            const res = await fetch(API_URL + '/api/expenses', { headers: getAuthHeaders() });
             if (res.ok) setExpenses(await res.json());
         } catch (e) { console.error(e); } finally { setExpLoading(false); }
     };
@@ -89,10 +89,10 @@ export default function AdminDashboard() {
         try {
             const headers = getAuthHeaders();
             const [productsRes, ordersRes, usersRes, expensesRes] = await Promise.all([
-                fetch(`${API_URL}/api/products`),
-                fetch(`${API_URL}/api/orders/all`, { headers }),
-                fetch(`${API_URL}/api/users/all`, { headers }),
-                fetch(`${API_URL}/api/expenses`, { headers }).catch(() => null)
+                fetch(API_URL + '/api/products'),
+                fetch(API_URL + '/api/orders/all', { headers }),
+                fetch(API_URL + '/api/users/all', { headers }),
+                fetch(API_URL + '/api/expenses', { headers }).catch(() => null)
             ]);
             const products = await productsRes.json();
             const orders = await ordersRes.json();
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
             
             expArray.forEach((e: any) => {
                 const ed = new Date(e.date);
-                const key = filterType === 'days' ? ed.toISOString().split('T')[0] : `${ed.getMonth()}-${ed.getFullYear()}`;
+                const key = filterType === 'days' ? ed.toISOString().split('T')[0] : (ed.getMonth() + 1) + '-' + ed.getFullYear();
                 expDataMap[key] = (expDataMap[key] || 0) + e.amount;
             });
 
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
                         const od = new Date(o.createdAt);
                         return od.getMonth() === m && od.getFullYear() === selectedYear && PAID_STATUSES.includes(o.status);
                     });
-                    const mKey = `${m}-${selectedYear}`;
+                    const mKey = m + '-' + selectedYear;
                     revData.push({
                         name: months[m],
                         revenue: monthOrders.reduce((s, o) => s + o.total, 0),
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            const url = editingExpense ? `${API_URL}/api/expenses/${editingExpense.id}` : `${API_URL}/api/expenses`;
+            const url = editingExpense ? (API_URL) + '/api/expenses/' + (editingExpense.id) : (API_URL) + '/api/expenses';
             const method = editingExpense ? 'PUT' : 'POST';
             
             const res = await fetch(url, {
@@ -227,7 +227,7 @@ export default function AdminDashboard() {
     const handleDeleteExpense = async (id: number) => {
         if (!confirm('Xóa khoản chi này?')) return;
         try {
-            await fetch(`${API_URL}/api/expenses/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+            await fetch(API_URL + '/api/expenses/' + id, { method: 'DELETE', headers: getAuthHeaders() });
             fetchExpenses(); fetchData();
         } catch (e) { console.error(e); }
     };
@@ -243,7 +243,7 @@ export default function AdminDashboard() {
         const wb = new ExcelJS.Workbook();
         wb.creator = 'NOVAS Admin';
         wb.created = new Date();
-        const reportTime = `Tháng ${expMonth + 1}/${expYear}`;
+        const reportTime = 'Tháng ' + (expMonth + 1) + '/' + expYear;
         const todayFull = new Date().toLocaleString('vi-VN');
 
         const NAVY = 'FF21246B', WHITE = 'FFFFFFFF', GOLD = 'FFFFD700';
@@ -282,7 +282,7 @@ export default function AdminDashboard() {
         s1.getRow(1).height = 36;
 
         s1.mergeCells('A2:E2');
-        setCell(s1, 'A2', `BÁO CÁO KINH DOANH ${reportTime.toUpperCase()}  |  Xuất ngày: ${todayFull}`, { font: fn(true, 11, WHITE), fill: fl('FF1E293B'), alignment: { horizontal: 'center', vertical: 'middle' } });
+        setCell(s1, 'A2', 'BÁO CÁO KINH DOANH ' + (reportTime.toUpperCase()) + '  |  Xuất ngày: ' + (todayFull), { font: fn(true, 11, WHITE), fill: fl('FF1E293B'), alignment: { horizontal: 'center', vertical: 'middle' } });
         s1.getRow(2).height = 22;
         s1.getRow(3).height = 10;
 
@@ -301,7 +301,7 @@ export default function AdminDashboard() {
             ['Tổng Doanh Thu', stats.totalRevenue, 'VNĐ', 'Từ đơn đã thanh toán', BLUE, 'Doanh thu tích lũy'],
             ['Tổng Chi Phí Vận Hành', stats.totalExpenses, 'VNĐ', 'Tổng các khoản chi', RED, 'Chi phí tích lũy'],
             ['Lợi Nhuận Ròng', stats.totalProfit, 'VNĐ', 'Doanh thu - Chi phí', stats.totalProfit >= 0 ? GREEN : RED, stats.totalProfit >= 0 ? 'Có lãi' : 'Lỗ'],
-            ['Biên Lợi Nhuận', `${margin}%`, '%', 'Profit Margin = LN/DT', stats.totalProfit >= 0 ? GREEN : RED, `${margin}% margin`],
+            ['Biên Lợi Nhuận', (margin) + '%', '%', 'Profit Margin = LN/DT', stats.totalProfit >= 0 ? GREEN : RED, (margin) + '% margin'],
             ['Giá Trị Đơn TB (AOV)', aov, 'VNĐ', 'Average Order Value', BLUE, 'AOV'],
             ['Tổng Đơn Hàng', stats.totalOrders, 'Đơn', 'Tất cả trạng thái', 'FF334155', ''],
             ['Đơn Chờ Xử Lý', stats.pendingOrders, 'Đơn', 'Trạng thái PENDING', ORANGE, stats.pendingOrders > 10 ? 'Cần xử lý gấp' : 'Bình thường'],
@@ -338,13 +338,13 @@ export default function AdminDashboard() {
 
         s2.mergeCells('A2:H2');
         const s2h2 = s2.getCell('A2');
-        s2h2.value = `BẢNG CHI TIẾT CHI PHÍ VẬN HÀNH  |  Ngày xuất: ${todayFull}`;
+        s2h2.value = 'BẢNG CHI TIẾT CHI PHÍ VẬN HÀNH  |  Ngày xuất: ' + (todayFull);
         s2h2.font = fn(true, 11, WHITE); s2h2.fill = fl('FF1E293B'); s2h2.alignment = { horizontal: 'center', vertical: 'middle' };
         s2.getRow(2).height = 22;
 
         s2.mergeCells('A3:H3');
         const s2h3 = s2.getCell('A3');
-        s2h3.value = `Tổng khoản chi: ${dataToExport.length}  |  Tổng chi phí: ${new Intl.NumberFormat('vi-VN').format(grandTotal)} đ`;
+        s2h3.value = 'Tổng khoản chi: ' + (dataToExport.length) + '  |  Tổng chi phí: ' + (new Intl.NumberFormat('vi-VN').format(grandTotal)) + ' đ';
         s2h3.font = fn(true, 10, RED); s2h3.fill = fl(LIGHT); s2h3.border = bT; s2h3.alignment = { horizontal: 'center', vertical: 'middle' };
         s2.getRow(3).height = 20;
         s2.getRow(4).height = 8;
@@ -382,7 +382,7 @@ export default function AdminDashboard() {
             const tr = s2.getRow(lastR + 1); tr.height = 26;
             s2.mergeCells(lastR + 1, 1, lastR + 1, 5);
             const tl = tr.getCell(1); tl.value = 'TỔNG CỘNG'; tl.font = fn(true, 12, GOLD); tl.fill = fl(NAVY); tl.alignment = { horizontal: 'center', vertical: 'middle' }; tl.border = bM;
-            const tv = tr.getCell(6); tv.value = { formula: `SUM(F6:F${lastR})` } as any; tv.numFmt = '#,##0'; tv.font = fn(true, 12, GOLD); tv.fill = fl(NAVY); tv.alignment = { horizontal: 'right', vertical: 'middle' }; tv.border = bM;
+            const tv = tr.getCell(6); tv.value = { formula: 'SUM(F6:F' + (lastR) + ')' } as any; tv.numFmt = '#,##0'; tv.font = fn(true, 12, GOLD); tv.fill = fl(NAVY); tv.alignment = { horizontal: 'right', vertical: 'middle' }; tv.border = bM;
             const tp = tr.getCell(7); tp.value = '100%'; tp.font = fn(true, 11, GOLD); tp.fill = fl(NAVY); tp.alignment = { horizontal: 'center', vertical: 'middle' }; tp.border = bM;
             const te = tr.getCell(8); te.value = ''; te.fill = fl(NAVY); te.border = bM;
         }
@@ -400,7 +400,7 @@ export default function AdminDashboard() {
         s3.getRow(1).height = 30;
         s3.mergeCells('A2:E2');
         const s3h2 = s3.getCell('A2');
-        s3h2.value = `Ngày xuất: ${todayFull}`; s3h2.font = fn(false, 10, 'FF1E293B'); s3h2.fill = fl(LIGHT); s3h2.alignment = { horizontal: 'center', vertical: 'middle' }; s3h2.border = bT;
+        s3h2.value = 'Ngày xuất: ' + (todayFull); s3h2.font = fn(false, 10, 'FF1E293B'); s3h2.fill = fl(LIGHT); s3h2.alignment = { horizontal: 'center', vertical: 'middle' }; s3h2.border = bT;
         s3.getRow(2).height = 18; s3.getRow(3).height = 10;
 
         ['PHÂN LOẠI CHI PHÍ', 'SỐ KHOẢN CHI', 'TỔNG SỐ TIỀN (VNĐ)', 'TỶ LỆ (%)', 'XẾP HẠNG'].forEach((hdr, i) => {
@@ -453,7 +453,7 @@ export default function AdminDashboard() {
         s4.getRow(1).height = 30;
         s4.mergeCells('A2:D2');
         const s4h2 = s4.getCell('A2');
-        s4h2.value = `Báo cáo tài chính tổng hợp | Ngày xuất: ${todayFull}`; s4h2.font = fn(false, 10, WHITE); s4h2.fill = fl('FF1E293B'); s4h2.alignment = { horizontal: 'center', vertical: 'middle' };
+        s4h2.value = 'Báo cáo tài chính tổng hợp | Ngày xuất: ' + (todayFull); s4h2.font = fn(false, 10, WHITE); s4h2.fill = fl('FF1E293B'); s4h2.alignment = { horizontal: 'center', vertical: 'middle' };
         s4.getRow(2).height = 20;
 
         const sections: { title: string; color: string; rows: (string | number)[][] }[] = [
@@ -461,7 +461,7 @@ export default function AdminDashboard() {
                 ['Tổng Doanh Thu', stats.totalRevenue, 'VNĐ', '= Tổng đơn đã thanh toán'],
                 ['Tổng Chi Phí Vận Hành', stats.totalExpenses, 'VNĐ', '= Tổng các khoản chi'],
                 ['Lợi Nhuận Ròng (Net Profit)', stats.totalProfit, 'VNĐ', '= Doanh Thu − Chi Phí'],
-                ['Biên Lợi Nhuận (Net Margin)', parseFloat(margin), '%', `= ${margin}% (LN / DT × 100)`],
+                ['Biên Lợi Nhuận (Net Margin)', parseFloat(margin), '%', '= ' + (margin) + '% (LN / DT × 100)'],
             ]},
             { title: 'II. HIỆU SUẤT ĐƠN HÀNG', color: ORANGE, rows: [
                 ['Tổng Số Đơn Hàng', stats.totalOrders, 'Đơn', 'Tất cả trạng thái'],
@@ -474,13 +474,13 @@ export default function AdminDashboard() {
                 ['Tổng Khách Hàng Đăng Ký', stats.totalUsers, 'User', 'Tài khoản đã đăng ký'],
                 ['Doanh Thu / Khách Hàng (RPU)', stats.totalUsers > 0 ? Math.round(stats.totalRevenue / stats.totalUsers) : 0, 'VNĐ', 'Revenue per User'],
             ]},
-            { title: 'IV. CHI PHÍ THEO LOẠI', color: RED, rows: sortedTypes.map(([label, { count, amount }]) => [label, amount, 'VNĐ', `${count} khoản chi`]) },
+            { title: 'IV. CHI PHÍ THEO LOẠI', color: RED, rows: sortedTypes.map(([label, { count, amount }]) => [label, amount, 'VNĐ', (count) + ' khoản chi']) },
         ];
 
         let curRow = 4;
         sections.forEach(({ title, color, rows }) => {
-            s4.mergeCells(`A${curRow}:D${curRow}`);
-            const sh = s4.getCell(`A${curRow}`);
+            s4.mergeCells('A' + (curRow) + ':D' + (curRow));
+            const sh = s4.getCell('A' + (curRow));
             sh.value = title; sh.font = fn(true, 11, WHITE); sh.fill = fl(color); sh.alignment = { horizontal: 'left', vertical: 'middle' }; sh.border = bM;
             s4.getRow(curRow).height = 24; curRow++;
 
@@ -514,7 +514,7 @@ export default function AdminDashboard() {
         const a = document.createElement('a');
         a.href = url;
         const safeTime = reportTime.replace(/\//g, '_').replace(/ /g, '_');
-        a.download = `Bao_Cao_Tai_Chinh_${safeTime}.xlsx`;
+        a.download = 'Bao_Cao_Tai_Chinh_' + (safeTime) + '.xlsx';
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -574,21 +574,21 @@ export default function AdminDashboard() {
                 return; 
             }
             
-            const res = await fetch(`${API_URL}/api/expenses/bulk`, {
+            const res = await fetch((API_URL) + '/api/expenses/bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                 body: JSON.stringify(formatted)
             });
 
             if (res.ok) { 
-                alert(`Import thành công ${formatted.length} khoản chi!`); 
+                alert('Import thành công ' + (formatted.length) + ' khoản chi!'); 
                 fetchExpenses(); 
                 fetchData(); 
             } else {
                 const err = await res.json().catch(() => ({}));
-                alert(`Lỗi import: ${err.message || 'Lỗi server'}`);
+                alert('Lỗi import: ' + (err.message || 'Lỗi server'));
             }
-        } catch (err: any) { alert(`Lỗi đọc file Excel: ${err.message || 'Lỗi định dạng'}`); }
+        } catch (err: any) { alert('Lỗi đọc file Excel: ' + (err.message || 'Lỗi định dạng')); }
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -606,10 +606,10 @@ export default function AdminDashboard() {
                     <p className="text-sm text-slate-500">Tổng quan hoạt động kinh doanh</p>
                 </div>
                 <div className="flex border border-slate-200 bg-white rounded overflow-hidden self-start">
-                    <button onClick={() => setActiveTab('overview')} className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'overview' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50'}`}>
+                    <button onClick={() => setActiveTab('overview')} className={'px-4 py-2 text-sm font-medium transition-colors ' + (activeTab === 'overview' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50')}>
                         Tổng quan
                     </button>
-                    <button onClick={() => setActiveTab('expenses')} className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'expenses' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50'}`}>
+                    <button onClick={() => setActiveTab('expenses')} className={'px-4 py-2 text-sm font-medium transition-colors ' + (activeTab === 'expenses' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50')}>
                         Thu - Chi
                     </button>
                 </div>
@@ -628,7 +628,7 @@ export default function AdminDashboard() {
                 ].map((s, i) => (
                     <div key={i} className="border border-slate-200 bg-white p-3 rounded">
                         <p className="text-xs text-slate-500">{s.label}</p>
-                        <p className={`font-bold mt-1 truncate ${s.isNum ? 'text-2xl' : 'text-sm'} ${s.color}`}>{s.value}</p>
+                        <p className={'font-bold mt-1 truncate ' + (s.isNum ? 'text-2xl' : 'text-sm') + ' ' + (s.color)}>{s.value}</p>
                     </div>
                 ))}
             </div>
@@ -646,14 +646,14 @@ export default function AdminDashboard() {
                                     <div className="flex">
                                         {[7, 14, 30].map(d => (
                                             <button key={d} onClick={() => { setFilterType('days'); setDays(d); }}
-                                                className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all ${filterType === 'days' && days === d ? 'bg-white text-[#21246b] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                                                className={'px-3 py-1.5 text-[10px] font-bold rounded-md transition-all ' + (filterType === 'days' && days === d ? 'bg-white text-[#21246b] shadow-sm' : 'text-slate-500 hover:text-slate-700')}>
                                                 {d} NGÀY
                                             </button>
                                         ))}
                                     </div>
                                     <span className="text-slate-200 w-[1px] h-4">|</span>
                                     <select value={selectedYear} onChange={(e) => { setFilterType('month'); setSelectedYear(parseInt(e.target.value)); }}
-                                        className={`px-2 py-1.5 bg-transparent text-[10px] font-bold outline-none cursor-pointer ${filterType === 'month' ? 'text-[#21246b]' : 'text-slate-500'}`}>
+                                        className={'px-2 py-1.5 bg-transparent text-[10px] font-bold outline-none cursor-pointer ' + (filterType === 'month' ? 'text-[#21246b]' : 'text-slate-500')}>
                                         {[2023, 2024, 2025, 2026].map(y => <option key={y} value={y}>NĂM {y}</option>)}
                                     </select>
                                 </div>
@@ -674,7 +674,7 @@ export default function AdminDashboard() {
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} />
-                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => v >= 1000000 ? `${v/1000000}M` : v} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => v >= 1000000 ? (v/1000000) + 'M' : v} />
                                         <Tooltip 
                                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                                             formatter={(value, name) => [fmt(Number(value)), name === 'revenue' ? 'Doanh thu' : 'Chi phí']} 
@@ -728,7 +728,7 @@ export default function AdminDashboard() {
                                             <p className="text-[10px] text-blue-300 mb-0.5">Biên lợi nhuận</p>
                                             <p className="text-xl font-bold">{stats.totalRevenue > 0 ? ((stats.totalProfit / stats.totalRevenue) * 100).toFixed(1) : 0}%</p>
                                         </div>
-                                        <div className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${stats.totalProfit >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                        <div className={'text-[10px] font-bold px-1.5 py-0.5 rounded ' + (stats.totalProfit >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400')}>
                                             {stats.totalProfit >= 0 ? 'CÓ LÃI' : 'LỖ VỐN'}
                                         </div>
                                     </div>
@@ -771,7 +771,7 @@ export default function AdminDashboard() {
                                         <div className="text-right">
                                             <p className="text-xs font-bold text-blue-700">{fmt(p.revenue)}</p>
                                             <div className="w-16 h-1 bg-slate-200 rounded-full mt-1 overflow-hidden">
-                                                <div className="h-full bg-[#21246b]" style={{ width: topProducts[0]?.revenue > 0 ? `${(p.revenue / topProducts[0].revenue) * 100}%` : '0%' }} />
+                                                <div className="h-full bg-[#21246b]" style={{ width: topProducts[0]?.revenue > 0 ? ((p.revenue / topProducts[0].revenue) * 100) + '%' : '0%' }} />
                                             </div>
                                         </div>
                                     </div>
@@ -828,7 +828,7 @@ export default function AdminDashboard() {
                     <div className="md:col-span-1">
                         <div className="bg-white border border-slate-200 p-4 rounded shadow-sm">
                             <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                                <Plus className={`w-5 h-5 ${editingExpense ? 'text-[#21246b]' : 'text-[#21246b]'}`} /> 
+                                <Plus className={'w-5 h-5 ' + (editingExpense ? 'text-[#21246b]' : 'text-[#21246b]')} /> 
                                 {editingExpense ? 'Chỉnh sửa khoản chi' : 'Thêm khoản chi mới'}
                             </h2>
                             <form onSubmit={handleAddExpense} className="space-y-4">
@@ -868,7 +868,7 @@ export default function AdminDashboard() {
                                         </button>
                                     )}
                                     <button type="submit" disabled={isSubmitting}
-                                        className={`flex-[2] text-white font-medium py-2 rounded text-sm flex items-center justify-center ${editingExpense ? 'bg-[#21246b] hover:bg-[#1a1d56]' : 'bg-[#21246b] hover:bg-blue-800'}`}>
+                                        className={'flex-[2] text-white font-medium py-2 rounded text-sm flex items-center justify-center ' + (editingExpense ? 'bg-[#21246b] hover:bg-[#1a1d56]' : 'bg-[#21246b] hover:bg-blue-800')}>
                                         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingExpense ? 'Cập nhật' : 'Lưu lại')}
                                     </button>
                                 </div>
@@ -967,7 +967,7 @@ export default function AdminDashboard() {
                                         ) : filteredExpenses.length === 0 ? (
                                             <tr><td colSpan={5} className="text-center py-8 text-slate-500 text-sm">Không tìm thấy dữ liệu phù hợp.</td></tr>
                                         ) : filteredExpenses.map(exp => (
-                                            <tr key={exp.id} className={`border-b border-slate-100 hover:bg-slate-50 ${editingExpense?.id === exp.id ? 'bg-blue-50' : ''}`}>
+                                            <tr key={exp.id} className={'border-b border-slate-100 hover:bg-slate-50 ' + (editingExpense?.id === exp.id ? 'bg-blue-50' : '')}>
                                                 <td className="px-4 py-3 text-sm text-slate-500">{new Date(exp.date).toLocaleDateString('vi-VN')}</td>
                                                 <td className="px-4 py-3">
                                                     <p className="text-sm font-medium text-slate-800">{exp.title}</p>
