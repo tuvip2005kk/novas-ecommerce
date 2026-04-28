@@ -8,7 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import * as ExcelJS from 'exceljs';
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-const APP_VERSION = "1.7";
+const APP_VERSION = "1.8";
 
 interface Order { id: number; total: number; status: string; createdAt: string; }
 interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
@@ -226,8 +226,9 @@ export default function AdminDashboard() {
 
     const handleExport = async () => {
         let dataToExport = filteredExpenses;
-        if (dataToExport.length === 0) {
-            alert('Không có dữ liệu trong khoảng thời gian này để xuất báo cáo.');
+        // Allow export even if no expenses, if there is revenue or orders
+        if (dataToExport.length === 0 && stats.totalOrders === 0) {
+            alert('Không có dữ liệu để xuất báo cáo.');
             return;
         }
 
@@ -637,14 +638,14 @@ export default function AdminDashboard() {
                                     <div className="flex">
                                         {[7, 14, 30].map(d => (
                                             <button key={d} onClick={() => { setFilterType('days'); setDays(d); }}
-                                                className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all ${filterType === 'days' && days === d ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                                                className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all ${filterType === 'days' && days === d ? 'bg-white text-[#21246b] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
                                                 {d} NGÀY
                                             </button>
                                         ))}
                                     </div>
                                     <span className="text-slate-200 w-[1px] h-4">|</span>
                                     <select value={selectedYear} onChange={(e) => { setFilterType('month'); setSelectedYear(parseInt(e.target.value)); }}
-                                        className={`px-2 py-1.5 bg-transparent text-[10px] font-bold outline-none cursor-pointer ${filterType === 'month' ? 'text-blue-600' : 'text-slate-500'}`}>
+                                        className={`px-2 py-1.5 bg-transparent text-[10px] font-bold outline-none cursor-pointer ${filterType === 'month' ? 'text-[#21246b]' : 'text-slate-500'}`}>
                                         {[2023, 2024, 2025, 2026].map(y => <option key={y} value={y}>NĂM {y}</option>)}
                                     </select>
                                 </div>
@@ -671,8 +672,8 @@ export default function AdminDashboard() {
                                             formatter={(value, name) => [fmt(Number(value)), name === 'revenue' ? 'Doanh thu' : 'Chi phí']} 
                                         />
                                         <Legend verticalAlign="top" align="right" iconType="circle" height={36} wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                                        <Bar dataKey="revenue" name="revenue" fill="url(#colorRev)" radius={[4, 4, 0, 0]} barSize={20} />
-                                        <Bar dataKey="expenses" name="expenses" fill="url(#colorExp)" radius={[4, 4, 0, 0]} barSize={20} />
+                                        <Bar dataKey="revenue" name="Doanh thu" fill="url(#colorRev)" radius={[4, 4, 0, 0]} barSize={20} />
+                                        <Bar dataKey="expenses" name="Chi phí" fill="url(#colorExp)" radius={[4, 4, 0, 0]} barSize={20} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -744,7 +745,7 @@ export default function AdminDashboard() {
                         <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-xl shadow-sm">
                             <div className="flex items-center justify-between mb-5">
                                 <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                    <LucideBarChart className="w-4 h-4 text-blue-600" /> Top sản phẩm bán chạy
+                                    <LucideBarChart className="w-4 h-4 text-[#21246b]" /> Top sản phẩm bán chạy
                                 </h2>
                                 <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded">DOANH THU CAO NHẤT</span>
                             </div>
@@ -763,7 +764,7 @@ export default function AdminDashboard() {
                                         <div className="text-right">
                                             <p className="text-xs font-bold text-blue-700">{fmt(p.revenue)}</p>
                                             <div className="w-16 h-1 bg-slate-200 rounded-full mt-1 overflow-hidden">
-                                                <div className="h-full bg-blue-500" style={{ width: topProducts[0]?.revenue > 0 ? `${(p.revenue / topProducts[0].revenue) * 100}%` : '0%' }} />
+                                                <div className="h-full bg-[#21246b]" style={{ width: topProducts[0]?.revenue > 0 ? `${(p.revenue / topProducts[0].revenue) * 100}%` : '0%' }} />
                                             </div>
                                         </div>
                                     </div>
@@ -773,7 +774,7 @@ export default function AdminDashboard() {
 
                         <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm flex flex-col items-center justify-center text-center space-y-4">
                             <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
-                                <Download className="w-8 h-8 text-blue-600" />
+                                <Download className="w-8 h-8 text-[#21246b]" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-slate-800">Báo cáo tài chính</h3>
@@ -791,12 +792,37 @@ export default function AdminDashboard() {
 
             {/* TAB: THU - CHI */}
             {activeTab === 'expenses' && (
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="space-y-6">
+                    {/* Monthly Summary Strip */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Doanh thu {months[expMonth]}</p>
+                            <p className="text-xl font-bold text-[#21246b]">{fmt(revenueData.find(d => d.name === months[expMonth])?.revenue || 0)}</p>
+                        </div>
+                        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Chi phí {months[expMonth]}</p>
+                            <p className="text-xl font-bold text-red-600">{fmt(totalFilteredExpenses)}</p>
+                        </div>
+                        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lợi nhuận {months[expMonth]}</p>
+                            <p className="text-xl font-bold text-green-600">{fmt((revenueData.find(d => d.name === months[expMonth])?.revenue || 0) - totalFilteredExpenses)}</p>
+                        </div>
+                        <div className="bg-[#21246b] p-4 rounded-xl shadow-md text-white flex flex-col justify-center">
+                            <p className="text-[10px] font-bold text-blue-200 uppercase tracking-wider mb-1">Tỷ lệ chi phí</p>
+                            <p className="text-xl font-bold">
+                                { (revenueData.find(d => d.name === months[expMonth])?.revenue || 0) > 0 
+                                    ? ((totalFilteredExpenses / (revenueData.find(d => d.name === months[expMonth])?.revenue || 0)) * 100).toFixed(1)
+                                    : 0 }%
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-6">
                     {/* Form thêm chi phí */}
                     <div className="md:col-span-1">
                         <div className="bg-white border border-slate-200 p-4 rounded shadow-sm">
                             <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                                <Plus className={`w-5 h-5 ${editingExpense ? 'text-blue-600' : 'text-[#21246b]'}`} /> 
+                                <Plus className={`w-5 h-5 ${editingExpense ? 'text-[#21246b]' : 'text-[#21246b]'}`} /> 
                                 {editingExpense ? 'Chỉnh sửa khoản chi' : 'Thêm khoản chi mới'}
                             </h2>
                             <form onSubmit={handleAddExpense} className="space-y-4">
@@ -836,7 +862,7 @@ export default function AdminDashboard() {
                                         </button>
                                     )}
                                     <button type="submit" disabled={isSubmitting}
-                                        className={`flex-[2] text-white font-medium py-2 rounded text-sm flex items-center justify-center ${editingExpense ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#21246b] hover:bg-blue-800'}`}>
+                                        className={`flex-[2] text-white font-medium py-2 rounded text-sm flex items-center justify-center ${editingExpense ? 'bg-[#21246b] hover:bg-[#1a1d56]' : 'bg-[#21246b] hover:bg-blue-800'}`}>
                                         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingExpense ? 'Cập nhật' : 'Lưu lại')}
                                     </button>
                                 </div>
