@@ -234,6 +234,16 @@ export default function AdminDashboard() {
         const bH = { top: h, bottom: h, left: h, right: h };
         const fl = (argb: string) => ({ type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb } });
         const fn = (bold: boolean, size: number, argb: string) => ({ bold, size, name: 'Calibri', color: { argb } });
+        const setCell = (ws: any, addr: string, val: any, style: any = {}) => {
+            const c = ws.getCell(addr);
+            c.value = val;
+            if (style.font) c.font = style.font;
+            if (style.fill) c.fill = style.fill;
+            if (style.alignment) c.alignment = style.alignment;
+            if (style.border) c.border = style.border;
+            if (style.numFmt) c.numFmt = style.numFmt;
+            return c;
+        };
 
         const grandTotal = dataToExport.reduce((s, e) => s + e.amount, 0);
         const margin = stats.totalRevenue > 0 ? ((stats.totalProfit / stats.totalRevenue) * 100).toFixed(1) : '0.0';
