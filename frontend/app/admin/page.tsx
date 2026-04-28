@@ -3,7 +3,7 @@ import { API_URL } from '@/config';
 import { Loader2, Plus, Trash2, Download, Upload } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 interface Order { id: number; total: number; status: string; createdAt: string; }
 interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
@@ -149,16 +149,77 @@ export default function AdminDashboard() {
         } catch (e) { console.error(e); }
     };
 
-    const handleExport = () => {
-        const ws = XLSX.utils.json_to_sheet(expenses.map(exp => ({
-            'ID': exp.id, 'Tên khoản chi': exp.title, 'Số tiền (VNĐ)': exp.amount,
-            'Phân loại': EXPENSE_TYPES.find(t => t.value === exp.type)?.label || exp.type,
-            'Ngày chi': new Date(exp.date).toLocaleDateString('vi-VN'),
-            'Ghi chú': exp.description || ''
-        })));
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "ChiPhi");
-        XLSX.writeFile(wb, `Chi_Phi_${new Date().toISOString().split('T')[0]}.xlsx`);
+    const handleExport = async () => {
+        // Fetch fresh data mới nhất trước khi xuất
+        let dataToExport = expenses;
+        if (dataToExport.length === 0) {
+            try {
+                const res = await fetch(`${API_URL}/api/expenses`, { headers: getAuthHeaders() });
+                if (res.ok) dataToExport = await res.json();
+            } catch (e) { console.error(e); }
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'Novas Admin';
+        const sheet = workbook.addWorksheet('Chi Phi');
+
+        // Định nghĩa cột với tiêu đề và độ rộng
+        sheet.columns = [
+            { header: 'ID',           key: 'id',          width: 8 },
+            { header: 'Tên khoản chi', key: 'title',       width: 35 },
+            { header: 'Số tiền (VNĐ)', key: 'amount',      width: 20 },
+            { header: 'Phân loại',    key: 'type',        width: 22 },
+            { header: 'Ngày chi',     key: 'date',        width: 14 },
+            { header: 'Ghi chú',      key: 'description', width: 35 },
+        ];
+
+        // Style hàng tiêu đề: in đậm + màu nền + viền
+        const headerRow = sheet.getRow(1);
+        headerRow.eachCell((cell) => {
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF21246B' } };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = {
+                top:    { style: 'thin' }, bottom: { style: 'thin' },
+                left:   { style: 'thin' }, right:  { style: 'thin' },
+            };
+        });
+        headerRow.height = 24;
+
+        // Thêm dữ liệu từng hàng
+        dataToExport.forEach((exp) => {
+            const row = sheet.addRow({
+                id:          exp.id,
+                title:       exp.title,
+                amount:      exp.amount,
+                type:        EXPENSE_TYPES.find(t => t.value === exp.type)?.label || exp.type,
+                date:        new Date(exp.date).toLocaleDateString('vi-VN'),
+                description: exp.description || '',
+            });
+            // Căn chỉnh + viền nhẹ cho từng ô dữ liệu
+            row.eachCell((cell) => {
+                cell.border = {
+                    top:    { style: 'hair' }, bottom: { style: 'hair' },
+                    left:   { style: 'hair' }, right:  { style: 'hair' },
+                };
+                cell.alignment = { vertical: 'middle' };
+            });
+            // Format cột Số tiền kiểu VNĐ
+            row.getCell('amount').numFmt = '#,##0" đ"';
+            row.getCell('amount').alignment = { horizontal: 'right' };
+            row.getCell('id').alignment = { horizontal: 'center' };
+            row.height = 20;
+        });
+
+        // Xuất file
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Chi_Phi_${new Date().toISOString().split('T')[0]}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
     };
 
     const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
