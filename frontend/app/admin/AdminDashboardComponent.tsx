@@ -588,17 +588,8 @@ export default function AdminDashboard() {
 
     if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
-    return <AdminUI 
-        activeTab={activeTab} setActiveTab={setActiveTab} 
-        stats={stats} revenueData={revenueData} statusData={statusData}
-        topProducts={topProducts} expenses={expenses} expLoading={expLoading}
-        handleExport={handleExport} handleImport={handleImport} handleAddExpense={() => {}}
-        handleDeleteExpense={handleDeleteExpense}
-        fmt={(n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)}
-    />;
-}
+    const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 
-function AdminUI({ activeTab, setActiveTab, stats, revenueData, statusData, topProducts, expenses, expLoading, handleExport, handleImport, handleAddExpense, handleDeleteExpense, fmt }: any) {
     return <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
