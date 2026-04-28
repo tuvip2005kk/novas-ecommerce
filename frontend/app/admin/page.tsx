@@ -46,6 +46,8 @@ export default function AdminDashboard() {
     const [amount, setAmount] = useState('');
     const [type, setType] = useState('OTHER');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [expMonth, setExpMonth] = useState(new Date().getMonth());
+    const [expYear, setExpYear] = useState(new Date().getFullYear());
     const [description, setDescription] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -183,16 +185,20 @@ export default function AdminDashboard() {
     };
 
     const filteredExpenses = expenses.filter(exp => {
+        const d = new Date(exp.date);
+        const matchesDate = d.getMonth() === expMonth && d.getFullYear() === expYear;
         const matchesSearch = exp.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                              (exp.description && exp.description.toLowerCase().includes(searchTerm.toLowerCase()));
         const matchesType = filterExpType === 'ALL' || exp.type === filterExpType;
-        return matchesSearch && matchesType;
+        return matchesDate && matchesSearch && matchesType;
     });
 
     const expenseTypeStats = EXPENSE_TYPES.map(t => ({
         name: t.label,
-        value: expenses.filter(e => e.type === t.value).reduce((sum, e) => sum + e.amount, 0)
+        value: filteredExpenses.filter(e => e.type === t.value).reduce((sum, e) => sum + e.amount, 0)
     })).filter(t => t.value > 0);
+
+    const totalFilteredExpenses = filteredExpenses.reduce((s, e) => s + e.amount, 0);
 
     const handleDeleteExpense = async (id: number) => {
         if (!confirm('Xóa khoản chi này?')) return;
@@ -203,18 +209,16 @@ export default function AdminDashboard() {
     };
 
     const handleExport = async () => {
-        let dataToExport = expenses;
+        let dataToExport = filteredExpenses;
         if (dataToExport.length === 0) {
-            try {
-                const res = await fetch(`${API_URL}/api/expenses`, { headers: getAuthHeaders() });
-                if (res.ok) dataToExport = await res.json();
-            } catch (e) { console.error(e); }
+            alert('Không có dữ liệu trong khoảng thời gian này để xuất báo cáo.');
+            return;
         }
 
         const wb = new ExcelJS.Workbook();
         wb.creator = 'NOVAS Admin';
         wb.created = new Date();
-        const today = new Date().toLocaleDateString('vi-VN');
+        const reportTime = `Tháng ${expMonth + 1}/${expYear}`;
         const todayFull = new Date().toLocaleString('vi-VN');
 
         const NAVY = 'FF21246B', WHITE = 'FFFFFFFF', GOLD = 'FFFFD700';
@@ -243,7 +247,7 @@ export default function AdminDashboard() {
         s1.getRow(1).height = 36;
 
         s1.mergeCells('A2:E2');
-        { const c = s1.getCell('A2'); c.value = `BÁO CÁO TỔNG QUAN KINH DOANH  |  Ngày xuất: ${todayFull}`; c.font = fn(true, 11, WHITE); c.fill = fl('FF1E293B'); c.alignment = { horizontal: 'center', vertical: 'middle' }; }
+        setCell(s1, 'A2', `BÁO CÁO KINH DOANH ${reportTime.toUpperCase()}  |  Xuất ngày: ${todayFull}`, { font: fn(true, 11, WHITE), fill: fl('FF1E293B'), alignment: { horizontal: 'center', vertical: 'middle' } });
         s1.getRow(2).height = 22;
         s1.getRow(3).height = 10;
 
@@ -474,7 +478,8 @@ export default function AdminDashboard() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `BaoCao_NOVAS_${new Date().toISOString().split('T')[0]}.xlsx`;
+        const safeTime = reportTime.replace(/\//g, '_').replace(/ /g, '_');
+        a.download = `Bao_Cao_Tai_Chinh_${safeTime}.xlsx`;
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -486,36 +491,35 @@ export default function AdminDashboard() {
             const arrayBuffer = await file.arrayBuffer();
             await wb2.xlsx.load(arrayBuffer);
             
-            // Tìm sheet "Chi Tiet Chi Phi" trước, nếu không thấy thì lấy sheet đầu tiên
             let ws = wb2.getWorksheet('Chi Tiet Chi Phi') || wb2.worksheets[0];
-            
             if (!ws) { alert('Không đọc được dữ liệu từ file.'); return; }
             
             const formatted: any[] = [];
             ws.eachRow((row, rowNumber) => {
-                // Bỏ qua các dòng tiêu đề ở trên (thường là < 6 dòng đầu trong file xuất chuyên nghiệp)
                 if (rowNumber < 5) return;
                 
                 const sttValue = row.getCell(1).value;
                 const stt = typeof sttValue === 'object' ? (sttValue as any)?.result : sttValue;
-                
-                // Nếu cột A không có số thứ tự thì bỏ qua
                 if (isNaN(Number(stt)) || stt === null || stt === '') return;
 
                 const title = String(row.getCell(3).value || '').trim();
                 const amountRaw = row.getCell(6).value;
                 
-                // Xử lý số tiền (chấp nhận cả số và chuỗi định dạng)
                 let amount = 0;
-                if (typeof amountRaw === 'number') {
-                    amount = amountRaw;
-                } else if (typeof amountRaw === 'object' && amountRaw !== null) {
-                    amount = Number((amountRaw as any).result || 0);
-                } else {
-                    amount = parseFloat(String(amountRaw || '0').replace(/[^0-9.-]/g, ''));
-                }
+                if (typeof amountRaw === 'number') amount = amountRaw;
+                else if (typeof amountRaw === 'object' && amountRaw !== null) amount = Number((amountRaw as any).result || 0);
+                else amount = parseFloat(String(amountRaw || '0').replace(/[^0-9.-]/g, ''));
                 
                 if (!title || isNaN(amount) || amount <= 0) return;
+
+                const dateRaw = row.getCell(2).value;
+                let expenseDate = new Date();
+                if (dateRaw instanceof Date) {
+                    expenseDate = dateRaw;
+                } else if (typeof dateRaw === 'string') {
+                    const pts = dateRaw.split('/');
+                    if (pts.length === 3) expenseDate = new Date(Number(pts[2]), Number(pts[1]) - 1, Number(pts[0]));
+                }
                 
                 const typeRaw = String(row.getCell(5).value || '').toUpperCase();
                 formatted.push({
@@ -525,13 +529,13 @@ export default function AdminDashboard() {
                           typeRaw.includes('LƯƠNG') ? 'SALARY' :
                           typeRaw.includes('MARKETING') ? 'MARKETING' :
                           typeRaw.includes('MẶT BẰNG') ? 'RENT' : 'OTHER',
-                    date: new Date().toISOString(),
+                    date: expenseDate.toISOString(),
                     description: String(row.getCell(4).value || ''),
                 });
             });
 
             if (formatted.length === 0) { 
-                alert('Không tìm thấy dữ liệu hợp lệ. Lưu ý: Dữ liệu phải nằm trong Sheet "Chi Tiet Chi Phi" và bắt đầu từ dòng 6.'); 
+                alert('Không tìm thấy dữ liệu hợp lệ. Dữ liệu phải nằm trong Sheet "Chi Tiet Chi Phi" từ dòng 6.'); 
                 return; 
             }
             
@@ -540,9 +544,16 @@ export default function AdminDashboard() {
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                 body: JSON.stringify(formatted)
             });
-            if (res.ok) { alert(`Import thành công ${formatted.length} khoản chi!`); fetchExpenses(); fetchData(); }
-            else alert('Lỗi import.');
-        } catch { alert('Lỗi đọc file Excel.'); }
+
+            if (res.ok) { 
+                alert(`Import thành công ${formatted.length} khoản chi!`); 
+                fetchExpenses(); 
+                fetchData(); 
+            } else {
+                const err = await res.json().catch(() => ({}));
+                alert(`Lỗi import: ${err.message || 'Lỗi server'}`);
+            }
+        } catch (err: any) { alert(`Lỗi đọc file Excel: ${err.message || 'Lỗi định dạng'}`); }
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -779,17 +790,33 @@ export default function AdminDashboard() {
                     {/* Danh sách chi phí */}
                     <div className="md:col-span-2 space-y-4">
                         {/* Search and Filter */}
-                        <div className="bg-white border border-slate-200 p-3 rounded shadow-sm flex flex-col sm:flex-row gap-3">
-                            <div className="flex-1">
-                                <input type="text" placeholder="Tìm kiếm khoản chi..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-                                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none" />
+                        <div className="bg-white border border-slate-200 p-3 rounded shadow-sm flex flex-col gap-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="flex-1">
+                                    <input type="text" placeholder="Tìm kiếm khoản chi..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+                                        className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none" />
+                                </div>
+                                <div className="w-full sm:w-48">
+                                    <select value={filterExpType} onChange={e => setFilterExpType(e.target.value)}
+                                        className="w-full border border-slate-300 rounded px-3 py-2 text-sm">
+                                        <option value="ALL">Tất cả loại</option>
+                                        {EXPENSE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                    </select>
+                                </div>
                             </div>
-                            <div className="w-full sm:w-48">
-                                <select value={filterExpType} onChange={e => setFilterExpType(e.target.value)}
-                                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm">
-                                    <option value="ALL">Tất cả loại</option>
-                                    {EXPENSE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                            <div className="flex items-center gap-3 border-t pt-3">
+                                <span className="text-xs font-medium text-slate-500">Xem dữ liệu:</span>
+                                <select value={expMonth} onChange={e => setExpMonth(parseInt(e.target.value))}
+                                    className="border border-slate-300 rounded px-2 py-1 text-xs outline-none">
+                                    {months.map((m, i) => <option key={i} value={i}>{m}</option>)}
                                 </select>
+                                <select value={expYear} onChange={e => setExpYear(parseInt(e.target.value))}
+                                    className="border border-slate-300 rounded px-2 py-1 text-xs outline-none">
+                                    {[2023, 2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
+                                </select>
+                                <div className="ml-auto text-xs font-bold text-slate-700">
+                                    Tổng chi {months[expMonth]}: <span className="text-red-600">{new Intl.NumberFormat('vi-VN').format(totalFilteredExpenses)}đ</span>
+                                </div>
                             </div>
                         </div>
 
