@@ -6,25 +6,33 @@ import React, { useEffect, useState, useRef } from "react";
 import { Loader2, Plus, Trash2, Download, Upload, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import * as ExcelJS from 'exceljs';
+
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-const APP_VERSION = "2.1";
+const APP_VERSION = "2.2";
 
-interface Order { id: number; total: number; status: string; createdAt: string; }
-interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
+const PAID_STATUSES = ['PAID', 'COMPLETED', 'SHIPPED', 'Đã thanh toán', 'Đang chuẩn bị', 'Đang giao hàng', 'Đang giao', 'Đã giao thành công', 'Đã giao', 'Hoàn thành'];
+const PENDING_STATUSES = ['PENDING', 'PROCESSING', 'Chờ thanh toán'];
+const CANCELLED_STATUSES = ['CANCELLED', 'REFUNDED', 'Đã hủy', 'Hoàn hàng'];
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 const EXPENSE_TYPES = [
-    { value: 'IMPORT', label: 'Nhập hàng' },
-    { value: 'SALARY', label: 'Lương nhân viên' },
-    { value: 'MARKETING', label: 'Marketing/Quảng cáo' },
-    { value: 'RENT', label: 'Mặt bằng/Điện nước' },
-    { value: 'OTHER', label: 'Khác' }
+    { value: 'HangHoa', label: 'Hàng hóa' },
+    { value: 'MatBang', label: 'Mặt bằng' },
+    { value: 'Luong', label: 'Lương nhân viên' },
+    { value: 'Marketing', label: 'Marketing' },
+    { value: 'DienNuoc', label: 'Điện nước' },
+    { value: 'Khac', label: 'Khác' }
 ];
+const COLORS = ['#21246b', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'];
 
-const PAID_STATUSES = ['Đã thanh toán', 'Đang chuẩn bị', 'Đang giao hàng', 'Đang giao', 'Đã giao thành công', 'Đã giao', 'Hoàn thành'];
-const PENDING_STATUSES = ['Chờ thanh toán'];
-const CANCELLED_STATUSES = ['Đã hủy', 'Hoàn hàng'];
+const getAuthHeaders = () => {
+    if (typeof window === 'undefined') return {};
+    const token = localStorage.getItem('novas_admin_token') || localStorage.getItem('novas_token') || localStorage.getItem('token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+interface Order { id: number; total: number; status: string; createdAt: string; items?: any[]; }
+interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
 
 interface Stats {
     totalProducts: number; totalOrders: number; totalRevenue: number;
