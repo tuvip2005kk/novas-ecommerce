@@ -211,7 +211,7 @@ export default function AdminDashboard() {
 
     const totalFilteredExpenses = filteredExpenses.reduce((s, e) => s + e.amount, 0);
 
-    const handleDeleteExpense = async (id: number) => {
+    const handleDeleteExpense = async (id) => {
         if (!confirm('Xóa khoản chi này?')) return;
         try {
             await fetch(API_URL + '/api/expenses/' + id, { method: 'DELETE', headers: getAuthHeaders() });
@@ -238,15 +238,15 @@ export default function AdminDashboard() {
         const GREEN = 'FF16A34A', RED = 'FFDC2626', BLUE = 'FF1D4ED8';
         const DARK = 'FF1E293B', ORANGE = 'FFEA580C';
 
-        const t: any = { style: 'thin' };
-        const m: any = { style: 'medium' };
-        const h: any = { style: 'hair' };
+        const t = { style: 'thin' };
+        const m = { style: 'medium' };
+        const h = { style: 'hair' };
         const bT = { top: t, bottom: t, left: t, right: t };
         const bM = { top: m, bottom: m, left: m, right: m };
         const bH = { top: h, bottom: h, left: h, right: h };
-        const fl = (argb: string) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } } as any);
-        const fn = (bold: boolean, size: number, argb: string) => ({ bold, size, name: 'Calibri', color: { argb } } as any);
-        const setCell = (ws: any, addr: string, val: any, style: any = {}) => {
+        const fl = (argb) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
+        const fn = (bold, size, argb) => ({ bold, size, name: 'Calibri', color: { argb } });
+        const setCell = (ws, addr, val, style = {}) => {
             const c = ws.getCell(addr);
             c.value = val;
             if (style.font) c.font = style.font;
@@ -369,7 +369,7 @@ export default function AdminDashboard() {
             const tr = s2.getRow(lastR + 1); tr.height = 26;
             s2.mergeCells(lastR + 1, 1, lastR + 1, 5);
             const tl = tr.getCell(1); tl.value = 'TỔNG CỘNG'; tl.font = fn(true, 12, GOLD); tl.fill = fl(NAVY); tl.alignment = { horizontal: 'center', vertical: 'middle' }; tl.border = bM;
-            const tv = tr.getCell(6); tv.value = { formula: 'SUM(F6:F' + (lastR) + ')' } as any; tv.numFmt = '#,##0'; tv.font = fn(true, 12, GOLD); tv.fill = fl(NAVY); tv.alignment = { horizontal: 'right', vertical: 'middle' }; tv.border = bM;
+            const tv = tr.getCell(6); tv.value = { formula: 'SUM(F6:F' + (lastR) + ')' }; tv.numFmt = '#,##0'; tv.font = fn(true, 12, GOLD); tv.fill = fl(NAVY); tv.alignment = { horizontal: 'right', vertical: 'middle' }; tv.border = bM;
             const tp = tr.getCell(7); tp.value = '100%'; tp.font = fn(true, 11, GOLD); tp.fill = fl(NAVY); tp.alignment = { horizontal: 'center', vertical: 'middle' }; tp.border = bM;
             const te = tr.getCell(8); te.value = ''; te.fill = fl(NAVY); te.border = bM;
         }
@@ -424,8 +424,8 @@ export default function AdminDashboard() {
             const last3 = 4 + sortedTypes.length;
             const tr3 = s3.getRow(last3 + 1); tr3.height = 24;
             const totalCount = sortedTypes.reduce((a, [, v]) => a + v.count, 0);
-            [['TỔNG CỘNG', WHITE, NAVY, 'center'] as any, [totalCount, WHITE, NAVY, 'center'], [totalByType, WHITE, NAVY, 'right'], ['100%', WHITE, NAVY, 'center'], ['—', WHITE, NAVY, 'center']].forEach(([v, fg, bg, align], ci) => {
-                const c = tr3.getCell(ci + 1); c.value = v; c.font = fn(true, 11, fg); c.fill = fl(bg); c.border = bM; c.alignment = { horizontal: align as any, vertical: 'middle' };
+            [['TỔNG CỘNG', WHITE, NAVY, 'center'], [totalCount, WHITE, NAVY, 'center'], [totalByType, WHITE, NAVY, 'right'], ['100%', WHITE, NAVY, 'center'], ['—', WHITE, NAVY, 'center']].forEach(([v, fg, bg, align], ci) => {
+                const c = tr3.getCell(ci + 1); c.value = v; c.font = fn(true, 11, fg); c.fill = fl(bg); c.border = bM; c.alignment = { horizontal: align, vertical: 'middle' };
             });
             tr3.getCell(3).numFmt = '#,##0';
         }
@@ -443,7 +443,7 @@ export default function AdminDashboard() {
         s4h2.value = 'Báo cáo tài chính tổng hợp | Ngày xuất: ' + (todayFull); s4h2.font = fn(false, 10, WHITE); s4h2.fill = fl('FF1E293B'); s4h2.alignment = { horizontal: 'center', vertical: 'middle' };
         s4.getRow(2).height = 20;
 
-        const sections: { title: string; color: string; rows: (string | number)[][] }[] = [
+        const sections = [
             { title: 'I. DOANH THU & LỢI NHUẬN', color: BLUE, rows: [
                 ['Tổng Doanh Thu', stats.totalRevenue, 'VNĐ', '= Tổng đơn đã thanh toán'],
                 ['Tổng Chi Phí Vận Hành', stats.totalExpenses, 'VNĐ', '= Tổng các khoản chi'],
@@ -481,7 +481,7 @@ export default function AdminDashboard() {
                 const bg = ri % 2 === 0 ? WHITE : STRIPE;
                 const r = s4.getRow(curRow); r.height = 20;
                 const lc = r.getCell(1); lc.value = label; lc.font = fn(true, 10, 'FF1E293B'); lc.fill = fl(bg); lc.border = bT; lc.alignment = { vertical: 'middle' };
-                const vc = r.getCell(2); vc.value = val as any; vc.font = fn(true, 10, color); vc.fill = fl(bg); vc.border = bT; vc.alignment = { horizontal: 'right', vertical: 'middle' };
+                const vc = r.getCell(2); vc.value = val; vc.font = fn(true, 10, color); vc.fill = fl(bg); vc.border = bT; vc.alignment = { horizontal: 'right', vertical: 'middle' };
                 if (typeof val === 'number' && unit === 'VNĐ') vc.numFmt = '#,##0';
                 if (unit === '%') vc.numFmt = '0.0"%"';
                 const uc = r.getCell(3); uc.value = unit; uc.font = fn(false, 9, 'FF334155'); uc.fill = fl(bg); uc.border = bT; uc.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -586,7 +586,7 @@ export default function AdminDashboard() {
     const content = (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
+                
                     <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                         Dashboard <span className="text-[10px] font-normal bg-slate-100 px-1.5 py-0.5 rounded text-slate-400">v{APP_VERSION}</span>
                     </h1>
@@ -625,7 +625,7 @@ export default function AdminDashboard() {
                     <div className="grid lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-xl shadow-sm">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                                <div>
+                                
                                     <h2 className="text-lg font-bold text-slate-800">Xu hướng Tài chính</h2>
                                     <p className="text-xs text-slate-500">So sánh biến động Doanh thu và Chi phí</p>
                                 </div>
@@ -649,7 +649,7 @@ export default function AdminDashboard() {
                             <div className="h-[320px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={revenueData}>
-                                        <defs>
+                                        
                                             <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
                                                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
@@ -681,7 +681,7 @@ export default function AdminDashboard() {
                                     <>
                                         <div className="h-40">
                                             <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
+                                                
                                                     <Pie data={expenseTypeStats} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={5} dataKey="value" stroke="none">
                                                         {expenseTypeStats.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
                                                     </Pie>
@@ -711,7 +711,7 @@ export default function AdminDashboard() {
                                 <h3 className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-4">Hiệu suất vận hành</h3>
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-end border-b border-blue-800/50 pb-3">
-                                        <div>
+                                        
                                             <p className="text-[10px] text-blue-300 mb-0.5">Biên lợi nhuận</p>
                                             <p className="text-xl font-bold">{stats.totalRevenue > 0 ? ((stats.totalProfit / stats.totalRevenue) * 100).toFixed(1) : 0}%</p>
                                         </div>
@@ -720,7 +720,7 @@ export default function AdminDashboard() {
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <div>
+                                        
                                             <p className="text-[10px] text-blue-300">Giá trị đơn TB (AOV)</p>
                                             <p className="text-sm font-bold">{fmt(stats.totalOrders > 0 ? stats.totalRevenue / stats.totalOrders : 0)}</p>
                                         </div>
@@ -770,7 +770,7 @@ export default function AdminDashboard() {
                             <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
                                 <Download className="w-8 h-8 text-[#21246b]" />
                             </div>
-                            <div>
+                            
                                 <h3 className="font-bold text-slate-800">Báo cáo tài chính</h3>
                                 <p className="text-xs text-slate-500 mt-1 px-4">
                                     Tải file Excel để có cái nhìn chi tiết và đầy đủ nhất về mọi hoạt động thu chi.
@@ -820,30 +820,30 @@ export default function AdminDashboard() {
                                 {editingExpense ? 'Chỉnh sửa khoản chi' : 'Thêm khoản chi mới'}
                             </h2>
                             <form onSubmit={handleAddExpense} className="space-y-4">
-                                <div>
+                                
                                     <label className="block text-xs font-medium text-slate-700 mb-1">Tên khoản chi *</label>
                                     <input required type="text" value={title} onChange={e => setTitle(e.target.value)}
                                         className="w-full border border-slate-300 rounded px-3 py-2 text-sm" placeholder="VD: Nhập bồn cầu Inax..." />
                                 </div>
-                                <div>
+                                
                                     <label className="block text-xs font-medium text-slate-700 mb-1">Số tiền (VNĐ) *</label>
                                     <input required type="number" min="0" value={amount} onChange={e => setAmount(e.target.value)}
                                         className="w-full border border-slate-300 rounded px-3 py-2 text-sm" placeholder="0" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div>
+                                    
                                         <label className="block text-xs font-medium text-slate-700 mb-1">Loại</label>
                                         <select value={type} onChange={e => setType(e.target.value)} className="w-full border border-slate-300 rounded px-3 py-2 text-sm">
                                             {EXPENSE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                                         </select>
                                     </div>
-                                    <div>
+                                    
                                         <label className="block text-xs font-medium text-slate-700 mb-1">Ngày chi</label>
                                         <input type="date" value={date} onChange={e => setDate(e.target.value)}
                                             className="w-full border border-slate-300 rounded px-3 py-2 text-sm" />
                                     </div>
                                 </div>
-                                <div>
+                                
                                     <label className="block text-xs font-medium text-slate-700 mb-1">Ghi chú</label>
                                     <textarea value={description} onChange={e => setDescription(e.target.value)}
                                         className="w-full border border-slate-300 rounded px-3 py-2 text-sm h-16" placeholder="Chi tiết..." />
@@ -868,7 +868,7 @@ export default function AdminDashboard() {
                                     <h3 className="text-sm font-semibold text-slate-800 mb-4">Cơ cấu chi phí</h3>
                                     <div className="h-48">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
+                                            
                                                 <Pie data={expenseTypeStats} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={2} dataKey="value">
                                                     {expenseTypeStats.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
                                                 </Pie>
@@ -940,7 +940,7 @@ export default function AdminDashboard() {
                         <div className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">
-                                    <thead>
+                                    
                                         <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase font-medium text-slate-500">
                                             <th className="px-4 py-3">Ngày</th>
                                             <th className="px-4 py-3">Khoản chi</th>
@@ -949,11 +949,11 @@ export default function AdminDashboard() {
                                             <th className="px-4 py-3 text-center">Thao tác</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    
                                         {expLoading ? (
-                                            <tr><td colSpan={5} className="text-center py-8"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></td></tr>
+                                            <td colSpan={5} className="text-center py-8"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></td></tr>
                                         ) : filteredExpenses.length === 0 ? (
-                                            <tr><td colSpan={5} className="text-center py-8 text-slate-500 text-sm">Không tìm thấy dữ liệu phù hợp.</td></tr>
+                                            <td colSpan={5} className="text-center py-8 text-slate-500 text-sm">Không tìm thấy dữ liệu phù hợp.</td></tr>
                                         ) : filteredExpenses.map(exp => (
                                             <tr key={exp.id} className={'border-b border-slate-100 hover:bg-slate-50 ' + (editingExpense?.id === exp.id ? 'bg-blue-50' : '')}>
                                                 <td className="px-4 py-3 text-sm text-slate-500">{new Date(exp.date).toLocaleDateString('vi-VN')}</td>
