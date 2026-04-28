@@ -446,7 +446,7 @@ export default function AdminDashboard() {
         s4h2.value = 'Báo cáo tài chính tổng hợp | Ngày xuất: ' + (todayFull); s4h2.font = fn(false, 10, WHITE); s4h2.fill = fl('FF1E293B'); s4h2.alignment = { horizontal: 'center', vertical: 'middle' };
         s4.getRow(2).height = 20;
 
-        const sections: { title; color; rows: (string | number)[][] }[] = [
+        const sections = [
             { title: 'I. DOANH THU & LỢI NHUẬN', color: BLUE, rows: [
                 ['Tổng Doanh Thu', stats.totalRevenue, 'VNĐ', '= Tổng đơn đã thanh toán'],
                 ['Tổng Chi Phí Vận Hành', stats.totalExpenses, 'VNĐ', '= Tổng các khoản chi'],
