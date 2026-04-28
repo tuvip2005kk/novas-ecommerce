@@ -3,8 +3,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { API_URL } from '@/config';
 import React, { useEffect, useState, useRef } from "react";
-import { Loader2, Plus, Trash2, Download, Upload, TrendingUp, Users } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
+import { Loader2, Plus, Trash2, Download, Upload, TrendingUp, Users, Pencil } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList } from 'recharts';
 import * as ExcelJS from 'exceljs';
 
 const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
@@ -41,6 +41,38 @@ const formatDateDisplay = (value) => {
     return new Date(value + 'T00:00:00').toLocaleDateString('vi-VN');
 };
 
+const parseDateValue = (value) => {
+    if (!value) return null;
+    const d = value instanceof Date ? value : new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+};
+
+const getExpenseDateValue = (expense) => expense?.date || expense?.createdAt || expense?.updatedAt;
+const getOrderDateValue = (order) => order?.createdAt || order?.updatedAt;
+
+const toNumber = (value) => {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+    const raw = String(value || '0').trim().replace(/[^\d.,-]/g, '');
+    const hasComma = raw.includes(',');
+    const hasDot = raw.includes('.');
+    let normalized = raw;
+
+    if (hasComma && hasDot) {
+        normalized = raw.lastIndexOf(',') > raw.lastIndexOf('.')
+            ? raw.replace(/\./g, '').replace(',', '.')
+            : raw.replace(/,/g, '');
+    } else if (hasDot && /^-?\d{1,3}(\.\d{3})+$/.test(raw)) {
+        normalized = raw.replace(/\./g, '');
+    } else if (hasComma && /^-?\d{1,3}(,\d{3})+$/.test(raw)) {
+        normalized = raw.replace(/,/g, '');
+    } else if (hasComma) {
+        normalized = raw.replace(',', '.');
+    }
+
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+};
+
 const getMonthStartInput = () => {
     const now = new Date();
     return formatDateInput(new Date(now.getFullYear(), now.getMonth(), 1));
@@ -53,9 +85,26 @@ const getDateBounds = (startInput, endInput) => {
 };
 
 const isDateInRange = (value, startInput, endInput) => {
-    const d = new Date(value);
+    const d = parseDateValue(value);
+    if (!d) return false;
     const { start, end } = getDateBounds(startInput, endInput);
     return d >= start && d <= end;
+};
+
+const getDataDateBounds = (orders = [], expenses = []) => {
+    const dates = [
+        ...orders.map(getOrderDateValue),
+        ...expenses.map(getExpenseDateValue),
+    ].map(parseDateValue).filter(Boolean);
+
+    if (dates.length === 0) return null;
+
+    const min = new Date(Math.min(...dates.map((d) => d.getTime())));
+    const max = new Date(Math.max(...dates.map((d) => d.getTime())));
+    return {
+        startInput: formatDateInput(min),
+        endInput: formatDateInput(max),
+    };
 };
 
 const stripTones = (value) => String(value || '')
@@ -109,15 +158,36 @@ export default function AdminDashboard() {
     const [filterExpType, setFilterExpType] = useState('ALL');
     const [editingExpense, setEditingExpense] = useState(null);
     const fileInputRef = useRef(null);
+    const rangeInitializedRef = useRef(false);
 
     const maxDate = formatDateInput(new Date());
     const reportLabel = formatDateDisplay(reportStartDate) + ' - ' + formatDateDisplay(reportEndDate);
 
     useEffect(() => { fetchData(true); }, []);
     useEffect(() => { recomputeDashboard(); }, [ordersData, expenses, reportStartDate, reportEndDate, baseStats]);
+    useEffect(() => {
+        if (rangeInitializedRef.current) return;
+        const bounds = getDataDateBounds(ordersData, expenses);
+        if (!bounds) return;
+
+        if (bounds.startInput < reportStartDate) {
+            setReportStartDate(bounds.startInput);
+        }
+        rangeInitializedRef.current = true;
+    }, [ordersData, expenses, reportStartDate]);
+
+    const resetExpenseForm = () => {
+        setTitle('');
+        setAmount('');
+        setType('HangHoa');
+        setDate(formatDateInput(new Date()));
+        setDescription('');
+        setEditingExpense(null);
+    };
 
     const handleReportStartChange = (value) => {
         if (!value) return;
+        rangeInitializedRef.current = true;
         const next = value > maxDate ? maxDate : value;
         setReportStartDate(next);
         if (next > reportEndDate) setReportEndDate(next);
@@ -125,20 +195,30 @@ export default function AdminDashboard() {
 
     const handleReportEndChange = (value) => {
         if (!value) return;
+        rangeInitializedRef.current = true;
         const next = value > maxDate ? maxDate : value;
         setReportEndDate(next);
         if (next < reportStartDate) setReportStartDate(next);
+    };
+
+    const handleShowAllData = () => {
+        const bounds = getDataDateBounds(ordersData, expenses);
+        if (!bounds) return;
+
+        rangeInitializedRef.current = true;
+        setReportStartDate(bounds.startInput);
+        setReportEndDate(bounds.endInput > maxDate ? maxDate : bounds.endInput);
     };
 
     function recomputeDashboard() {
         const ordersArray = Array.isArray(ordersData) ? ordersData : [];
         const expArray = Array.isArray(expenses) ? expenses : [];
         const todayStr = formatDateInput(new Date());
-        const rangeOrders = ordersArray.filter((o) => isDateInRange(o.createdAt, reportStartDate, reportEndDate));
+        const rangeOrders = ordersArray.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
         const rangePaidOrders = rangeOrders.filter((o) => PAID_STATUSES.includes(o.status));
-        const rangeExpenses = expArray.filter((e) => isDateInRange(e.date, reportStartDate, reportEndDate));
-        const totalRevenue = rangePaidOrders.reduce((s, o) => s + o.total, 0);
-        const totalExpenses = rangeExpenses.reduce((s, e) => s + e.amount, 0);
+        const rangeExpenses = expArray.filter((e) => isDateInRange(getExpenseDateValue(e), reportStartDate, reportEndDate));
+        const totalRevenue = rangePaidOrders.reduce((s, o) => s + toNumber(o.total), 0);
+        const totalExpenses = rangeExpenses.reduce((s, e) => s + toNumber(e.amount), 0);
 
         setStats({
             totalProducts: baseStats.totalProducts,
@@ -148,7 +228,7 @@ export default function AdminDashboard() {
             totalProfit: totalRevenue - totalExpenses,
             totalUsers: baseStats.totalUsers,
             pendingOrders: rangeOrders.filter((o) => PENDING_STATUSES.includes(o.status)).length,
-            todayOrders: ordersArray.filter((o) => isDateInRange(o.createdAt, todayStr, todayStr)).length
+            todayOrders: ordersArray.filter((o) => isDateInRange(getOrderDateValue(o), todayStr, todayStr)).length
         });
 
         const revData = [];
@@ -158,19 +238,22 @@ export default function AdminDashboard() {
         const dayCount = Math.max(1, Math.round((end - start) / 86400000));
         const groupByMonth = dayCount > 62;
         const getGroupKey = (value) => {
-            const d = new Date(value);
+            const d = parseDateValue(value);
+            if (!d) return '';
             return groupByMonth ? (d.getMonth() + 1) + '-' + d.getFullYear() : formatDateInput(d);
         };
 
         rangeExpenses.forEach((e) => {
-            const key = getGroupKey(e.date);
-            expDataMap[key] = (expDataMap[key] || 0) + e.amount;
+            const key = getGroupKey(getExpenseDateValue(e));
+            if (!key) return;
+            expDataMap[key] = (expDataMap[key] || 0) + toNumber(e.amount);
         });
 
         rangePaidOrders.forEach((o) => {
-            const key = getGroupKey(o.createdAt);
+            const key = getGroupKey(getOrderDateValue(o));
+            if (!key) return;
             if (!revenueDataMap[key]) revenueDataMap[key] = { revenue: 0, orders: 0 };
-            revenueDataMap[key].revenue += o.total || 0;
+            revenueDataMap[key].revenue += toNumber(o.total);
             revenueDataMap[key].orders += 1;
         });
 
@@ -222,17 +305,17 @@ export default function AdminDashboard() {
                 };
             }
             customerSales[customerKey].orders += 1;
-            customerSales[customerKey].revenue += o.total || 0;
+            customerSales[customerKey].revenue += toNumber(o.total);
 
             o.items?.forEach((item) => {
-                const quantity = item.quantity || 0;
+                const quantity = toNumber(item.quantity);
                 customerSales[customerKey].quantity += quantity;
 
                 const pid = item.product?.id;
                 if (pid) {
                     if (!productSales[pid]) productSales[pid] = { name: item.product.name, quantity: 0, revenue: 0 };
                     productSales[pid].quantity += quantity;
-                    productSales[pid].revenue += (item.price || item.product.price) * quantity;
+                    productSales[pid].revenue += (toNumber(item.price) || toNumber(item.product.price)) * quantity;
                 }
             });
         });
@@ -244,7 +327,10 @@ export default function AdminDashboard() {
         if (showLoading) setExpLoading(true);
         try {
             const res = await fetch(API_URL + '/api/expenses', { headers: getAuthHeaders() });
-            if (res.ok) setExpenses(await res.json());
+            if (res.ok) {
+                const data = await res.json();
+                setExpenses(Array.isArray(data) ? data : []);
+            }
         } catch (e) { console.error(e); } finally { if (showLoading) setExpLoading(false); }
     };
 
@@ -267,23 +353,24 @@ export default function AdminDashboard() {
             const ordersArray = Array.isArray(orders) ? orders : [];
             const usersArray = Array.isArray(users) ? users : [];
             const expArray = Array.isArray(expData) ? expData : [];
+            const productsArray = Array.isArray(products) ? products : [];
             setOrdersData(ordersArray);
             setExpenses(expArray);
-            setBaseStats({ totalProducts: products.length, totalUsers: usersArray.length });
+            setBaseStats({ totalProducts: productsArray.length, totalUsers: usersArray.length });
 
             const todayStr = formatDateInput(new Date());
-            const rangeOrders = ordersArray.filter((o) => isDateInRange(o.createdAt, reportStartDate, reportEndDate));
+            const rangeOrders = ordersArray.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
             const rangePaidOrders = rangeOrders.filter((o) => PAID_STATUSES.includes(o.status));
-            const rangeExpenses = expArray.filter((e) => isDateInRange(e.date, reportStartDate, reportEndDate));
-            const totalRevenue = rangePaidOrders.reduce((s, o) => s + o.total, 0);
-            const totalExpenses = rangeExpenses.reduce((s, e) => s + e.amount, 0);
+            const rangeExpenses = expArray.filter((e) => isDateInRange(getExpenseDateValue(e), reportStartDate, reportEndDate));
+            const totalRevenue = rangePaidOrders.reduce((s, o) => s + toNumber(o.total), 0);
+            const totalExpenses = rangeExpenses.reduce((s, e) => s + toNumber(e.amount), 0);
 
             setStats({
-                totalProducts: products.length, totalOrders: rangeOrders.length,
+                totalProducts: productsArray.length, totalOrders: rangeOrders.length,
                 totalRevenue, totalExpenses, totalProfit: totalRevenue - totalExpenses,
                 totalUsers: usersArray.length,
                 pendingOrders: rangeOrders.filter((o) => PENDING_STATUSES.includes(o.status)).length,
-                todayOrders: ordersArray.filter((o) => isDateInRange(o.createdAt, todayStr, todayStr)).length
+                todayOrders: ordersArray.filter((o) => isDateInRange(getOrderDateValue(o), todayStr, todayStr)).length
             });
 
             const revData = [];
@@ -294,19 +381,22 @@ export default function AdminDashboard() {
             const dayCount = Math.max(1, Math.round((end - start) / 86400000));
             const groupByMonth = dayCount > 62;
             const getGroupKey = (value) => {
-                const d = new Date(value);
+                const d = parseDateValue(value);
+                if (!d) return '';
                 return groupByMonth ? (d.getMonth() + 1) + '-' + d.getFullYear() : formatDateInput(d);
             };
 
             rangeExpenses.forEach((e) => {
-                const key = getGroupKey(e.date);
-                expDataMap[key] = (expDataMap[key] || 0) + e.amount;
+                const key = getGroupKey(getExpenseDateValue(e));
+                if (!key) return;
+                expDataMap[key] = (expDataMap[key] || 0) + toNumber(e.amount);
             });
 
             rangePaidOrders.forEach((o) => {
-                const key = getGroupKey(o.createdAt);
+                const key = getGroupKey(getOrderDateValue(o));
+                if (!key) return;
                 if (!revenueDataMap[key]) revenueDataMap[key] = { revenue: 0, orders: 0 };
-                revenueDataMap[key].revenue += o.total;
+                revenueDataMap[key].revenue += toNumber(o.total);
                 revenueDataMap[key].orders += 1;
             });
 
@@ -339,20 +429,21 @@ export default function AdminDashboard() {
             }
             setRevenueData(revData);
             setStatusData([
-                { name: 'Đã thanh toán', value: ordersArray.filter((o) => PAID_STATUSES.includes(o.status)).length },
-                { name: 'Chờ xử lý', value: ordersArray.filter((o) => PENDING_STATUSES.includes(o.status)).length },
-                { name: 'Đã hủy', value: ordersArray.filter((o) => CANCELLED_STATUSES.includes(o.status)).length },
+                { name: 'Đã thanh toán', value: rangeOrders.filter((o) => PAID_STATUSES.includes(o.status)).length },
+                { name: 'Chờ xử lý', value: rangeOrders.filter((o) => PENDING_STATUSES.includes(o.status)).length },
+                { name: 'Đã hủy', value: rangeOrders.filter((o) => CANCELLED_STATUSES.includes(o.status)).length },
             ]);
 
             // Top Products
             const productSales = {};
             rangePaidOrders.forEach((o) => {
                 o.items?.forEach((item) => {
+                    const quantity = toNumber(item.quantity);
                     const pid = item.product?.id;
                     if (pid) {
                         if (!productSales[pid]) productSales[pid] = { name: item.product.name, quantity: 0, revenue: 0 };
-                        productSales[pid].quantity += item.quantity;
-                        productSales[pid].revenue += (item.price || item.product.price) * item.quantity;
+                        productSales[pid].quantity += quantity;
+                        productSales[pid].revenue += (toNumber(item.price) || toNumber(item.product.price)) * quantity;
                     }
                 });
             });
@@ -373,7 +464,7 @@ export default function AdminDashboard() {
                 body: JSON.stringify({ title, amount: parseFloat(amount), type: normalizeExpenseType({ type, title, description }), date: new Date(date).toISOString(), description })
             });
             if (res.ok) { 
-                setTitle(''); setAmount(''); setType('HangHoa'); setDate(formatDateInput(new Date())); setDescription(''); setEditingExpense(null);
+                resetExpenseForm();
                 fetchData();
             }
             else alert('Có lỗi xảy ra');
@@ -383,33 +474,41 @@ export default function AdminDashboard() {
     const handleEditClick = (exp) => {
         setEditingExpense(exp);
         setTitle(exp.title);
-        setAmount(exp.amount.toString());
+        setAmount(toNumber(exp.amount).toString());
         setType(normalizeExpenseType(exp));
-        setDate(formatDateInput(exp.date));
+        setDate(formatDateInput(getExpenseDateValue(exp)));
         setDescription(exp.description || '');
         // Scroll to form
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const reportExpenses = expenses.filter(exp => isDateInRange(exp.date, reportStartDate, reportEndDate));
+    const allExpenses = Array.isArray(expenses) ? expenses : [];
+    const normalizedSearchTerm = stripTones(searchTerm);
+    const reportExpenses = allExpenses
+        .filter(exp => isDateInRange(getExpenseDateValue(exp), reportStartDate, reportEndDate))
+        .sort((a, b) => {
+            const bd = parseDateValue(getExpenseDateValue(b))?.getTime() || 0;
+            const ad = parseDateValue(getExpenseDateValue(a))?.getTime() || 0;
+            return bd - ad;
+        });
 
     const filteredExpenses = reportExpenses.filter(exp => {
-        const matchesSearch = exp.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                             (exp.description && exp.description.toLowerCase().includes(searchTerm.toLowerCase()));
+        const searchableText = stripTones([exp.title, exp.description].filter(Boolean).join(' '));
+        const matchesSearch = !normalizedSearchTerm || searchableText.includes(normalizedSearchTerm);
         const matchesType = filterExpType === 'ALL' || normalizeExpenseType(exp) === filterExpType;
         return matchesSearch && matchesType;
     });
 
     const expenseTypeStats = EXPENSE_TYPES.map(t => ({
         name: t.label,
-        value: reportExpenses.filter(e => normalizeExpenseType(e) === t.value).reduce((sum, e) => sum + e.amount, 0)
+        value: reportExpenses.filter(e => normalizeExpenseType(e) === t.value).reduce((sum, e) => sum + toNumber(e.amount), 0)
     })).filter(t => t.value > 0);
 
-    const totalReportExpenses = reportExpenses.reduce((s, e) => s + e.amount, 0);
-    const totalFilteredExpenses = filteredExpenses.reduce((s, e) => s + e.amount, 0);
-    const rangeOrders = ordersData.filter((o) => isDateInRange(o.createdAt, reportStartDate, reportEndDate));
+    const totalReportExpenses = reportExpenses.reduce((s, e) => s + toNumber(e.amount), 0);
+    const totalFilteredExpenses = filteredExpenses.reduce((s, e) => s + toNumber(e.amount), 0);
+    const rangeOrders = ordersData.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
     const rangePaidOrders = rangeOrders.filter((o) => PAID_STATUSES.includes(o.status));
-    const rangeRevenue = rangePaidOrders.reduce((s, o) => s + o.total, 0);
+    const rangeRevenue = rangePaidOrders.reduce((s, o) => s + toNumber(o.total), 0);
     const rangeProfit = rangeRevenue - totalReportExpenses;
 
     const handleDeleteExpense = async (id) => {
@@ -422,17 +521,17 @@ export default function AdminDashboard() {
 
     const handleExport = async () => {
         let dataToExport = activeTab === 'expenses' ? filteredExpenses : reportExpenses;
-        const ordersToExport = ordersData.filter((o) => isDateInRange(o.createdAt, reportStartDate, reportEndDate));
+        const ordersToExport = ordersData.filter((o) => isDateInRange(getOrderDateValue(o), reportStartDate, reportEndDate));
         const paidOrdersToExport = ordersToExport.filter((o) => PAID_STATUSES.includes(o.status));
-        const exportRevenue = paidOrdersToExport.reduce((s, o) => s + o.total, 0);
-        const exportExpenses = dataToExport.reduce((s, e) => s + e.amount, 0);
+        const exportRevenue = paidOrdersToExport.reduce((s, o) => s + toNumber(o.total), 0);
+        const exportExpenses = dataToExport.reduce((s, e) => s + toNumber(e.amount), 0);
         const exportStats = {
             totalRevenue: exportRevenue,
             totalExpenses: exportExpenses,
             totalProfit: exportRevenue - exportExpenses,
             totalOrders: ordersToExport.length,
             pendingOrders: ordersToExport.filter((o) => PENDING_STATUSES.includes(o.status)).length,
-            todayOrders: ordersData.filter((o) => isDateInRange(o.createdAt, formatDateInput(new Date()), formatDateInput(new Date()))).length,
+            todayOrders: ordersData.filter((o) => isDateInRange(getOrderDateValue(o), formatDateInput(new Date()), formatDateInput(new Date()))).length,
             totalProducts: stats.totalProducts,
             totalUsers: stats.totalUsers,
         };
@@ -472,7 +571,7 @@ export default function AdminDashboard() {
             return c;
         };
 
-        const grandTotal = dataToExport.reduce((s, e) => s + e.amount, 0);
+        const grandTotal = dataToExport.reduce((s, e) => s + toNumber(e.amount), 0);
         const margin = exportStats.totalRevenue > 0 ? ((exportStats.totalProfit / exportStats.totalRevenue) * 100).toFixed(1) : '0.0';
         const aov = exportStats.totalOrders > 0 ? Math.round(exportStats.totalRevenue / exportStats.totalOrders) : 0;
 
@@ -560,13 +659,14 @@ export default function AdminDashboard() {
 
         dataToExport.forEach((exp, idx) => {
             const bg = idx % 2 === 0 ? WHITE : STRIPE;
-            const pct = grandTotal > 0 ? parseFloat(((exp.amount / grandTotal) * 100).toFixed(2)) : 0;
+            const expAmount = toNumber(exp.amount);
+            const pct = grandTotal > 0 ? parseFloat(((expAmount / grandTotal) * 100).toFixed(2)) : 0;
             const r = s2.getRow(6 + idx); r.height = 20;
             const vals = [
-                idx + 1, new Date(exp.date).toLocaleDateString('vi-VN'),
+                idx + 1, (parseDateValue(getExpenseDateValue(exp)) || new Date()).toLocaleDateString('vi-VN'),
                 exp.title, exp.description || '',
                 getExpenseTypeLabel(exp),
-                exp.amount, pct, '', exp.id || '',
+                expAmount, pct, '', exp.id || '',
             ];
             vals.forEach((val, ci) => {
                 const c = r.getCell(ci + 1); c.value = val; c.fill = fl(bg); c.border = bH;
@@ -607,7 +707,7 @@ export default function AdminDashboard() {
         dataToExport.forEach((exp) => {
             const label = getExpenseTypeLabel(exp);
             if (!grouped[label]) grouped[label] = { count: 0, amount: 0 };
-            grouped[label].count++; grouped[label].amount += exp.amount;
+            grouped[label].count++; grouped[label].amount += toNumber(exp.amount);
         });
         const totalByType = Object.values(grouped).reduce((a, b) => a + b.amount, 0);
         const sortedTypes = Object.entries(grouped).sort((a, b) => b[1].amount - a[1].amount);
@@ -802,6 +902,26 @@ export default function AdminDashboard() {
     if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
     const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+    const fmtCompact = (n) => {
+        const value = toNumber(n);
+        if (Math.abs(value) >= 1000000000) return (value / 1000000000).toFixed(1).replace('.0', '') + ' tỷ';
+        if (Math.abs(value) >= 1000000) return (value / 1000000).toFixed(1).replace('.0', '') + 'tr';
+        if (Math.abs(value) >= 1000) return Math.round(value / 1000) + 'k';
+        return String(value);
+    };
+    const chartStateData = Array.isArray(revenueData) ? revenueData : [];
+    const chartStateHasData = chartStateData.some((item) => toNumber(item.revenue) > 0 || toNumber(item.expenses) > 0 || toNumber(item.orders) > 0);
+    const chartFallbackData = [{ name: 'Tổng kỳ', revenue: rangeRevenue, expenses: totalReportExpenses, orders: rangePaidOrders.length }];
+    const chartData = chartStateHasData || (rangeRevenue === 0 && totalReportExpenses === 0)
+        ? chartStateData
+        : chartFallbackData;
+    const chartTotals = chartData.reduce((acc, item) => ({
+        revenue: acc.revenue + toNumber(item.revenue),
+        expenses: acc.expenses + toNumber(item.expenses),
+        orders: acc.orders + toNumber(item.orders),
+    }), { revenue: 0, expenses: 0, orders: 0 });
+    const chartHasData = chartData.some((item) => toNumber(item.revenue) > 0 || toNumber(item.expenses) > 0 || toNumber(item.orders) > 0);
+    const showChartLabels = chartData.length <= 18;
 
     const content = (
         <div className="space-y-6">
@@ -845,7 +965,7 @@ export default function AdminDashboard() {
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Khoảng dữ liệu</p>
                     <p className="text-sm font-semibold text-slate-800">{reportLabel}</p>
                 </div>
-                <div className="grid sm:grid-cols-2 gap-3">
+                <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3">
                     <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
                         Từ ngày
                         <input type="date" value={reportStartDate} max={reportEndDate > maxDate ? maxDate : reportEndDate} onChange={(e) => handleReportStartChange(e.target.value)}
@@ -856,6 +976,10 @@ export default function AdminDashboard() {
                         <input type="date" value={reportEndDate} min={reportStartDate} max={maxDate} onChange={(e) => handleReportEndChange(e.target.value)}
                             className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#21246b]" />
                     </label>
+                    <button type="button" onClick={handleShowAllData}
+                        className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                        Tất cả dữ liệu
+                    </button>
                 </div>
             </div>
 
@@ -873,31 +997,57 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
                             
-                            <div className="h-[320px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={revenueData}>
-                                        <defs>
-                                            <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                                            </linearGradient>
-                                            <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} />
-                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => v >= 1000000 ? (v/1000000) + 'M' : v} />
-                                        <Tooltip 
-                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                                            formatter={(value, name) => [fmt(Number(value)), name === 'revenue' ? 'Doanh thu' : 'Chi phí']} 
-                                        />
-                                        <Legend verticalAlign="top" align="right" iconType="circle" height={36} wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                                        <Bar dataKey="revenue" name="Doanh thu" fill="url(#colorRev)" radius={[4, 4, 0, 0]} maxBarSize={32} />
-                                        <Bar dataKey="expenses" name="Chi phí" fill="url(#colorExp)" radius={[4, 4, 0, 0]} maxBarSize={32} />
-                                    </BarChart>
-                                </ResponsiveContainer>
+                            <div className="grid grid-cols-3 gap-2 mb-4">
+                                <div className="rounded-lg bg-blue-50 px-3 py-2">
+                                    <p className="text-[10px] font-bold uppercase text-blue-700">Doanh thu</p>
+                                    <p className="text-sm font-bold text-blue-900">{fmt(chartTotals.revenue)}</p>
+                                </div>
+                                <div className="rounded-lg bg-red-50 px-3 py-2">
+                                    <p className="text-[10px] font-bold uppercase text-red-700">Chi phí</p>
+                                    <p className="text-sm font-bold text-red-900">{fmt(chartTotals.expenses)}</p>
+                                </div>
+                                <div className="rounded-lg bg-slate-50 px-3 py-2">
+                                    <p className="text-[10px] font-bold uppercase text-slate-600">Đơn hàng</p>
+                                    <p className="text-sm font-bold text-slate-900">{chartTotals.orders}</p>
+                                </div>
+                            </div>
+
+                            <div className="h-[320px] min-h-[320px] w-full">
+                                {chartHasData ? (
+                                    <ResponsiveContainer width="100%" height={320}>
+                                        <BarChart data={chartData} margin={{ top: 20, right: 12, left: 0, bottom: 12 }} barCategoryGap="24%">
+                                            <defs>
+                                                <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.25}/>
+                                                </linearGradient>
+                                                <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.85}/>
+                                                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.25}/>
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={fmtCompact} />
+                                            <Tooltip
+                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                                formatter={(value, name) => [fmt(Number(value)), name === 'revenue' ? 'Doanh thu' : 'Chi phí']}
+                                            />
+                                            <Legend verticalAlign="top" align="right" iconType="circle" height={36} wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
+                                            <Bar dataKey="revenue" name="Doanh thu" fill="url(#colorRev)" radius={[4, 4, 0, 0]} maxBarSize={36} minPointSize={3}>
+                                                {showChartLabels && <LabelList dataKey="revenue" position="top" formatter={(v) => toNumber(v) > 0 ? fmtCompact(v) : ''} style={{ fill: '#1d4ed8', fontSize: 10, fontWeight: 700 }} />}
+                                            </Bar>
+                                            <Bar dataKey="expenses" name="Chi phí" fill="url(#colorExp)" radius={[4, 4, 0, 0]} maxBarSize={36} minPointSize={3}>
+                                                {showChartLabels && <LabelList dataKey="expenses" position="top" formatter={(v) => toNumber(v) > 0 ? fmtCompact(v) : ''} style={{ fill: '#dc2626', fontSize: 10, fontWeight: 700 }} />}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="h-full rounded-lg border border-dashed border-slate-200 bg-slate-50/60 flex flex-col items-center justify-center text-center px-4">
+                                        <p className="text-sm font-semibold text-slate-700">Không có doanh thu hoặc chi phí trong khoảng này.</p>
+                                        <p className="text-xs text-slate-500 mt-1">Bấm "Tất cả dữ liệu" hoặc mở rộng khoảng ngày để xem dữ liệu cũ.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -1102,7 +1252,7 @@ export default function AdminDashboard() {
                                 </div>
                                 <div className={editingExpense ? "grid grid-cols-2 gap-2" : ""}>
                                     {editingExpense && (
-                                        <button type="button" onClick={() => { setEditingExpense(null); setTitle(''); setAmount(''); setDescription(''); }}
+                                        <button type="button" onClick={resetExpenseForm}
                                             className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 rounded text-sm">
                                             Hủy
                                         </button>
@@ -1173,7 +1323,7 @@ export default function AdminDashboard() {
                                     </select>
                                 </div>
                             </div>
-                            <div className="grid gap-3 border-t pt-3 lg:grid-cols-[auto_1fr_1fr_auto] lg:items-center">
+                            <div className="grid gap-3 border-t pt-3 lg:grid-cols-[auto_1fr_1fr_auto_auto] lg:items-center">
                                 <span className="text-xs font-medium text-slate-500">Xem dữ liệu:</span>
                                 <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
                                     Từ ngày
@@ -1185,6 +1335,10 @@ export default function AdminDashboard() {
                                     <input type="date" value={reportEndDate} min={reportStartDate} max={maxDate} onChange={(e) => handleReportEndChange(e.target.value)}
                                         className="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none" />
                                 </label>
+                                <button type="button" onClick={handleShowAllData}
+                                    className="rounded border border-slate-300 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                                    Tất cả
+                                </button>
                                 <div className="text-xs font-bold text-slate-700 lg:text-right">
                                     Tổng chi kỳ này: <span className="text-red-600">{new Intl.NumberFormat('vi-VN').format(totalFilteredExpenses)}đ</span>
                                 </div>
@@ -1210,7 +1364,7 @@ export default function AdminDashboard() {
                                             <tr><td colSpan={5} className="text-center py-8 text-slate-500 text-sm">Không tìm thấy dữ liệu phù hợp.</td></tr>
                                         ) : filteredExpenses.map(exp => (
                                             <tr key={exp.id} className={'border-b border-slate-100 hover:bg-slate-50 ' + (editingExpense?.id === exp.id ? 'bg-blue-50' : '')}>
-                                                <td className="px-4 py-3 text-sm text-slate-500">{new Date(exp.date).toLocaleDateString('vi-VN')}</td>
+                                                <td className="px-4 py-3 text-sm text-slate-500">{(parseDateValue(getExpenseDateValue(exp)) || new Date()).toLocaleDateString('vi-VN')}</td>
                                                 <td className="px-4 py-3">
                                                     <p className="text-sm font-medium text-slate-800">{exp.title}</p>
                                                     {exp.description && <p className="text-xs text-slate-400 truncate max-w-xs">{exp.description}</p>}
@@ -1219,13 +1373,12 @@ export default function AdminDashboard() {
                                                     <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded">{getExpenseTypeLabel(exp)}</span>
                                                 </td>
                                                 <td className="px-4 py-3 text-sm font-semibold text-red-600 text-right whitespace-nowrap">
-                                                    -{new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
+                                                    -{new Intl.NumberFormat('vi-VN').format(toNumber(exp.amount))}đ
                                                 </td>
                                                 <td className="px-4 py-3 text-center">
                                                     <div className="flex items-center justify-center gap-2">
                                                         <button onClick={() => handleEditClick(exp)} className="text-slate-400 hover:text-blue-600 transition-colors">
-                                                            <Plus className="w-4 h-4 rotate-45 hidden" /> {/* dummy to use icon if needed */}
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                            <Pencil className="w-4 h-4" />
                                                         </button>
                                                         <button onClick={() => handleDeleteExpense(exp.id)} className="text-slate-400 hover:text-red-500 transition-colors">
                                                             <Trash2 className="w-4 h-4" />
