@@ -186,6 +186,7 @@ export default function AdminDashboard() {
     const [filterExpType, setFilterExpType] = useState('ALL');
     const [editingExpense, setEditingExpense] = useState(null);
     const [showAllRecords, setShowAllRecords] = useState(false);
+    const [syncingCapital, setSyncingCapital] = useState(false);
     const fileInputRef = useRef(null);
     const rangeInitializedRef = useRef(false);
 
@@ -1201,6 +1202,77 @@ export default function AdminDashboard() {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
+    const handleSyncProductCapitalExpenses = async () => {
+        if (syncingCapital) return;
+        const ok = window.confirm('Đồng bộ giá vốn tồn kho của tất cả sản phẩm cũ vào Thu - Chi? Hệ thống chỉ tạo phần chi phí còn thiếu.');
+        if (!ok) return;
+
+        setSyncingCapital(true);
+        try {
+            const headers = getAuthHeaders();
+            const [productsRes, expensesRes] = await Promise.all([
+                fetch(API_URL + '/api/products/admin/all', { headers }),
+                fetch(API_URL + '/api/expenses', { headers })
+            ]);
+
+            if (!productsRes.ok || !expensesRes.ok) throw new Error('Không lấy được dữ liệu sản phẩm hoặc chi phí');
+
+            const latestProducts = await productsRes.json().catch(() => []);
+            const latestExpenses = await expensesRes.json().catch(() => []);
+            const normalizeExpenseImportTitle = (value) => stripTones(value).replace(/\s+/g, ' ').trim();
+            const expenseTotals = new Map();
+
+            (Array.isArray(latestExpenses) ? latestExpenses : []).forEach((exp) => {
+                const key = normalizeExpenseImportTitle(exp.title);
+                if (!key) return;
+                expenseTotals.set(key, (expenseTotals.get(key) || 0) + toNumber(exp.amount));
+            });
+
+            const capitalExpenses = (Array.isArray(latestProducts) ? latestProducts : [])
+                .map((product) => {
+                    const stock = Math.max(0, Math.floor(toNumber(product.stock)));
+                    const costPrice = toNumber(product.costPrice);
+                    const capitalValue = stock * costPrice;
+                    const title = 'Nhập hàng: ' + product.name;
+                    const key = normalizeExpenseImportTitle(title);
+                    const existingAmount = expenseTotals.get(key) || 0;
+                    const missingAmount = Math.round(Math.max(0, capitalValue - existingAmount));
+
+                    if (missingAmount <= 0 || stock <= 0 || costPrice <= 0) return null;
+                    expenseTotals.set(key, existingAmount + missingAmount);
+                    return {
+                        title,
+                        amount: missingAmount,
+                        type: 'HangHoa',
+                        date: new Date().toISOString(),
+                        description: 'Đồng bộ giá vốn tồn kho cho sản phẩm cũ. Tồn kho ' + stock + ' x giá nhập ' + new Intl.NumberFormat('vi-VN').format(costPrice) + 'đ/sp; đã ghi trước đó ' + new Intl.NumberFormat('vi-VN').format(existingAmount) + 'đ.',
+                    };
+                })
+                .filter(Boolean);
+
+            if (capitalExpenses.length === 0) {
+                alert('Không có sản phẩm cũ nào thiếu chi phí giá vốn.');
+                return;
+            }
+
+            const createRes = await fetch(API_URL + '/api/expenses/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...headers },
+                body: JSON.stringify(capitalExpenses)
+            });
+
+            if (!createRes.ok) throw new Error('Không tạo được khoản chi giá vốn');
+
+            const totalCreated = capitalExpenses.reduce((sum, exp) => sum + toNumber(exp.amount), 0);
+            alert('Đã đồng bộ ' + capitalExpenses.length + ' khoản chi giá vốn, tổng ' + new Intl.NumberFormat('vi-VN').format(totalCreated) + 'đ.');
+            fetchData();
+        } catch (err) {
+            alert('Lỗi đồng bộ giá vốn: ' + (err.message || 'Không xác định'));
+        } finally {
+            setSyncingCapital(false);
+        }
+    };
+
     if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
     const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
@@ -1604,6 +1676,10 @@ export default function AdminDashboard() {
                             )}
                             
                             <div className="mt-6 pt-6 border-t flex flex-col gap-2">
+                                <button type="button" onClick={handleSyncProductCapitalExpenses} disabled={syncingCapital}
+                                    className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-[#21246b] text-white text-sm rounded hover:bg-[#1a1d56] disabled:opacity-60">
+                                    {syncingCapital ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Đồng bộ giá vốn tồn kho
+                                </button>
                                 <button onClick={() => fileInputRef.current?.click()}
                                     className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700">
                                     <Upload className="w-4 h-4" /> Import từ Excel
