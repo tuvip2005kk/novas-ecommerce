@@ -177,7 +177,7 @@ export default function AdminDashboard() {
             const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                body({ title, amount: parseFloat(amount), type, date: new Date(date).toISOString(), description })
+                body: JSON.stringify({ title, amount: parseFloat(amount), type, date: new Date(date).toISOString(), description })
             });
             if (res.ok) { 
                 setTitle(''); setAmount(''); setDescription(''); setEditingExpense(null);
@@ -567,7 +567,7 @@ export default function AdminDashboard() {
             const res = await fetch((API_URL) + '/api/expenses/bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                body(formatted)
+                body: JSON.stringify(formatted)
             });
 
             if (res.ok) { 
