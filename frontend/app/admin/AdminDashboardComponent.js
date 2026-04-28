@@ -1064,6 +1064,16 @@ export default function AdminDashboard() {
                 : await fetch(API_URL + '/api/products/admin/all', { headers: getAuthHeaders() }).then((res) => res.json()).catch(() => []);
             const productById = new Map((Array.isArray(existingProducts) ? existingProducts : []).map((product) => [Number(product.id), product]));
             const productBySlug = new Map((Array.isArray(existingProducts) ? existingProducts : []).filter((product) => product.slug).map((product) => [String(product.slug), product]));
+            const normalizeExpenseImportTitle = (value) => stripTones(value).replace(/\s+/g, ' ').trim();
+            const productExpenseTotals = new Map();
+            [...(Array.isArray(expenses) ? expenses : []), ...expenseCreates].forEach((exp) => {
+                const key = normalizeExpenseImportTitle(exp.title);
+                if (!key) return;
+                productExpenseTotals.set(key, (productExpenseTotals.get(key) || 0) + toNumber(exp.amount));
+            });
+            const rememberProductExpense = (key, amount) => {
+                productExpenseTotals.set(key, (productExpenseTotals.get(key) || 0) + amount);
+            };
 
             const productResults = [];
             let productUpdated = 0;
@@ -1082,13 +1092,20 @@ export default function AdminDashboard() {
                 const currentStock = current ? Math.max(0, Math.floor(toNumber(current.stock))) : 0;
                 const stockDelta = Math.max(0, nextStock - currentStock);
                 const hasImportedCostPrice = row.costPrice !== null && nextCostPrice > 0;
+                const productImportExpenseTitle = 'Nhập hàng: ' + nextName;
+                const productExpenseKey = normalizeExpenseImportTitle(productImportExpenseTitle);
+                const existingProductExpenseAmount = productExpenseTotals.get(productExpenseKey) || 0;
                 const addedStockCost = stockDelta > 0 && nextCostPrice > 0 ? stockDelta * nextCostPrice : 0;
                 const existingStockCostAdjustment = current && hasImportedCostPrice && nextCostPrice > currentCostPrice
                     ? currentStock * (nextCostPrice - currentCostPrice)
                     : 0;
-                const autoImportExpenseAmount = addedStockCost + existingStockCostAdjustment;
+                const stockCapitalBackfill = current && hasImportedCostPrice
+                    ? Math.max(0, (nextStock * nextCostPrice) - existingProductExpenseAmount - addedStockCost - existingStockCostAdjustment)
+                    : 0;
+                const autoImportExpenseAmount = addedStockCost + existingStockCostAdjustment + stockCapitalBackfill;
                 const autoImportExpenseDescription = 'Ghi từ import Chi Tiet San Pham. '
                     + (existingStockCostAdjustment > 0 ? 'Chỉnh giá vốn tồn hiện tại ' + currentStock + ' sản phẩm, chênh ' + new Intl.NumberFormat('vi-VN').format(nextCostPrice - currentCostPrice) + 'đ/sp. ' : '')
+                    + (stockCapitalBackfill > 0 ? 'Bù chi phí giá vốn còn thiếu ' + new Intl.NumberFormat('vi-VN').format(stockCapitalBackfill) + 'đ. ' : '')
                     + (addedStockCost > 0 ? 'Tăng tồn kho ' + stockDelta + ' sản phẩm x giá nhập ' + new Intl.NumberFormat('vi-VN').format(nextCostPrice) + 'đ/sp.' : '');
                 const nextImage = row.image || current?.image || '';
 
@@ -1113,12 +1130,13 @@ export default function AdminDashboard() {
                     productResults.push(productRes);
                     if (productRes.ok && autoImportExpenseAmount > 0) {
                         productImportExpenses.push({
-                            title: 'Nhập hàng: ' + nextName,
+                            title: productImportExpenseTitle,
                             amount: autoImportExpenseAmount,
                             type: 'HangHoa',
                             date: new Date().toISOString(),
                             description: autoImportExpenseDescription,
                         });
+                        rememberProductExpense(productExpenseKey, autoImportExpenseAmount);
                     }
                     productUpdated++;
                 } else if (nextName && nextPrice !== null && nextImage) {
@@ -1142,12 +1160,13 @@ export default function AdminDashboard() {
                     productResults.push(productRes);
                     if (productRes.ok && autoImportExpenseAmount > 0) {
                         productImportExpenses.push({
-                            title: 'Nhập hàng: ' + nextName,
+                            title: productImportExpenseTitle,
                             amount: autoImportExpenseAmount,
                             type: 'HangHoa',
                             date: new Date().toISOString(),
                             description: 'Ghi từ import Chi Tiet San Pham. Tạo sản phẩm với tồn kho ' + nextStock + ' x giá nhập ' + new Intl.NumberFormat('vi-VN').format(nextCostPrice) + 'đ/sp.',
                         });
+                        rememberProductExpense(productExpenseKey, autoImportExpenseAmount);
                     }
                     productCreated++;
                 } else {
