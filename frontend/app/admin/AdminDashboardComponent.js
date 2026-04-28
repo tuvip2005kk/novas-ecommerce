@@ -30,28 +30,24 @@ const getAuthHeaders = () => {
     return token ? { 'Authorization': 'Bearer ' + token } : {};
 };
 
-interface Order { id: number; total: number; status: string; createdAt: string; items?: any[]; }
-interface Expense { id: number; title: string; amount: number; type: string; date: string; description: string; }
 
-interface Stats {
-    totalProducts: number; totalOrders: number; totalRevenue: number;
-    totalExpenses: number; totalProfit: number; totalUsers: number;
-    pendingOrders: number; todayOrders: number;
-}
+
+
+
 
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('overview');
-    const [stats, setStats] = useState<Stats>({ totalProducts: 0, totalOrders: 0, totalRevenue: 0, totalExpenses: 0, totalProfit: 0, totalUsers: 0, pendingOrders: 0, todayOrders: 0 });
-    const [revenueData, setRevenueData] = useState<any[]>([]);
-    const [statusData, setStatusData] = useState<any[]>([]);
-    const [topProducts, setTopProducts] = useState<any[]>([]);
+    const [stats, setStats] = useState({ totalProducts: 0, totalOrders: 0, totalRevenue: 0, totalExpenses: 0, totalProfit: 0, totalUsers: 0, pendingOrders: 0, todayOrders: 0 });
+    const [revenueData, setRevenueData] = useState([]);
+    const [statusData, setStatusData] = useState([]);
+    const [topProducts, setTopProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [days, setDays] = useState(7);
     const [filterType, setFilterType] = useState('days');
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-    const [expenses, setExpenses] = useState<Expense[]>([]);
+    const [expenses, setExpenses] = useState([]);
     const [expLoading, setExpLoading] = useState(false);
     const [title, setTitle] = useState('');
     const [amount, setAmount] = useState('');
@@ -63,8 +59,8 @@ export default function AdminDashboard() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterExpType, setFilterExpType] = useState('ALL');
-    const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [editingExpense, setEditingExpense] = useState(null);
+    const fileInputRef = useRef(null);
 
     useEffect(() => { fetchData(); }, [days, filterType, selectedMonth, selectedYear]);
     useEffect(() => { if (activeTab === 'expenses') fetchExpenses(); }, [activeTab]);
@@ -97,23 +93,23 @@ export default function AdminDashboard() {
             const usersArray = Array.isArray(users) ? users : [];
             const expArray = Array.isArray(expData) ? expData : [];
 
-            const paidOrders = ordersArray.filter((o: Order) => PAID_STATUSES.includes(o.status));
-            const totalRevenue = paidOrders.reduce((s: number, o: Order) => s + o.total, 0);
+            const paidOrders = ordersArray.filter((o) => PAID_STATUSES.includes(o.status));
+            const totalRevenue = paidOrders.reduce((s, o) => s + o.total, 0);
             const todayStr = new Date().toISOString().split('T')[0];
-            const totalExpenses = expArray.reduce((s: number, e: any) => s + e.amount, 0);
+            const totalExpenses = expArray.reduce((s, e) => s + e.amount, 0);
 
             setStats({
                 totalProducts: products.length, totalOrders: ordersArray.length,
                 totalRevenue, totalExpenses, totalProfit: totalRevenue - totalExpenses,
                 totalUsers: usersArray.length,
-                pendingOrders: ordersArray.filter((o: Order) => PENDING_STATUSES.includes(o.status)).length,
-                todayOrders: ordersArray.filter((o: Order) => o.createdAt.startsWith(todayStr)).length
+                pendingOrders: ordersArray.filter((o) => PENDING_STATUSES.includes(o.status)).length,
+                todayOrders: ordersArray.filter((o) => o.createdAt.startsWith(todayStr)).length
             });
 
-            const revData: any[] = [];
-            const expDataMap: Record<string, number> = {};
+            const revData = [];
+            const expDataMap = {};
             
-            expArray.forEach((e: any) => {
+            expArray.forEach((e) => {
                 const ed = new Date(e.date);
                 const key = filterType === 'days' ? ed.toISOString().split('T')[0] : (ed.getMonth() + 1) + '-' + ed.getFullYear();
                 expDataMap[key] = (expDataMap[key] || 0) + e.amount;
@@ -123,7 +119,7 @@ export default function AdminDashboard() {
                 for (let i = days - 1; i >= 0; i--) {
                     const d = new Date(); d.setDate(d.getDate() - i);
                     const ds = d.toISOString().split('T')[0];
-                    const dayOrders = ordersArray.filter((o: Order) => o.createdAt.startsWith(ds) && PAID_STATUSES.includes(o.status));
+                    const dayOrders = ordersArray.filter((o) => o.createdAt.startsWith(ds) && PAID_STATUSES.includes(o.status));
                     revData.push({
                         name: d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
                         revenue: dayOrders.reduce((s, o) => s + o.total, 0),
@@ -133,7 +129,7 @@ export default function AdminDashboard() {
                 }
             } else {
                 for (let m = 0; m < 12; m++) {
-                    const monthOrders = ordersArray.filter((o: Order) => {
+                    const monthOrders = ordersArray.filter((o) => {
                         const od = new Date(o.createdAt);
                         return od.getMonth() === m && od.getFullYear() === selectedYear && PAID_STATUSES.includes(o.status);
                     });
@@ -148,16 +144,16 @@ export default function AdminDashboard() {
             }
             setRevenueData(revData);
             setStatusData([
-                { name: 'Đã thanh toán', value: ordersArray.filter((o: Order) => PAID_STATUSES.includes(o.status)).length },
-                { name: 'Chờ xử lý', value: ordersArray.filter((o: Order) => PENDING_STATUSES.includes(o.status)).length },
-                { name: 'Đã hủy', value: ordersArray.filter((o: Order) => CANCELLED_STATUSES.includes(o.status)).length },
+                { name: 'Đã thanh toán', value: ordersArray.filter((o) => PAID_STATUSES.includes(o.status)).length },
+                { name: 'Chờ xử lý', value: ordersArray.filter((o) => PENDING_STATUSES.includes(o.status)).length },
+                { name: 'Đã hủy', value: ordersArray.filter((o) => CANCELLED_STATUSES.includes(o.status)).length },
             ]);
 
             // Top Products
-            const productSales: Record<number, { name: string, quantity: number, revenue: number }> = {};
-            ordersArray.forEach((o: any) => {
+            const productSales = {};
+            ordersArray.forEach((o) => {
                 if (PAID_STATUSES.includes(o.status)) {
-                    o.items?.forEach((item: any) => {
+                    o.items?.forEach((item) => {
                         const pid = item.product?.id;
                         if (pid) {
                             if (!productSales[pid]) productSales[pid] = { name: item.product.name, quantity: 0, revenue: 0 };
@@ -171,7 +167,7 @@ export default function AdminDashboard() {
         } catch (e) { console.error(e); } finally { setLoading(false); }
     };
 
-    const handleAddExpense = async (e: React.FormEvent) => {
+    const handleAddExpense = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
@@ -181,7 +177,7 @@ export default function AdminDashboard() {
             const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                body: JSON.stringify({ title, amount: parseFloat(amount), type, date: new Date(date).toISOString(), description })
+                body({ title, amount: parseFloat(amount), type, date: new Date(date).toISOString(), description })
             });
             if (res.ok) { 
                 setTitle(''); setAmount(''); setDescription(''); setEditingExpense(null);
@@ -191,7 +187,7 @@ export default function AdminDashboard() {
         } catch (e) { console.error(e); } finally { setIsSubmitting(false); }
     };
 
-    const handleEditClick = (exp: Expense) => {
+    const handleEditClick = (exp) => {
         setEditingExpense(exp);
         setTitle(exp.title);
         setAmount(exp.amount.toString());
@@ -218,7 +214,7 @@ export default function AdminDashboard() {
 
     const totalFilteredExpenses = filteredExpenses.reduce((s, e) => s + e.amount, 0);
 
-    const handleDeleteExpense = async (id: number) => {
+    const handleDeleteExpense = async (id) => {
         if (!confirm('Xóa khoản chi này?')) return;
         try {
             await fetch(API_URL + '/api/expenses/' + id, { method: 'DELETE', headers: getAuthHeaders() });
@@ -245,15 +241,15 @@ export default function AdminDashboard() {
         const GREEN = 'FF16A34A', RED = 'FFDC2626', BLUE = 'FF1D4ED8';
         const DARK = 'FF1E293B', ORANGE = 'FFEA580C';
 
-        const t: any = { style: 'thin' };
-        const m: any = { style: 'medium' };
-        const h: any = { style: 'hair' };
+        const t = { style: 'thin' };
+        const m = { style: 'medium' };
+        const h = { style: 'hair' };
         const bT = { top: t, bottom: t, left: t, right: t };
         const bM = { top: m, bottom: m, left: m, right: m };
         const bH = { top: h, bottom: h, left: h, right: h };
-        const fl = (argb: string) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } } as any);
-        const fn = (bold: boolean, size: number, argb: string) => ({ bold, size, name: 'Calibri', color: { argb } } as any);
-        const setCell = (ws: any, addr: string, val: any, style: any = {}) => {
+        const fl = (argb) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } } );
+        const fn = (bold, size, argb) => ({ bold, size, name: 'Calibri', color: { argb } } );
+        const setCell = (ws, addr, val, style = {}) => {
             const c = ws.getCell(addr);
             c.value = val;
             if (style.font) c.font = style.font;
@@ -268,19 +264,19 @@ export default function AdminDashboard() {
         const margin = stats.totalRevenue > 0 ? ((stats.totalProfit / stats.totalRevenue) * 100).toFixed(1) : '0.0';
         const aov = stats.totalOrders > 0 ? Math.round(stats.totalRevenue / stats.totalOrders) : 0;
 
-        // ── SHEET 1: KPI TỔNG QUAN ──
+        // ── SHEET 1──
         const s1 = wb.addWorksheet('Tong Quan KPI');
 
-        s1.mergeCells('A1:E1');
+        s1.mergeCells('A1');
         { const c = s1.getCell('A1'); c.value = 'CÔNG TY TNHH THIẾT BỊ VỆ SINH THÔNG MINH NOVAS'; c.font = fn(true, 15, GOLD); c.fill = fl(NAVY); c.alignment = { horizontal: 'center', vertical: 'middle' }; }
         s1.getRow(1).height = 36;
 
-        s1.mergeCells('A2:E2');
+        s1.mergeCells('A2');
         setCell(s1, 'A2', 'BÁO CÁO KINH DOANH ' + (reportTime.toUpperCase()) + '  |  Xuất ngày: ' + (todayFull), { font: fn(true, 11, WHITE), fill: fl('FF1E293B'), alignment: { horizontal: 'center', vertical: 'middle' } });
         s1.getRow(2).height = 22;
         s1.getRow(3).height = 10;
 
-        s1.mergeCells('A4:E4');
+        s1.mergeCells('A4');
         { const c = s1.getCell('A4'); c.value = 'CHỈ SỐ HIỆU SUẤT KINH DOANH (KPI)'; c.font = fn(true, 12, NAVY); c.fill = fl(LIGHT); c.alignment = { horizontal: 'center', vertical: 'middle' }; c.border = bM; }
         s1.getRow(4).height = 26;
 
@@ -291,11 +287,11 @@ export default function AdminDashboard() {
         });
         s1.getRow(5).height = 22;
 
-        const kpiData: [string, number | string, string, string, string, string][] = [
+        const kpiData, number | string, string, string, string, string][] = [
             ['Tổng Doanh Thu', stats.totalRevenue, 'VNĐ', 'Từ đơn đã thanh toán', BLUE, 'Doanh thu tích lũy'],
             ['Tổng Chi Phí Vận Hành', stats.totalExpenses, 'VNĐ', 'Tổng các khoản chi', RED, 'Chi phí tích lũy'],
-            ['Lợi Nhuận Ròng', stats.totalProfit, 'VNĐ', 'Doanh thu - Chi phí', stats.totalProfit >= 0 ? GREEN : RED, stats.totalProfit >= 0 ? 'Có lãi' : 'Lỗ'],
-            ['Biên Lợi Nhuận', (margin) + '%', '%', 'Profit Margin = LN/DT', stats.totalProfit >= 0 ? GREEN : RED, (margin) + '% margin'],
+            ['Lợi Nhuận Ròng', stats.totalProfit, 'VNĐ', 'Doanh thu - Chi phí', stats.totalProfit >= 0 ? GREEN , stats.totalProfit >= 0 ? 'Có lãi' : 'Lỗ'],
+            ['Biên Lợi Nhuận', (margin) + '%', '%', 'Profit Margin = LN/DT', stats.totalProfit >= 0 ? GREEN , (margin) + '% margin'],
             ['Giá Trị Đơn TB (AOV)', aov, 'VNĐ', 'Average Order Value', BLUE, 'AOV'],
             ['Tổng Đơn Hàng', stats.totalOrders, 'Đơn', 'Tất cả trạng thái', 'FF334155', ''],
             ['Đơn Chờ Xử Lý', stats.pendingOrders, 'Đơn', 'Trạng thái PENDING', ORANGE, stats.pendingOrders > 10 ? 'Cần xử lý gấp' : 'Bình thường'],
@@ -306,7 +302,7 @@ export default function AdminDashboard() {
         ];
 
         kpiData.forEach(([label, val, unit, note, color, evalStr], ri) => {
-            const bg = ri % 2 === 0 ? WHITE : STRIPE;
+            const bg = ri % 2 === 0 ? WHITE ;
             const r = s1.getRow(6 + ri); r.height = 22;
             const l = r.getCell(1); l.value = label; l.font = fn(true, 10, 'FF1E293B'); l.fill = fl(bg); l.border = bT; l.alignment = { vertical: 'middle' };
             const v = r.getCell(2);
@@ -321,22 +317,22 @@ export default function AdminDashboard() {
         [32, 22, 10, 36, 18].forEach((w, i) => { s1.getColumn(i + 1).width = w; });
         s1.views = [{ state: 'frozen', ySplit: 5, activeCell: 'A6' }];
 
-        // ── SHEET 2: CHI TIẾT CHI PHÍ ──
+        // ── SHEET 2──
         const s2 = wb.addWorksheet('Chi Tiet Chi Phi');
 
-        s2.mergeCells('A1:H1');
+        s2.mergeCells('A1');
         const s2h1 = s2.getCell('A1');
         s2h1.value = 'CÔNG TY TNHH THIẾT BỊ VỆ SINH THÔNG MINH NOVAS';
         s2h1.font = fn(true, 14, GOLD); s2h1.fill = fl(NAVY); s2h1.alignment = { horizontal: 'center', vertical: 'middle' };
         s2.getRow(1).height = 32;
 
-        s2.mergeCells('A2:H2');
+        s2.mergeCells('A2');
         const s2h2 = s2.getCell('A2');
         s2h2.value = 'BẢNG CHI TIẾT CHI PHÍ VẬN HÀNH  |  Ngày xuất: ' + (todayFull);
         s2h2.font = fn(true, 11, WHITE); s2h2.fill = fl('FF1E293B'); s2h2.alignment = { horizontal: 'center', vertical: 'middle' };
         s2.getRow(2).height = 22;
 
-        s2.mergeCells('A3:H3');
+        s2.mergeCells('A3');
         const s2h3 = s2.getCell('A3');
         s2h3.value = 'Tổng khoản chi: ' + (dataToExport.length) + '  |  Tổng chi phí: ' + (new Intl.NumberFormat('vi-VN').format(grandTotal)) + ' đ';
         s2h3.font = fn(true, 10, RED); s2h3.fill = fl(LIGHT); s2h3.border = bT; s2h3.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -351,13 +347,13 @@ export default function AdminDashboard() {
         s2.getRow(5).height = 24;
 
         dataToExport.forEach((exp, idx) => {
-            const bg = idx % 2 === 0 ? WHITE : STRIPE;
+            const bg = idx % 2 === 0 ? WHITE ;
             const pct = grandTotal > 0 ? parseFloat(((exp.amount / grandTotal) * 100).toFixed(2)) : 0;
             const r = s2.getRow(6 + idx); r.height = 20;
             const vals: (string | number)[] = [
                 idx + 1, new Date(exp.date).toLocaleDateString('vi-VN'),
                 exp.title, exp.description || '',
-                EXPENSE_TYPES.find((t: any) => t.value === exp.type)?.label || exp.type,
+                EXPENSE_TYPES.find((t) => t.value === exp.type)?.label || exp.type,
                 exp.amount, pct, '',
             ];
             vals.forEach((val, ci) => {
@@ -376,7 +372,7 @@ export default function AdminDashboard() {
             const tr = s2.getRow(lastR + 1); tr.height = 26;
             s2.mergeCells(lastR + 1, 1, lastR + 1, 5);
             const tl = tr.getCell(1); tl.value = 'TỔNG CỘNG'; tl.font = fn(true, 12, GOLD); tl.fill = fl(NAVY); tl.alignment = { horizontal: 'center', vertical: 'middle' }; tl.border = bM;
-            const tv = tr.getCell(6); tv.value = { formula: 'SUM(F6:F' + (lastR) + ')' } as any; tv.numFmt = '#,##0'; tv.font = fn(true, 12, GOLD); tv.fill = fl(NAVY); tv.alignment = { horizontal: 'right', vertical: 'middle' }; tv.border = bM;
+            const tv = tr.getCell(6); tv.value = { formula: 'SUM(F6:F' + (lastR) + ')' } ; tv.numFmt = '#,##0'; tv.font = fn(true, 12, GOLD); tv.fill = fl(NAVY); tv.alignment = { horizontal: 'right', vertical: 'middle' }; tv.border = bM;
             const tp = tr.getCell(7); tp.value = '100%'; tp.font = fn(true, 11, GOLD); tp.fill = fl(NAVY); tp.alignment = { horizontal: 'center', vertical: 'middle' }; tp.border = bM;
             const te = tr.getCell(8); te.value = ''; te.fill = fl(NAVY); te.border = bM;
         }
@@ -385,14 +381,14 @@ export default function AdminDashboard() {
         s2.autoFilter = { from: 'A5', to: 'H5' };
         [6, 14, 36, 36, 20, 20, 12, 16].forEach((w, i) => { s2.getColumn(i + 1).width = w; });
 
-        // ── SHEET 3: THỐNG KÊ THEO LOẠI ──
+        // ── SHEET 3──
         const s3 = wb.addWorksheet('Thong Ke Theo Loai');
 
-        s3.mergeCells('A1:E1');
+        s3.mergeCells('A1');
         const s3h = s3.getCell('A1');
         s3h.value = 'THỐNG KÊ CHI PHÍ THEO PHÂN LOẠI'; s3h.font = fn(true, 14, GOLD); s3h.fill = fl(NAVY); s3h.alignment = { horizontal: 'center', vertical: 'middle' };
         s3.getRow(1).height = 30;
-        s3.mergeCells('A2:E2');
+        s3.mergeCells('A2');
         const s3h2 = s3.getCell('A2');
         s3h2.value = 'Ngày xuất: ' + (todayFull); s3h2.font = fn(false, 10, 'FF1E293B'); s3h2.fill = fl(LIGHT); s3h2.alignment = { horizontal: 'center', vertical: 'middle' }; s3h2.border = bT;
         s3.getRow(2).height = 18; s3.getRow(3).height = 10;
@@ -404,9 +400,9 @@ export default function AdminDashboard() {
         });
         s3.getRow(4).height = 24;
 
-        const grouped: Record<string, { count: number; amount: number }> = {};
-        dataToExport.forEach((exp: any) => {
-            const label = EXPENSE_TYPES.find((t: any) => t.value === exp.type)?.label || exp.type;
+        const grouped, { count; amount }> = {};
+        dataToExport.forEach((exp) => {
+            const label = EXPENSE_TYPES.find((t) => t.value === exp.type)?.label || exp.type;
             if (!grouped[label]) grouped[label] = { count: 0, amount: 0 };
             grouped[label].count++; grouped[label].amount += exp.amount;
         });
@@ -414,10 +410,10 @@ export default function AdminDashboard() {
         const sortedTypes = Object.entries(grouped).sort((a, b) => b[1].amount - a[1].amount);
 
         sortedTypes.forEach(([label, { count, amount }], ri) => {
-            const bg = ri % 2 === 0 ? WHITE : STRIPE;
+            const bg = ri % 2 === 0 ? WHITE ;
             const pct = totalByType > 0 ? parseFloat(((amount / totalByType) * 100).toFixed(1)) : 0;
             const r = s3.getRow(5 + ri); r.height = 22;
-            [label as any, count, amount, pct, ri + 1].forEach((v, ci) => {
+            [label , count, amount, pct, ri + 1].forEach((v, ci) => {
                 const c = r.getCell(ci + 1); c.value = v; c.fill = fl(bg); c.border = bH; c.font = fn(false, 10, 'FF1E293B'); c.alignment = { vertical: 'middle' };
             });
             r.getCell(1).font = fn(true, 10, 'FF1E293B');
@@ -431,44 +427,44 @@ export default function AdminDashboard() {
             const last3 = 4 + sortedTypes.length;
             const tr3 = s3.getRow(last3 + 1); tr3.height = 24;
             const totalCount = sortedTypes.reduce((a, [, v]) => a + v.count, 0);
-            [['TỔNG CỘNG', WHITE, NAVY, 'center'] as any, [totalCount, WHITE, NAVY, 'center'], [totalByType, WHITE, NAVY, 'right'], ['100%', WHITE, NAVY, 'center'], ['—', WHITE, NAVY, 'center']].forEach(([v, fg, bg, align], ci) => {
-                const c = tr3.getCell(ci + 1); c.value = v; c.font = fn(true, 11, fg); c.fill = fl(bg); c.border = bM; c.alignment = { horizontal: align as any, vertical: 'middle' };
+            [['TỔNG CỘNG', WHITE, NAVY, 'center'] , [totalCount, WHITE, NAVY, 'center'], [totalByType, WHITE, NAVY, 'right'], ['100%', WHITE, NAVY, 'center'], ['—', WHITE, NAVY, 'center']].forEach(([v, fg, bg, align], ci) => {
+                const c = tr3.getCell(ci + 1); c.value = v; c.font = fn(true, 11, fg); c.fill = fl(bg); c.border = bM; c.alignment = { horizontal: align , vertical: 'middle' };
             });
             tr3.getCell(3).numFmt = '#,##0';
         }
         [30, 14, 24, 14, 12].forEach((w, i) => { s3.getColumn(i + 1).width = w; });
 
-        // ── SHEET 4: PHÂN TÍCH TÀI CHÍNH ──
+        // ── SHEET 4──
         const s4 = wb.addWorksheet('Phan Tich Tai Chinh');
 
-        s4.mergeCells('A1:D1');
+        s4.mergeCells('A1');
         const s4h = s4.getCell('A1');
         s4h.value = 'PHÂN TÍCH TÀI CHÍNH TOÀN DIỆN - NOVAS'; s4h.font = fn(true, 14, GOLD); s4h.fill = fl(NAVY); s4h.alignment = { horizontal: 'center', vertical: 'middle' };
         s4.getRow(1).height = 30;
-        s4.mergeCells('A2:D2');
+        s4.mergeCells('A2');
         const s4h2 = s4.getCell('A2');
         s4h2.value = 'Báo cáo tài chính tổng hợp | Ngày xuất: ' + (todayFull); s4h2.font = fn(false, 10, WHITE); s4h2.fill = fl('FF1E293B'); s4h2.alignment = { horizontal: 'center', vertical: 'middle' };
         s4.getRow(2).height = 20;
 
-        const sections: { title: string; color: string; rows: (string | number)[][] }[] = [
-            { title: 'I. DOANH THU & LỢI NHUẬN', color: BLUE, rows: [
+        const sections: { title; color; rows: (string | number)[][] }[] = [
+            { title: 'I. DOANH THU & LỢI NHUẬN', color, rows: [
                 ['Tổng Doanh Thu', stats.totalRevenue, 'VNĐ', '= Tổng đơn đã thanh toán'],
                 ['Tổng Chi Phí Vận Hành', stats.totalExpenses, 'VNĐ', '= Tổng các khoản chi'],
                 ['Lợi Nhuận Ròng (Net Profit)', stats.totalProfit, 'VNĐ', '= Doanh Thu − Chi Phí'],
                 ['Biên Lợi Nhuận (Net Margin)', parseFloat(margin), '%', '= ' + (margin) + '% (LN / DT × 100)'],
             ]},
-            { title: 'II. HIỆU SUẤT ĐƠN HÀNG', color: ORANGE, rows: [
+            { title: 'II. HIỆU SUẤT ĐƠN HÀNG', color, rows: [
                 ['Tổng Số Đơn Hàng', stats.totalOrders, 'Đơn', 'Tất cả trạng thái'],
                 ['Đơn Hàng Chờ Xử Lý', stats.pendingOrders, 'Đơn', 'Trạng thái PENDING'],
                 ['Đơn Hàng Trong Ngày', stats.todayOrders, 'Đơn', 'Tính đến thời điểm xuất'],
                 ['Giá Trị Đơn TB (AOV)', aov, 'VNĐ', 'Average Order Value'],
             ]},
-            { title: 'III. KHO & KHÁCH HÀNG', color: GREEN, rows: [
+            { title: 'III. KHO & KHÁCH HÀNG', color, rows: [
                 ['Tổng Số Sản Phẩm', stats.totalProducts, 'SP', 'Sản phẩm trong hệ thống'],
                 ['Tổng Khách Hàng Đăng Ký', stats.totalUsers, 'User', 'Tài khoản đã đăng ký'],
                 ['Doanh Thu / Khách Hàng (RPU)', stats.totalUsers > 0 ? Math.round(stats.totalRevenue / stats.totalUsers) : 0, 'VNĐ', 'Revenue per User'],
             ]},
-            { title: 'IV. CHI PHÍ THEO LOẠI', color: RED, rows: sortedTypes.map(([label, { count, amount }]) => [label, amount, 'VNĐ', (count) + ' khoản chi']) },
+            { title: 'IV. CHI PHÍ THEO LOẠI', color, rows: sortedTypes.map(([label, { count, amount }]) => [label, amount, 'VNĐ', (count) + ' khoản chi']) },
         ];
 
         let curRow = 4;
@@ -485,10 +481,10 @@ export default function AdminDashboard() {
             s4.getRow(curRow).height = 20; curRow++;
 
             rows.forEach(([label, val, unit, note], ri) => {
-                const bg = ri % 2 === 0 ? WHITE : STRIPE;
+                const bg = ri % 2 === 0 ? WHITE ;
                 const r = s4.getRow(curRow); r.height = 20;
                 const lc = r.getCell(1); lc.value = label; lc.font = fn(true, 10, 'FF1E293B'); lc.fill = fl(bg); lc.border = bT; lc.alignment = { vertical: 'middle' };
-                const vc = r.getCell(2); vc.value = val as any; vc.font = fn(true, 10, color); vc.fill = fl(bg); vc.border = bT; vc.alignment = { horizontal: 'right', vertical: 'middle' };
+                const vc = r.getCell(2); vc.value = val ; vc.font = fn(true, 10, color); vc.fill = fl(bg); vc.border = bT; vc.alignment = { horizontal: 'right', vertical: 'middle' };
                 if (typeof val === 'number' && unit === 'VNĐ') vc.numFmt = '#,##0';
                 if (unit === '%') vc.numFmt = '0.0"%"';
                 const uc = r.getCell(3); uc.value = unit; uc.font = fn(false, 9, 'FF334155'); uc.fill = fl(bg); uc.border = bT; uc.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -513,7 +509,7 @@ export default function AdminDashboard() {
         URL.revokeObjectURL(url);
     };
 
-    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImport = async (e) => {
         const file = e.target.files?.[0]; if (!file) return;
         try {
             const wb2 = new ExcelJS.Workbook();
@@ -523,12 +519,12 @@ export default function AdminDashboard() {
             let ws = wb2.getWorksheet('Chi Tiet Chi Phi') || wb2.worksheets[0];
             if (!ws) { alert('Không đọc được dữ liệu từ file.'); return; }
             
-            const formatted: any[] = [];
+            const formatted = [];
             ws.eachRow((row, rowNumber) => {
                 if (rowNumber < 5) return;
                 
                 const sttValue = row.getCell(1).value;
-                const stt = typeof sttValue === 'object' ? (sttValue as any)?.result : sttValue;
+                const stt = typeof sttValue === 'object' ? (sttValue )?.result : sttValue;
                 if (isNaN(Number(stt)) || stt === null || stt === '') return;
 
                 const title = String(row.getCell(3).value || '').trim();
@@ -536,7 +532,7 @@ export default function AdminDashboard() {
                 
                 let amount = 0;
                 if (typeof amountRaw === 'number') amount = amountRaw;
-                else if (typeof amountRaw === 'object' && amountRaw !== null) amount = Number((amountRaw as any).result || 0);
+                else if (typeof amountRaw === 'object' && amountRaw !== null) amount = Number((amountRaw ).result || 0);
                 else amount = parseFloat(String(amountRaw || '0').replace(/[^0-9.-]/g, ''));
                 
                 if (!title || isNaN(amount) || amount <= 0) return;
@@ -559,7 +555,7 @@ export default function AdminDashboard() {
                           typeRaw.includes('MARKETING') ? 'MARKETING' :
                           typeRaw.includes('MẶT BẰNG') ? 'RENT' : 'OTHER',
                     date: expenseDate.toISOString(),
-                    description: String(row.getCell(4).value || ''),
+                    description(row.getCell(4).value || ''),
                 });
             });
 
@@ -571,7 +567,7 @@ export default function AdminDashboard() {
             const res = await fetch((API_URL) + '/api/expenses/bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                body: JSON.stringify(formatted)
+                body(formatted)
             });
 
             if (res.ok) { 
@@ -582,13 +578,13 @@ export default function AdminDashboard() {
                 const err = await res.json().catch(() => ({}));
                 alert('Lỗi import: ' + (err.message || 'Lỗi server'));
             }
-        } catch (err: any) { alert('Lỗi đọc file Excel: ' + (err.message || 'Lỗi định dạng')); }
+        } catch (err) { alert('Lỗi đọc file Excel: ' + (err.message || 'Lỗi định dạng')); }
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
-    const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+    const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 
     const content = (
         <div className="space-y-6">
@@ -688,7 +684,7 @@ export default function AdminDashboard() {
                                     <>
                                         <div className="h-40">
                                             <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
+                                                
                                                     <Pie data={expenseTypeStats} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={5} dataKey="value" stroke="none">
                                                         {expenseTypeStats.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
                                                     </Pie>
@@ -700,7 +696,7 @@ export default function AdminDashboard() {
                                             {expenseTypeStats.slice(0, 4).map((s, i) => (
                                                 <div key={i} className="flex flex-col p-2 bg-slate-50 rounded-lg">
                                                     <div className="flex items-center gap-1.5 mb-1">
-                                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor% COLORS.length] }} />
                                                         <span className="text-[10px] text-slate-500 font-medium truncate">{s.name}</span>
                                                     </div>
                                                     <span className="text-[10px] font-bold text-slate-700">{fmt(s.value)}</span>
@@ -741,7 +737,7 @@ export default function AdminDashboard() {
                         </div>
                     </div>
 
-                    {/* Secondary Row: Top Products */}
+                    {/* Secondary Row*/}
                     <div className="grid lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-xl shadow-sm">
                             <div className="flex items-center justify-between mb-5">
@@ -792,7 +788,7 @@ export default function AdminDashboard() {
             </div>
         )}
 
-            {/* TAB: THU - CHI */}
+            {/* TAB- CHI */}
             {activeTab === 'expenses' && (
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -830,7 +826,7 @@ export default function AdminDashboard() {
                                 <div>
                                     <label className="block text-xs font-medium text-slate-700 mb-1">Tên khoản chi *</label>
                                     <input required type="text" value={title} onChange={e => setTitle(e.target.value)}
-                                        className="w-full border border-slate-300 rounded px-3 py-2 text-sm" placeholder="VD: Nhập bồn cầu Inax..." />
+                                        className="w-full border border-slate-300 rounded px-3 py-2 text-sm" placeholder="VD" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-slate-700 mb-1">Số tiền (VNĐ) *</label>
@@ -875,7 +871,7 @@ export default function AdminDashboard() {
                                     <h3 className="text-sm font-semibold text-slate-800 mb-4">Cơ cấu chi phí</h3>
                                     <div className="h-48">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
+                                            
                                                 <Pie data={expenseTypeStats} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={2} dataKey="value">
                                                     {expenseTypeStats.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
                                                 </Pie>
