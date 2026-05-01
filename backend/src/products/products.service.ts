@@ -83,8 +83,8 @@ export class ProductsService {
             orderBy.createdAt = 'desc';
         }
 
-        const products = await this.prisma.product.findMany(includeCostPrice
-            ? {
+        if (includeCostPrice) {
+            return this.prisma.product.findMany({
                 where,
                 orderBy,
                 include: {
@@ -94,15 +94,14 @@ export class ProductsService {
                         }
                     }
                 }
-            }
-            : {
-                where,
-                orderBy,
-                select: this.publicProductSelect
-            }
-        );
+            });
+        }
 
-        return products;
+        return this.prisma.product.findMany({
+            where,
+            orderBy,
+            select: this.publicProductSelect
+        });
     }
 
     async findOne(id: number): Promise<any | null> {
