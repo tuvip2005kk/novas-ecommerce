@@ -198,7 +198,9 @@ function CheckoutContent() {
         } catch (err) {
             console.error(err);
             if (isCardPayment) {
-                setCardError("Không thể tạo thanh toán thẻ. Vui lòng kiểm tra cấu hình Stripe hoặc chọn chuyển khoản ngân hàng.");
+                setCardError(err instanceof Error
+                    ? err.message
+                    : "Không thể tạo thanh toán thẻ. Vui lòng kiểm tra cấu hình Stripe hoặc chọn chuyển khoản ngân hàng.");
             }
         } finally {
             setLoading(false);
