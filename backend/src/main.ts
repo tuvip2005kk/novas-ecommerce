@@ -15,6 +15,7 @@ async function bootstrap() {
     try {
         const app = await NestFactory.create<NestExpressApplication>(AppModule, {
             logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+            rawBody: true,
         });
 
         // Log every request

@@ -63,14 +63,14 @@ export default function OrderDetailPage() {
         );
     }
 
-    const statusColors: Record<string, string> = {
-        "Chờ thanh toán": "bg-yellow-100 text-yellow-800",
-        "Đã thanh toán": "bg-green-100 text-green-800",
-        "Đang chuẩn bị": "bg-blue-100 text-blue-800",
-        "Đang giao": "bg-purple-100 text-purple-800",
-        "Đã giao": "bg-emerald-100 text-emerald-800",
-        "Đã hủy": "bg-red-100 text-red-800",
-    };
+    const isCodPayment = order.note?.includes('[Thanh toán khi nhận hàng]');
+    const isCardPayment = order.note?.includes('[Thanh toán bằng thẻ]');
+    const isBankTransferPayment = order.note?.includes('[Chuyển khoản ngân hàng]') || (!isCodPayment && !isCardPayment);
+    const paymentMethodText = isCodPayment
+        ? "Phương thức: Thanh toán khi nhận hàng (COD)"
+        : isCardPayment
+            ? "Phương thức: Thanh toán bằng thẻ"
+            : `Nội dung CK: ${order.paymentContent || `DH${order.id}`}`;
 
     return (
         <div className="space-y-6">
@@ -122,12 +122,10 @@ export default function OrderDetailPage() {
                                             {order.status === "Đã thanh toán" || order.status === "Đã giao" ? "✓ Đã thanh toán" : "⏳ Chờ thanh toán"}
                                         </p>
                                         <p className="text-sm text-slate-500 mt-1">
-                                            {order.note?.includes('[Thanh toán khi nhận hàng]') 
-                                                ? "Phương thức: Thanh toán khi nhận hàng (COD)" 
-                                                : `Nội dung CK: ${order.paymentContent || `DH${order.id}`}`}
+                                            {paymentMethodText}
                                         </p>
                                     </div>
-                                    {order.status === "Chờ thanh toán" && !order.note?.includes('[Thanh toán khi nhận hàng]') && (
+                                    {order.status === "Chờ thanh toán" && isBankTransferPayment && (
                                         <img
                                             src={`https://qr.sepay.vn/img?acc=0348868647&bank=MBBank&amount=${Math.round(order.total)}&des=${order.paymentContent || `DH${order.id}`}`}
                                             alt="QR Code"

@@ -2,11 +2,10 @@
 import { API_URL } from '@/config';
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { PaymentQR } from "@/components/PaymentQR";
-import { ArrowLeft, CheckCircle2, Loader2, Tag } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CreditCard, Landmark, Loader2, Tag } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
@@ -48,6 +47,8 @@ function CheckoutContent() {
     const [customerAddress, setCustomerAddress] = useState("");
     const [customerNote, setCustomerNote] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("COD"); // 'COD' or 'ONLINE'
+    const [onlinePaymentMethod, setOnlinePaymentMethod] = useState("BANK_TRANSFER"); // 'BANK_TRANSFER' or 'CARD'
+    const [cardError, setCardError] = useState("");
 
     useEffect(() => {
         if (!isLoading && !user) {
@@ -131,8 +132,11 @@ function CheckoutContent() {
         setCouponError("");
     };
 
+    const isCardPayment = paymentMethod === 'ONLINE' && onlinePaymentMethod === 'CARD';
+
     const handleCreateOrder = async (e: React.FormEvent) => {
         e.preventDefault();
+        setCardError("");
         setLoading(true);
         
         // Lưu lại ngay ở Local để quay ra vẫn có
@@ -145,7 +149,11 @@ function CheckoutContent() {
                 ? cartItems.map(item => ({ productId: item.id, quantity: item.quantity }))
                 : [{ productId: parseInt(productId as string), quantity }];
 
-            const finalNote = `[${paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng' : 'Thanh toán Online'}] ${customerNote}`;
+            const finalNote = paymentMethod === 'COD'
+                ? `[Thanh toán khi nhận hàng] ${customerNote}`
+                : onlinePaymentMethod === 'CARD'
+                    ? `[Thanh toán Online][Thanh toán bằng thẻ] ${customerNote}`
+                    : `[Thanh toán Online][Chuyển khoản ngân hàng] ${customerNote}`;
 
             const res = await fetch(`${API_URL}/api/orders`, {
                 method: 'POST',
@@ -162,10 +170,36 @@ function CheckoutContent() {
                 }),
             });
             const data = await res.json();
-            setOrder(data);
+
+            if (!res.ok) {
+                throw new Error(data?.message || "Không thể tạo đơn hàng.");
+            }
+
+            if (isCardPayment) {
+                const checkoutRes = await fetch(`${API_URL}/api/card-payments/checkout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId: data.id }),
+                });
+                const checkoutData = await checkoutRes.json();
+
+                if (!checkoutRes.ok || !checkoutData.checkoutUrl) {
+                    throw new Error(checkoutData?.message || "Không thể tạo phiên thanh toán thẻ.");
+                }
+
+                if (isCartMode) clearCart();
+                window.location.href = checkoutData.checkoutUrl;
+                return;
+            } else {
+                setOrder(data);
+            }
+
             if (isCartMode) clearCart();
         } catch (err) {
             console.error(err);
+            if (isCardPayment) {
+                setCardError("Không thể tạo thanh toán thẻ. Vui lòng kiểm tra cấu hình Stripe hoặc chọn chuyển khoản ngân hàng.");
+            }
         } finally {
             setLoading(false);
         }
@@ -177,7 +211,7 @@ function CheckoutContent() {
                 <Header />
                 <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800 pt-24 pb-12">
                     <div className="container mx-auto px-4 max-w-lg">
-                        {paymentMethod === 'ONLINE' ? (
+                        {paymentMethod === 'ONLINE' && onlinePaymentMethod === 'BANK_TRANSFER' ? (
                             <PaymentQR
                                 orderId={order.id}
                                 onPaymentSuccess={() => {}}
@@ -187,11 +221,19 @@ function CheckoutContent() {
                                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <CheckCircle2 className="w-10 h-10 text-green-600" />
                                 </div>
-                                <h2 className="text-2xl font-bold text-[#21246b] mb-2">Đặt hàng thành công!</h2>
-                                <p className="text-slate-600 mb-6">
-                                    Mã đơn hàng của bạn là <strong>#{order.id}</strong>.<br/><br/>
-                                    Nhân viên sẽ gọi điện xác nhận đơn hàng của bạn qua số điện thoại <strong>{customerPhone}</strong> sớm nhất.
-                                </p>
+                                <h2 className="text-2xl font-bold text-[#21246b] mb-2">
+                                    {isCardPayment ? 'Thanh toán thành công!' : 'Đặt hàng thành công!'}
+                                </h2>
+                                {isCardPayment ? (
+                                    <p className="text-slate-600 mb-6">
+                                        Đơn hàng <strong>#{order.paymentContent || order.id}</strong> đã được thanh toán bằng thẻ.
+                                    </p>
+                                ) : (
+                                    <p className="text-slate-600 mb-6">
+                                        Mã đơn hàng của bạn là <strong>#{order.id}</strong>.<br/><br/>
+                                        Nhân viên sẽ gọi điện xác nhận đơn hàng của bạn qua số điện thoại <strong>{customerPhone}</strong> sớm nhất.
+                                    </p>
+                                )}
                             </div>
                         )}
                         <div className="mt-6 flex gap-4">
@@ -356,20 +398,78 @@ function CheckoutContent() {
                                         )}
                                     </div>
 
-                                    <label className="flex items-start gap-3 cursor-pointer">
-                                        <input 
-                                            type="radio" 
-                                            name="paymentMethod" 
-                                            value="ONLINE" 
-                                            checked={paymentMethod === 'ONLINE'}
-                                            onChange={() => setPaymentMethod('ONLINE')}
-                                            className="w-4 h-4 mt-0.5 text-[#21246b] border-slate-300 focus:ring-[#21246b]"
-                                        />
-                                        <div>
-                                            <p className="font-medium text-[#21246b]">Thanh toán chuyển khoản trực tuyến</p>
-                                            <p className="text-slate-500 text-xs mt-0.5">Chuyển khoản qua quét mã QR (Momo, VNPay, Ngân hàng)</p>
-                                        </div>
-                                    </label>
+                                    <div>
+                                        <label className="flex items-start gap-3 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="paymentMethod"
+                                                value="ONLINE"
+                                                checked={paymentMethod === 'ONLINE'}
+                                                onChange={() => setPaymentMethod('ONLINE')}
+                                                className="w-4 h-4 mt-0.5 text-[#21246b] border-slate-300 focus:ring-[#21246b]"
+                                            />
+                                            <div>
+                                                <p className="font-medium text-[#21246b]">Thanh toán trực tuyến</p>
+                                                <p className="text-slate-500 text-xs mt-0.5">Chọn thanh toán bằng thẻ hoặc chuyển khoản ngân hàng</p>
+                                            </div>
+                                        </label>
+
+                                        {paymentMethod === 'ONLINE' && (
+                                            <div className="mt-3 ml-7 space-y-3">
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setOnlinePaymentMethod('BANK_TRANSFER')}
+                                                        className={`min-h-20 border px-3 py-3 text-left transition ${
+                                                            onlinePaymentMethod === 'BANK_TRANSFER'
+                                                                ? 'border-[#21246b] bg-[#21246b]/5 text-[#21246b]'
+                                                                : 'border-slate-200 hover:border-slate-300'
+                                                        }`}
+                                                    >
+                                                        <Landmark className="h-5 w-5 mb-2" />
+                                                        <span className="block font-medium">CK ngân hàng</span>
+                                                        <span className="block text-xs text-slate-500 mt-1">Quét mã QR</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setOnlinePaymentMethod('CARD')}
+                                                        className={`min-h-20 border px-3 py-3 text-left transition ${
+                                                            onlinePaymentMethod === 'CARD'
+                                                                ? 'border-[#21246b] bg-[#21246b]/5 text-[#21246b]'
+                                                                : 'border-slate-200 hover:border-slate-300'
+                                                        }`}
+                                                    >
+                                                        <CreditCard className="h-5 w-5 mb-2" />
+                                                        <span className="block font-medium">Thẻ</span>
+                                                        <span className="block text-xs text-slate-500 mt-1">Visa/Mastercard</span>
+                                                    </button>
+                                                </div>
+
+                                                {onlinePaymentMethod === 'BANK_TRANSFER' && (
+                                                    <div className="p-3 bg-blue-50 border border-blue-100 rounded text-blue-800 text-xs leading-relaxed">
+                                                        Sau khi đặt hàng, hệ thống sẽ hiển thị mã QR và thông tin chuyển khoản cho đơn hàng.
+                                                    </div>
+                                                )}
+
+                                                {onlinePaymentMethod === 'CARD' && (
+                                                    <div className="p-3 border border-slate-200 rounded bg-slate-50 space-y-3">
+                                                        <div className="flex items-start gap-3 text-slate-700">
+                                                            <CreditCard className="h-5 w-5 text-[#21246b] mt-0.5" />
+                                                            <div>
+                                                                <p className="font-medium text-[#21246b]">Thanh toán thẻ qua Stripe</p>
+                                                                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                                                    Sau khi bấm PAY, bạn sẽ được chuyển sang trang thanh toán bảo mật để nhập thông tin thẻ.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        {cardError && (
+                                                            <p className="text-red-600 text-xs">{cardError}</p>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <Button
@@ -379,7 +479,7 @@ function CheckoutContent() {
                                     disabled={loading}
                                 >
                                     {loading ? <Loader2 className="animate-spin mr-2" /> : null}
-                                    ĐẶT HÀNG
+                                    {isCardPayment ? 'PAY' : 'ĐẶT HÀNG'}
                                 </Button>
                             </div>
                         </div>

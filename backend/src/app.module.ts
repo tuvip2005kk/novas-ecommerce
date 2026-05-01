@@ -21,6 +21,7 @@ import { BannersModule } from './banners/banners.module';
 import { ShowroomsModule } from './showrooms/showrooms.module';
 import { SettingsModule } from './settings/settings.module';
 import { ExpensesModule } from './expenses/expenses.module';
+import { CardPaymentsModule } from './card-payments/card-payments.module';
 
 import { SeedModule } from './seed/seed.module';
 import { ChatModule } from './chat/chat.module';
@@ -56,6 +57,7 @@ import { PrismaModule } from './prisma.module';
         ShowroomsModule,
         SettingsModule,
         ExpensesModule,
+        CardPaymentsModule,
         SeedModule,
         ChatModule,
     ],

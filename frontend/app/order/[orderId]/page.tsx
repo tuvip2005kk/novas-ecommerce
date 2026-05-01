@@ -43,6 +43,7 @@ const ORDER_STATUSES = [
 function OrderContent({ orderId }: { orderId: string }) {
     const searchParams = useSearchParams();
     const paymentStatus = searchParams.get("payment");
+    const stripeSessionId = searchParams.get("session_id");
     const [loading, setLoading] = useState(true);
     const [order, setOrder] = useState<Order | null>(null);
 
@@ -54,6 +55,8 @@ function OrderContent({ orderId }: { orderId: string }) {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ status: "Đã thanh toán" })
                 });
+            } else if (paymentStatus === "card_success" && stripeSessionId) {
+                await fetch(`${API_URL}/api/card-payments/session/${encodeURIComponent(stripeSessionId)}/confirm`);
             }
 
             try {
@@ -68,7 +71,7 @@ function OrderContent({ orderId }: { orderId: string }) {
         };
 
         loadOrder();
-    }, [orderId, paymentStatus]);
+    }, [orderId, paymentStatus, stripeSessionId]);
 
     const formatPrice = (price: number) => new Intl.NumberFormat('vi-VN').format(price) + 'đ';
     const formatDate = (date: string) => new Date(date).toLocaleString('vi-VN');
@@ -94,6 +97,8 @@ function OrderContent({ orderId }: { orderId: string }) {
 
     // Get current status index
     const currentStatusIndex = ORDER_STATUSES.findIndex(s => s.key === order.status);
+    const isOnlinePayment = order.note?.includes('[Thanh toán Online]');
+    const isCardPayment = order.note?.includes('[Thanh toán bằng thẻ]');
 
     return (
         <main className="min-h-screen bg-white pt-20 pb-12">
@@ -151,11 +156,11 @@ function OrderContent({ orderId }: { orderId: string }) {
 
                     {order.status === "Chờ thanh toán" && (
                         <div className="mt-6 pt-6 border-t flex flex-col items-center">
-                            {order.note?.includes('[Thanh toán Online]') ? (
+                            {isOnlinePayment && !isCardPayment ? (
                                 <div className="text-center w-full">
                                     <p className="text-sm text-slate-600 mb-4">Bạn chưa hoàn tất thanh toán trực tuyến cho đơn hàng này.</p>
                                     <PaymentQR orderId={order.id} onPaymentSuccess={() => { window.location.href = `/order/${order.paymentContent}?payment=success` }} />
-                                    <Button 
+                                    <Button
                                         variant="outline"
                                         className="mt-4 text-red-600 border-red-200 hover:bg-red-50"
                                         onClick={async () => {
@@ -171,6 +176,29 @@ function OrderContent({ orderId }: { orderId: string }) {
                                         }}
                                     >
                                         <XCircle className="w-4 h-4 mr-2" /> Hủy bỏ đơn hàng này
+                                    </Button>
+                                </div>
+                            ) : isCardPayment ? (
+                                <div className="text-center w-full">
+                                    <div className="p-4 bg-yellow-50 text-yellow-700 rounded mb-4 font-medium border border-yellow-100">
+                                        Thanh toán thẻ chưa hoàn tất. Vui lòng thử đặt lại hoặc liên hệ NOVAS để được hỗ trợ.
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        className="text-red-600 border-red-200 hover:bg-red-50"
+                                        onClick={async () => {
+                                            if (confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) {
+                                                setLoading(true);
+                                                await fetch(`${API_URL}/api/orders/${order.id}/status`, {
+                                                    method: "PATCH",
+                                                    headers: { "Content-Type": "application/json" },
+                                                    body: JSON.stringify({ status: "Đã hủy" })
+                                                });
+                                                window.location.reload();
+                                            }
+                                        }}
+                                    >
+                                        <XCircle className="w-4 h-4 mr-2" /> Hủy bỏ đơn hàng
                                     </Button>
                                 </div>
                             ) : (
