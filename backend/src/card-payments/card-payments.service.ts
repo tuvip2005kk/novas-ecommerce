@@ -11,6 +11,11 @@ type StripeCheckoutSession = {
     metadata?: { orderId?: string };
 };
 
+type StripeRequestOptions = {
+    method?: 'GET' | 'POST';
+    body?: URLSearchParams;
+};
+
 @Injectable()
 export class CardPaymentsService {
     private readonly stripeApiBase = 'https://api.stripe.com/v1';
@@ -117,7 +122,7 @@ export class CardPaymentsService {
         return { received: true };
     }
 
-    private async requestStripe<T>(path: string, init?: RequestInit): Promise<T> {
+    private async requestStripe<T>(path: string, init: StripeRequestOptions = {}): Promise<T> {
         const secretKey = process.env.STRIPE_SECRET_KEY;
 
         if (!secretKey) {
@@ -125,11 +130,11 @@ export class CardPaymentsService {
         }
 
         const res = await fetch(`${this.stripeApiBase}${path}`, {
-            ...init,
+            method: init.method || 'GET',
+            body: init.body,
             headers: {
                 Authorization: `Bearer ${secretKey}`,
                 'Content-Type': 'application/x-www-form-urlencoded',
-                ...(init?.headers || {}),
             },
         });
 
