@@ -101,7 +101,7 @@ export default function ThietBiVeSinhPage() {
     return (
         <>
             <Header />
-            <main className="min-h-screen bg-white" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <main className="min-h-screen bg-white pt-[70px]" style={{ fontFamily: 'Arial, sans-serif' }}>
                 {/* Banner */}
                 <section className="pt-16">
                     <div className="max-w-[1200px] mx-auto">

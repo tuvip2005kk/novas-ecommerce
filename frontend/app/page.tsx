@@ -48,7 +48,7 @@ export default async function Home() {
     return (
         <>
             <Header />
-            <main className="min-h-screen bg-slate-50">
+            <main className="min-h-screen bg-slate-50 pt-[70px]">
                 <BannerCarousel initialBanners={banners} />
                 <CommitmentSection />
                 <div className="mt-2">
