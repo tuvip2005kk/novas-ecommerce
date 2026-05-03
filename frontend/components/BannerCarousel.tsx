@@ -103,10 +103,10 @@ export function BannerCarousel({ initialBanners }: BannerCarouselProps = {}) {
                 >
                     {/* Background Image */}
                     <div
-                        className="absolute inset-0 bg-[length:100%_100%] bg-no-repeat transition-transform duration-[10000ms] ease-linear"
+                        className="absolute inset-0 bg-[length:100%_100%] bg-no-repeat"
                         style={{
                             backgroundImage: `url(${getImageUrl(slide.image)})`,
-                            transform: index === current ? "scale(1.05)" : "scale(1)"
+                            transform: "scale(1)"
                         }}
                     >
                         {/* Dark overlay - only shows on hover to make text readable */}
