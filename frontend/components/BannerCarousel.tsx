@@ -93,7 +93,7 @@ export function BannerCarousel({ initialBanners }: BannerCarouselProps = {}) {
     };
 
     return (
-        <div className="relative w-full aspect-[16/9] md:aspect-[21/9] lg:aspect-[3/1] xl:aspect-[10/3] overflow-hidden bg-slate-900 group">
+        <div className="relative w-full aspect-[16/9] md:aspect-[21/9] lg:aspect-[24/9] overflow-hidden bg-slate-900 group">
             {/* Slides */}
             {slides.map((slide, index) => (
                 <div
