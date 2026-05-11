@@ -19,7 +19,7 @@ type ProductForChat = {
     specs: unknown;
     subcategory: {
         name: string;
-        category: { name: string } | null;
+        category: { name: string; slug: string } | null;
     } | null;
     _count?: { reviews: number; likes: number };
 };
@@ -110,6 +110,11 @@ export class ChatService {
             .join('; ');
     }
 
+    private getProductPath(product: ProductForChat): string {
+        const categorySlug = product.subcategory?.category?.slug || 'san-pham';
+        return `/${categorySlug}/${product.slug}`;
+    }
+
     private formatProduct(product: ProductForChat): string {
         const category = [product.subcategory?.category?.name, product.subcategory?.name]
             .filter(Boolean)
@@ -132,8 +137,7 @@ export class ChatService {
             ratingSignal.replace(/^, /, ''),
             specs ? `thông số: ${specs}` : '',
             product.description ? `mô tả: ${this.shortText(product.description)}` : '',
-            `link /products/${product.id}`,
-            product.image ? `ảnh demo ${product.image}` : '',
+            `link ${this.getProductPath(product)}`,
         ]
             .filter(Boolean)
             .join(' | ');
@@ -155,7 +159,7 @@ export class ChatService {
             subcategory: {
                 select: {
                     name: true,
-                    category: { select: { name: true } },
+                    category: { select: { name: true, slug: true } },
                 },
             },
             _count: { select: { reviews: true, likes: true } },
@@ -449,7 +453,7 @@ CHÍNH SÁCH TƯ VẤN MẶC ĐỊNH:
         const fields = [
             product.name,
             this.formatCurrency(product.price),
-            `/products/${product.id}`,
+            this.getProductPath(product),
             product.image || '',
         ].map((value) => encodeURIComponent(value));
 

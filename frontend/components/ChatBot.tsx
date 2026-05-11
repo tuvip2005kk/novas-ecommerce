@@ -144,11 +144,9 @@ export default function ChatBot() {
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
       .replace(/\*(.*?)\*/g, "<em>$1</em>")
       .replace(
-        /(^|[\s(])((?:https?:\/\/[^\s<]+)|(?:\/products\/\d+))/g,
+        /(^|[\s(])((?:\/[a-z0-9-]+\/[a-z0-9-]+)|(?:\/products\/\d+))/g,
         (_match, prefix, url) =>
-          `${prefix}<a href="${url}" class="font-semibold text-[#21246b] underline underline-offset-2" ${
-            url.startsWith("http") ? 'target="_blank" rel="noreferrer"' : ""
-          }>Xem chi tiết</a>`,
+          `${prefix}<a href="${url}" class="font-semibold text-[#21246b] underline underline-offset-2">Xem chi tiết</a>`,
       )
       .replace(/\n/g, "<br/>");
   };
