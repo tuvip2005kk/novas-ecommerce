@@ -6,7 +6,7 @@ import { ChatGateway } from './chat.gateway';
 export class TelegramService implements OnModuleInit {
     private bot: TelegramBot;
     private readonly logger = new Logger(TelegramService.name);
-    private chatGateway: ChatGateway; // Will set via setter to avoid circular dependency
+    private chatGateway: ChatGateway;
 
     constructor() {}
 
@@ -17,7 +17,7 @@ export class TelegramService implements OnModuleInit {
     onModuleInit() {
         const token = process.env.TELEGRAM_BOT_TOKEN;
         if (!token) {
-            this.logger.warn('TELEGRAM_BOT_TOKEN không được cấu hình. Bỏ qua Telegram Bot.');
+            this.logger.warn('TELEGRAM_BOT_TOKEN chưa được cấu hình. Bỏ qua Telegram Bot.');
             return;
         }
 
@@ -26,11 +26,13 @@ export class TelegramService implements OnModuleInit {
             this.logger.log('Telegram Bot đã khởi động');
 
             this.bot.on('polling_error', (error: any) => {
-                this.logger.error(`Lỗi Polling Telegram (Có thể do chạy 2 máy tính cùng lúc): ${error.message}`);
-                // Dừng polling tạm thời nếu lỗi conflict để tránh treo CPU
+                this.logger.error(
+                    `Lỗi polling Telegram, có thể do chạy 2 máy cùng lúc: ${error.message}`,
+                );
+
                 if (error.code === 'ETELEGRAM' && error.message.includes('409')) {
                     this.bot.stopPolling();
-                    this.logger.warn('Tạm ngưng Telegram Bot do lỗi 409 Conflict!');
+                    this.logger.warn('Tạm ngưng Telegram Bot do lỗi 409 Conflict.');
                 }
             });
 
@@ -45,51 +47,52 @@ export class TelegramService implements OnModuleInit {
             const chatId = msg.chat.id;
             const text = msg.text;
 
-            // Kiểm tra xem tin nhắn có phải là reply một tin nhắn trước đó không
             if (msg.reply_to_message && msg.reply_to_message.text) {
                 this.handleAdminReply(msg);
                 return;
             }
 
             if (text === '/start') {
-                this.bot.sendMessage(chatId, `Xin chào! Tôi là Bot Quản lý Support của NOVAS.\nChat ID của bạn là: ${chatId}\nHãy cấu hình TELEGRAM_CHAT_ID=${chatId} vào file .env.`);
-                return;
+                this.bot.sendMessage(
+                    chatId,
+                    `Xin chào! Tôi là Bot quản lý Support của NOVAS.\nChat ID của bạn là: ${chatId}\nHãy cấu hình TELEGRAM_CHAT_ID=${chatId} vào file .env.`,
+                );
             }
         });
     }
 
     private async handleAdminReply(msg: TelegramBot.Message) {
-        const adminChatId = process.env.TELEGRAM_CHAT_ID;
-        
-        // Khớp pattern để lấy Session ID: tìm chuỗi bắt đầu bằng session_
-        const repliedText = msg.reply_to_message.text;
+        const repliedText = msg.reply_to_message?.text;
+        if (!repliedText) return;
+
         const sessionMatch = repliedText.match(/(session_[a-zA-Z0-9]+)/);
-        
-        if (sessionMatch && sessionMatch[1]) {
-            const sessionId = sessionMatch[1].trim();
-            const responseText = msg.text;
 
-            this.logger.log(`Nhận được tin nhắn từ Admin cho session: ${sessionId}. Nội dung: ${responseText}`);
+        if (!sessionMatch?.[1]) return;
 
-            if (this.chatGateway) {
-                // Lưu tin nhắn vào DB
-                if (this.chatGateway['saveMessage']) {
-                    await this.chatGateway.saveMessage(sessionId, 'staff', responseText);
-                }
+        const sessionId = sessionMatch[1].trim();
+        const responseText = msg.text;
 
-                // Đẩy tin nhắn qua WebSockets về web cho khách
-                this.chatGateway.sendToClient(sessionId, {
-                    role: 'staff',
-                    content: responseText
-                });
-                this.logger.log(`Đã đẩy tin nhắn tới khách hàng (phòng: ${sessionId})`);
-            } else {
-                this.logger.error('ChatGateway chưa được inject vào TelegramService!');
-            }
+        if (!responseText) return;
+
+        this.logger.log(`Nhận tin nhắn từ Admin cho session ${sessionId}: ${responseText}`);
+
+        if (!this.chatGateway) {
+            this.logger.error('ChatGateway chưa được inject vào TelegramService.');
+            return;
         }
+
+        if (this.chatGateway.saveMessage) {
+            await this.chatGateway.saveMessage(sessionId, 'staff', responseText);
+        }
+
+        this.chatGateway.sendToClient(sessionId, {
+            role: 'staff',
+            content: responseText,
+        });
+        this.logger.log(`Đã đẩy tin nhắn tới khách hàng, phòng ${sessionId}`);
     }
 
-    async sendMessageToAdmin(sessionId: string, message: string, isInitialHandoff: boolean = false) {
+    async sendMessageToAdmin(sessionId: string, message: string, isInitialHandoff = false) {
         if (!this.bot) return;
 
         const adminChatId = process.env.TELEGRAM_CHAT_ID;
@@ -98,12 +101,11 @@ export class TelegramService implements OnModuleInit {
             return;
         }
 
-        // Tạo màu sắc cố định dựa trên sessionId để nhận diện nhanh khách hàng
         const colors = ['🔴', '🔵', '🟢', '🟡', '🟣', '🟠', '🟤', '⚫', '⚪'];
         const charSum = sessionId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
         const colorEmoji = colors[charSum % colors.length];
-
-        const textToSend = `${colorEmoji} ${sessionId}\n${message}`;
+        const prefix = isInitialHandoff ? 'Yêu cầu hỗ trợ mới' : 'Khách nhắn thêm';
+        const textToSend = `${colorEmoji} ${prefix}\nSession: ${sessionId}\n${message}`;
 
         try {
             await this.bot.sendMessage(adminChatId, textToSend);
