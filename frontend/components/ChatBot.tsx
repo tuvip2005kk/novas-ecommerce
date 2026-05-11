@@ -11,6 +11,7 @@ import {
   Loader2,
   ChevronDown,
   HeadphonesIcon,
+  ExternalLink,
 } from "lucide-react";
 import { io, Socket } from "socket.io-client";
 import { usePathname } from "next/navigation";
@@ -18,6 +19,13 @@ import { usePathname } from "next/navigation";
 interface Message {
   role: "user" | "model" | "staff" | "system";
   content: string;
+}
+
+interface ProductCardData {
+  name: string;
+  price: string;
+  href: string;
+  image: string;
 }
 
 export default function ChatBot() {
@@ -98,6 +106,32 @@ export default function ChatBot() {
     return null;
   }
 
+  const getAssetUrl = (value: string) => {
+    if (!value) return "/images/placeholder.png";
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith("/uploads")) return `${API_URL}${value}`;
+    if (value.startsWith("/")) return value;
+    return `${API_URL}/${value}`;
+  };
+
+  const decodeField = (value: string) => {
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  };
+
+  const parseProductCard = (token: string): ProductCardData | null => {
+    const match = token.match(/^\[\[PRODUCT_CARD\|(.+)\]\]$/);
+    if (!match) return null;
+
+    const [name, price, href, image] = match[1].split("|").map(decodeField);
+    if (!name || !href) return null;
+
+    return { name, price, href, image };
+  };
+
   const formatMessage = (text: string) => {
     const escaped = text
       .replace(/&/g, "&amp;")
@@ -109,7 +143,62 @@ export default function ChatBot() {
     return escaped
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
       .replace(/\*(.*?)\*/g, "<em>$1</em>")
+      .replace(
+        /(^|[\s(])((?:https?:\/\/[^\s<]+)|(?:\/products\/\d+))/g,
+        (_match, prefix, url) =>
+          `${prefix}<a href="${url}" class="font-semibold text-[#21246b] underline underline-offset-2" ${
+            url.startsWith("http") ? 'target="_blank" rel="noreferrer"' : ""
+          }>Xem chi tiết</a>`,
+      )
       .replace(/\n/g, "<br/>");
+  };
+
+  const renderMessageContent = (content: string) => {
+    const parts = content
+      .split(/(\[\[PRODUCT_CARD\|[^\]]+\]\])/g)
+      .filter(Boolean);
+
+    return parts.map((part, index) => {
+      const card = parseProductCard(part);
+
+      if (!card) {
+        return (
+          <p
+            key={index}
+            dangerouslySetInnerHTML={{ __html: formatMessage(part.trim()) }}
+          />
+        );
+      }
+
+      return (
+        <a
+          key={index}
+          href={card.href}
+          className="mt-3 block overflow-hidden rounded-sm border border-gray-200 bg-white text-gray-900 shadow-sm transition hover:border-[#21246b]/40 hover:shadow-md"
+        >
+          <img
+            src={getAssetUrl(card.image)}
+            alt={card.name}
+            className="h-32 w-full bg-gray-100 object-cover"
+            loading="lazy"
+          />
+          <div className="space-y-1 p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Ảnh demo
+            </p>
+            <p className="text-sm font-semibold leading-snug text-gray-900">
+              {card.name}
+            </p>
+            {card.price && (
+              <p className="text-sm font-bold text-[#21246b]">{card.price}</p>
+            )}
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#21246b]">
+              Xem chi tiết <ExternalLink className="h-3 w-3" />
+            </span>
+          </div>
+        </a>
+      );
+    });
   };
 
   const sendMessage = (text: string = input) => {
@@ -225,7 +314,7 @@ export default function ChatBot() {
                             Nhân viên CSKH
                           </p>
                         )}
-                        <p dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }} />
+                        {renderMessageContent(msg.content)}
                       </div>
                     </div>
                   );

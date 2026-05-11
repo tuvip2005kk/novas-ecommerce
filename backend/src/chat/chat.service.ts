@@ -7,10 +7,12 @@ export interface ChatMessage {
 }
 
 type ProductForChat = {
+    id: number;
     name: string;
     price: number;
     originalPrice: number | null;
     description: string;
+    image: string;
     slug: string;
     stock: number;
     soldCount: number;
@@ -130,7 +132,8 @@ export class ChatService {
             ratingSignal.replace(/^, /, ''),
             specs ? `thông số: ${specs}` : '',
             product.description ? `mô tả: ${this.shortText(product.description)}` : '',
-            `link /products/${product.slug}`,
+            `link /products/${product.id}`,
+            product.image ? `ảnh demo ${product.image}` : '',
         ]
             .filter(Boolean)
             .join(' | ');
@@ -139,10 +142,12 @@ export class ChatService {
     private async getRelevantProducts(message: string): Promise<ProductForChat[]> {
         const terms = this.extractSearchTerms(message);
         const productSelect = {
+            id: true,
             name: true,
             price: true,
             originalPrice: true,
             description: true,
+            image: true,
             slug: true,
             stock: true,
             soldCount: true,
@@ -440,6 +445,36 @@ CHÍNH SÁCH TƯ VẤN MẶC ĐỊNH:
         return match ? match[0] : trimmed;
     }
 
+    private productCardToken(product: ProductForChat): string {
+        const fields = [
+            product.name,
+            this.formatCurrency(product.price),
+            `/products/${product.id}`,
+            product.image || '',
+        ].map((value) => encodeURIComponent(value));
+
+        return `[[PRODUCT_CARD|${fields.join('|')}]]`;
+    }
+
+    private async enrichReplyWithProductCards(reply: string, message: string): Promise<string> {
+        if (reply.includes('[[PRODUCT_CARD|')) return reply;
+
+        const products = await this.getRelevantProducts(message);
+        if (!products.length) return reply;
+
+        const normalizedReply = this.normalizeText(reply);
+        const matched = products
+            .filter((product) => {
+                const normalizedName = this.normalizeText(product.name);
+                return normalizedReply.includes(normalizedName) || normalizedReply.includes(product.slug);
+            })
+            .slice(0, 3);
+
+        if (!matched.length) return reply;
+
+        return `${reply}\n\n${matched.map((product) => this.productCardToken(product)).join('\n')}`;
+    }
+
     async chat(message: string, history: ChatMessage[]): Promise<string> {
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
@@ -524,7 +559,7 @@ Quy tắc handoff:
                 finalReply += ' [ACTION:HANDOFF]';
             }
 
-            return finalReply;
+            return this.enrichReplyWithProductCards(finalReply, message);
         } catch (error) {
             console.error('Lỗi parse JSON từ Groq:', text);
             return 'Xin lỗi, tôi đang xử lý chưa ổn. Bạn có thể hỏi lại ngắn gọn hơn hoặc yêu cầu gặp nhân viên tư vấn.';
