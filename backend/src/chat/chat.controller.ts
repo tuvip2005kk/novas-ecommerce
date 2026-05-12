@@ -38,6 +38,9 @@ export class ChatController {
     async getAdminSessions() {
         if (!this.prisma) return [];
         return this.prisma.chatSession.findMany({
+            where: {
+                messages: { some: {} },
+            },
             orderBy: { updatedAt: 'desc' },
             include: {
                 messages: {

@@ -82,7 +82,12 @@ export default function AdminLiveChat() {
       const res = await fetch(`${API_URL}/api/chat/admin/sessions`);
       if (res.ok) {
         const data = await res.json();
-        setSessions(data);
+        const sessionsWithMessages = Array.isArray(data)
+          ? data.filter((session: ChatSession) =>
+              session.messages?.some((message) => message.content?.trim())
+            )
+          : [];
+        setSessions(sessionsWithMessages);
       }
     } catch (error) {
       console.error("Lỗi lấy danh sách session:", error);

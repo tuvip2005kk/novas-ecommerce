@@ -133,7 +133,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
         client.join(sessionId);
         this.clientSessions.set(client.id, sessionId);
-        await this.ensureSessionExists(sessionId);
         this.logger.log(`Client ${client.id} joined session room: ${sessionId}`);
     }
 
