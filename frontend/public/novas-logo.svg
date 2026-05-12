@@ -1,0 +1,10 @@
+<svg width="214" height="52" viewBox="0 0 214 52" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Novas logo</title>
+  <desc id="desc">Novas wordmark with a deep blue monogram.</desc>
+  <rect x="3" y="3" width="46" height="46" rx="10" fill="white"/>
+  <path d="M13 38V14h6.5l13 17.2V14H39v24h-6.2l-13.3-17.6V38H13Z" fill="#21246B"/>
+  <path d="M36.5 13.5h7v7" stroke="#04ABCC" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M53 8l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8L53 8Z" fill="#F8C94E"/>
+  <path d="M67.6 37V15h5.1l14.5 14.8V15h6.3v22h-4.9L74 22.1V37h-6.4ZM108.3 37.5c-7.1 0-12.3-4.8-12.3-11.5s5.2-11.5 12.3-11.5 12.3 4.8 12.3 11.5-5.2 11.5-12.3 11.5Zm0-5.6c3.5 0 5.8-2.4 5.8-5.9s-2.3-5.9-5.8-5.9-5.8 2.4-5.8 5.9 2.3 5.9 5.8 5.9ZM130.7 37l-10-22h7l5.9 14.4 6-14.4h6.8l-10 22h-5.7ZM143.4 37l10.2-22h6.2L170 37h-6.9l-1.7-4h-9.6l-1.7 4h-6.7Zm10.4-8.8h5.6l-2.8-6.8-2.8 6.8ZM181.4 37.5c-4.2 0-8.1-1.1-10.9-3l2.2-4.8c2.7 1.7 5.9 2.7 8.8 2.7 2.4 0 3.5-.6 3.5-1.7 0-3.5-13.6-.5-13.6-9.1 0-4.2 3.7-7.1 10.2-7.1 3.5 0 6.7.8 9.2 2.2l-2 4.8c-2.4-1.2-5-1.8-7.2-1.8-2.5 0-3.5.8-3.5 1.8 0 3.3 13.6.4 13.6 8.9 0 4.2-3.8 7.1-10.3 7.1Z" fill="white"/>
+  <path d="M67.8 44h123.4" stroke="white" stroke-opacity=".36" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -20,7 +20,7 @@ export default function GioiThieuPage() {
               <div className="relative aspect-video">
                 <iframe 
                   className="absolute inset-0 w-full h-full"
-                  src="https://www.youtube.com/embed/VinximiywVs?si=cZkmv9DdI968H4eb" 
+                  src="https://www.youtube.com/shorts/_mAoyCSJnHE" 
                   title="Novas Video"
                   frameBorder="0" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 

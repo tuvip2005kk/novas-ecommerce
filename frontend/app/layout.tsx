@@ -11,6 +11,10 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Website Bán Thiết Bị Vệ Sinh Thông Minh - Novas',
   description: 'Chuyên cung cấp các thiết bị vệ sinh thông minh, cao cấp và chính hãng.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

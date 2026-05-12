@@ -60,7 +60,8 @@ export function AdminSidebar({ onClose }: { onClose?: () => void }) {
                 <Link href="/" className="text-xs text-slate-500 hover:text-slate-900 mb-1 block">
                     ← Trang chủ
                 </Link>
-                <h1 className="text-sm font-bold text-slate-900">Admin Panel</h1>
+                <img src="/novas-logo-navy.svg" alt="Novas" className="h-8 w-auto" />
+                <h1 className="mt-2 text-sm font-bold text-slate-900">Admin Panel</h1>
             </div>
 
             {/* Navigation */}

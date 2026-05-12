@@ -34,8 +34,8 @@ export function Header() {
                 <div className="max-w-[1400px] mx-auto px-4 md:px-6 h-[70px] flex items-center justify-between">
                     {/* Left: Logo + Navigation */}
                     <div className="flex items-center gap-8">
-                        <Link href="/" className="text-3xl font-extrabold text-white hover:opacity-80 transition-opacity tracking-tight">
-                            NOVAS
+                        <Link href="/" className="flex items-center hover:opacity-90 transition-opacity" aria-label="Novas trang chủ">
+                            <img src="/novas-logo.svg" alt="Novas" className="h-10 w-auto md:h-11" />
                         </Link>
 
                         <div className="hidden md:flex items-center space-x-6 text-sm font-bold text-white uppercase">

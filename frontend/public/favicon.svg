@@ -1,0 +1,8 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Novas favicon</title>
+  <desc id="desc">Deep blue Novas favicon.</desc>
+  <rect width="64" height="64" rx="14" fill="#21246B"/>
+  <path d="M16 46V18h7.5l17 19.3V18H48v28h-7.1L23.5 26.3V46H16Z" fill="white"/>
+  <path d="M43.8 15.8h8.4v8.4" stroke="#04ABCC" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M52.5 42l1.7 3.5 3.9.6-2.8 2.7.7 3.8-3.5-1.8-3.5 1.8.7-3.8-2.8-2.7 3.9-.6 1.7-3.5Z" fill="#F8C94E"/>
+</svg>

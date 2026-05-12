@@ -49,7 +49,7 @@ export default function AdminLayout({
         <div className="min-h-screen bg-slate-50">
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 flex items-center justify-between z-50">
-                <h1 className="text-sm font-bold">Admin</h1>
+                <img src="/novas-logo-navy.svg" alt="Novas Admin" className="h-8 w-auto" />
                 <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1">
                     {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                 </button>
